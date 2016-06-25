@@ -26,7 +26,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE})
 public @interface ProxyHandlerModule {
-    Class<?> value();
-
     boolean simple() default true;
 }

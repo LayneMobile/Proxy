@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.types;
+package com.laynemobile.proxy;
 
 import com.laynemobile.proxy.internal.Util;
 
@@ -39,10 +39,10 @@ import java.util.Properties;
  * @author Bob Lee
  * @author Jesse Wilson
  */
-final class $Api$Types {
+final class $Proxy$Types {
     static final Type[] EMPTY_TYPE_ARRAY = new Type[]{};
 
-    private $Api$Types() {
+    private $Proxy$Types() {
         throw new UnsupportedOperationException();
     }
 
@@ -249,7 +249,7 @@ final class $Api$Types {
     static Type getSupertype(Type context, Class<?> contextRawType, Class<?> supertype) {
         Util.checkArgument(supertype.isAssignableFrom(contextRawType));
         return resolve(context, contextRawType,
-                $Api$Types.getGenericSupertype(context, contextRawType, supertype));
+                $Proxy$Types.getGenericSupertype(context, contextRawType, supertype));
     }
 
     /**
@@ -449,7 +449,7 @@ final class $Api$Types {
 
         @Override public boolean equals(Object other) {
             return other instanceof ParameterizedType
-                    && $Api$Types.equals(this, (ParameterizedType) other);
+                    && $Proxy$Types.equals(this, (ParameterizedType) other);
         }
 
         @Override public int hashCode() {
@@ -489,7 +489,7 @@ final class $Api$Types {
 
         @Override public boolean equals(Object o) {
             return o instanceof GenericArrayType
-                    && $Api$Types.equals(this, (GenericArrayType) o);
+                    && $Proxy$Types.equals(this, (GenericArrayType) o);
         }
 
         @Override public int hashCode() {
@@ -539,7 +539,7 @@ final class $Api$Types {
 
         @Override public boolean equals(Object other) {
             return other instanceof WildcardType
-                    && $Api$Types.equals(this, (WildcardType) other);
+                    && $Proxy$Types.equals(this, (WildcardType) other);
         }
 
         @Override public int hashCode() {

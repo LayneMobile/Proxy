@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.types;
+package com.laynemobile.proxy;
 
 import com.laynemobile.proxy.internal.Util;
 
@@ -54,7 +54,7 @@ public class TypeToken<T> {
      */
     @SuppressWarnings("unchecked") protected TypeToken() {
         this.type = getSuperclassTypeParameter(getClass());
-        this.rawType = (Class<? super T>) $Api$Types.getRawType(type);
+        this.rawType = (Class<? super T>) $Proxy$Types.getRawType(type);
         this.hashCode = type.hashCode();
     }
 
@@ -62,13 +62,13 @@ public class TypeToken<T> {
      * Unsafe. Constructs a type literal manually.
      */
     @SuppressWarnings("unchecked") TypeToken(Type type) {
-        this.type = $Api$Types.canonicalize(Util.checkNotNull(type));
-        this.rawType = (Class<? super T>) $Api$Types.getRawType(this.type);
+        this.type = $Proxy$Types.canonicalize(Util.checkNotNull(type));
+        this.rawType = (Class<? super T>) $Proxy$Types.getRawType(this.type);
         this.hashCode = this.type.hashCode();
     }
 
     /**
-     * Returns the type from super class's type parameter in {@link $Api$Types#canonicalize canonical form}.
+     * Returns the type from super class's type parameter in {@link $Proxy$Types#canonicalize canonical form}.
      */
     static Type getSuperclassTypeParameter(Class<?> subclass) {
         Type superclass = subclass.getGenericSuperclass();
@@ -76,7 +76,7 @@ public class TypeToken<T> {
             throw new RuntimeException("Missing type parameter.");
         }
         ParameterizedType parameterized = (ParameterizedType) superclass;
-        return $Api$Types.canonicalize(parameterized.getActualTypeArguments()[0]);
+        return $Proxy$Types.canonicalize(parameterized.getActualTypeArguments()[0]);
     }
 
     /**
@@ -119,12 +119,12 @@ public class TypeToken<T> {
         }
 
         if (type instanceof Class<?>) {
-            return rawType.isAssignableFrom($Api$Types.getRawType(from));
+            return rawType.isAssignableFrom($Proxy$Types.getRawType(from));
         } else if (type instanceof ParameterizedType) {
             return isAssignableFrom(from, (ParameterizedType) type,
                     new HashMap<String, Type>());
         } else if (type instanceof GenericArrayType) {
-            return rawType.isAssignableFrom($Api$Types.getRawType(from))
+            return rawType.isAssignableFrom($Proxy$Types.getRawType(from))
                     && isAssignableFrom(from, (GenericArrayType) type);
         } else {
             throw buildUnexpectedTypeError(
@@ -181,7 +181,7 @@ public class TypeToken<T> {
         }
 
         // First figure out the class and any type information.
-        Class<?> clazz = $Api$Types.getRawType(from);
+        Class<?> clazz = $Proxy$Types.getRawType(from);
         ParameterizedType ptype = null;
         if (from instanceof ParameterizedType) {
             ptype = (ParameterizedType) from;
@@ -267,11 +267,11 @@ public class TypeToken<T> {
 
     @Override public final boolean equals(Object o) {
         return o instanceof TypeToken<?>
-                && $Api$Types.equals(type, ((TypeToken<?>) o).type);
+                && $Proxy$Types.equals(type, ((TypeToken<?>) o).type);
     }
 
     @Override public final String toString() {
-        return $Api$Types.typeToString(type);
+        return $Proxy$Types.typeToString(type);
     }
 
     /**

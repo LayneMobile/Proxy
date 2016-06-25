@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy;
+package com.laynemobile.proxy.processor;
 
-import com.laynemobile.proxy.types.TypeHandler;
-
-public interface ProcessorHandler<T, P, H> {
-    TypeHandler<H> typeHandler();
-
-    Processor.Extension<T, P> extension(H h);
+public interface ErrorHandler<T> {
+    T onError(Throwable throwable);
 }

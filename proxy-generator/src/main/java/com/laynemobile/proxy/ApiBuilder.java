@@ -18,6 +18,7 @@ package com.laynemobile.proxy;
 
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.internal.ProxyLog;
+import com.laynemobile.proxy.processor.ProcessorHandler;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -40,8 +41,10 @@ import java.util.Set;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.MirroredTypesException;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import static com.laynemobile.proxy.Constants.Override;
@@ -51,6 +54,7 @@ final class ApiBuilder {
     private static final String TAG = ApiBuilder.class.getSimpleName();
 
     private final TypeElement api;
+    private final Elements elementUtils;
     private final Types typeUtils;
 
     private final ClassName className;
@@ -63,8 +67,9 @@ final class ApiBuilder {
     final ClassName builderClassName;
     final TypeName builderTypeName;
 
-    ApiBuilder(TypeElement api, Types typeUtils) {
+    ApiBuilder(TypeElement api, Elements elementUtils, Types typeUtils) {
         this.api = api;
+        this.elementUtils = elementUtils;
         this.typeUtils = typeUtils;
 
         List<TypeVariableName> typeParams = Util.parseTypeParams(api);
@@ -73,7 +78,7 @@ final class ApiBuilder {
         this.typeName = Util.paramType(className, typeParams);
         this.builderTypeName = Util.paramType(builderClassName, typeParams);
         this.baseApiType = Util.parseBaseApiType(api, typeUtils);
-        this.superTypeParams = Collections.unmodifiableList(baseApiType.typeName.typeArguments);
+        this.superTypeParams = Collections.unmodifiableList(baseApiType.typeArguments);
         this.classBuilder = TypeSpec.classBuilder(builderClassName.simpleName())
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addSuperinterface(Util.builder(typeName))
@@ -101,14 +106,35 @@ final class ApiBuilder {
         Set<ClassName> sourceTypes = new HashSet<>();
         ProxyLog.d(TAG, "GenerateApiBuilder element: %s", api.getQualifiedName());
         GenerateProxyBuilder annotation = api.getAnnotation(GenerateProxyBuilder.class);
+
         try {
-            Class<? extends ProcessorHandlerBuilder<?, ?, ?>>[] builders = annotation.value();
+            Class<? extends Builder<? extends ProcessorHandler.Parent<?, ?, ?>>> parent = annotation.value();
+            throw new IllegalStateException(
+                    "should throw MirroredTypesException. Not sure what do do if not! " + parent);
+        } catch (MirroredTypeException e) {
+            TypeMirror mirror = e.getTypeMirror();
+            // Parent type TODO:
+            TypeElement source = (TypeElement) typeUtils.asElement(mirror);
+            ModuleBuilder moduleBuilder = new ModuleBuilder(this, source, elementUtils, typeUtils);
+            ClassName sourceType = moduleBuilder.getSourceType();
+            if (sourceTypes.contains(sourceType)) {
+                throw new IllegalStateException(
+                        "Cannot add module '" + source.getQualifiedName() + "' because source type " +
+                                "'" + sourceType + "' is already defined for another module in '" +
+                                api.getQualifiedName() + "'");
+            }
+            sourceTypes.add(sourceType);
+            moduleBuilder.writeTo(classBuilder);
+        }
+
+        try {
+            Class<? extends Builder<? extends ProcessorHandler<?, ?, ?>>>[] builders = annotation.extensions();
             throw new IllegalStateException("should throw MirroredTypesException. Not sure what do do if not! " +
                     Arrays.toString(builders));
         } catch (MirroredTypesException e) {
             for (TypeMirror mirror : e.getTypeMirrors()) {
                 TypeElement source = (TypeElement) typeUtils.asElement(mirror);
-                ModuleBuilder moduleBuilder = new ModuleBuilder(this, source, typeUtils);
+                ModuleBuilder moduleBuilder = new ModuleBuilder(this, source, elementUtils, typeUtils);
                 ClassName sourceType = moduleBuilder.getSourceType();
                 if (sourceTypes.contains(sourceType)) {
                     throw new IllegalStateException(

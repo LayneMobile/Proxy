@@ -16,7 +16,8 @@
 
 package com.laynemobile.proxy.annotations;
 
-import com.laynemobile.proxy.ProcessorHandlerBuilder;
+import com.laynemobile.proxy.Builder;
+import com.laynemobile.proxy.processor.ProcessorHandler;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -28,5 +29,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target({ElementType.TYPE})
 public @interface GenerateProxyBuilder {
-    Class<? extends ProcessorHandlerBuilder<?, ?, ?>>[] value();
+    Class<? extends Builder<? extends ProcessorHandler.Parent<?, ?, ?>>> value();
+
+    Class<? extends Builder<? extends ProcessorHandler<?, ?, ?>>>[] extensions() default {};
 }

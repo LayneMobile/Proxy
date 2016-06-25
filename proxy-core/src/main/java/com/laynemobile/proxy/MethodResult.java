@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.types;
+package com.laynemobile.proxy;
 
 public final class MethodResult {
     private Object result;

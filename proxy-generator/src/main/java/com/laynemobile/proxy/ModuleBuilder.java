@@ -36,11 +36,14 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import static com.laynemobile.proxy.internal.Util.nullSafe;
+import static java.lang.System.out;
 
 final class ModuleBuilder {
     private static final String TAG = ModuleBuilder.class.getSimpleName();
@@ -54,7 +57,7 @@ final class ModuleBuilder {
     private final List<String> orderedMethodNames;
     private final boolean simple;
 
-    ModuleBuilder(ApiBuilder apiBuilder, TypeElement module, Types typeUtils) {
+    ModuleBuilder(ApiBuilder apiBuilder, TypeElement module, Elements elementUtils, Types typeUtils) {
         this.apiBuilder = apiBuilder;
         this.typeUtils = typeUtils;
         List<TypeVariableName> typeParams = Util.parseTypeParams(module);
@@ -67,15 +70,60 @@ final class ModuleBuilder {
                     module.getQualifiedName() + " must have '" + ProxyHandlerModule.class + "' annotation");
         }
 
-        ClassName sourceType;
-        try {
-            sourceType = ClassName.get(annotation.value());
-        } catch (MirroredTypeException e) {
-            TypeMirror mirror = e.getTypeMirror();
-            TypeElement typeElement = (TypeElement) typeUtils.asElement(mirror);
-            sourceType = ClassName.get(typeElement);
+        out.printf("module type: %s\n", module);
+
+        TypeElement builderElement = elementUtils.getTypeElement("com.laynemobile.proxy.Builder");
+        DeclaredType builder = null;
+        for (TypeMirror type : module.getInterfaces()) {
+            out.printf("module interface: %s\n", type);
+            if (type.getKind() == TypeKind.DECLARED && builderElement.equals(typeUtils.asElement(type))) {
+                builder = (DeclaredType) type;
+                break;
+            }
         }
-        this.sourceType = sourceType;
+
+        out.printf("builder element: %s\n", builderElement);
+
+        TypeMirror typeArgument;
+        if (builder == null
+                || builder.getTypeArguments().size() != 1
+                || ((typeArgument = builder.getTypeArguments().get(0)).getKind() != TypeKind.DECLARED)) {
+            throw new IllegalStateException(
+                    module.getQualifiedName() + " must implement Builder<ProcessorHandler>'");
+        }
+
+        out.printf("handler type: %s\n", typeArgument);
+
+        DeclaredType processorHandler = null;
+        TypeElement processorHandlerElement
+                = elementUtils.getTypeElement("com.laynemobile.proxy.processor.ProcessorHandler");
+        if (processorHandlerElement.equals(typeUtils.asElement(typeArgument))) {
+            processorHandler = (DeclaredType) typeArgument;
+            out.println("handler type is processor");
+        } else {
+            for (TypeMirror superType : typeUtils.directSupertypes(typeArgument)) {
+                out.printf("handler direct superType: %s\n", superType);
+                if (processorHandlerElement.equals(typeUtils.asElement(superType))) {
+                    out.printf("found processor handler type: %s\n", superType);
+                    processorHandler = (DeclaredType) superType;
+                }
+            }
+        }
+        if (processorHandler == null) {
+            throw new IllegalStateException(
+                    module.getQualifiedName() + "must build a " + processorHandlerElement);
+        }
+
+        out.printf("processor handler type: %s\n", processorHandler);
+        List<? extends TypeMirror> args = processorHandler.getTypeArguments();
+        if (args.size() != 3) {
+            throw new IllegalStateException("wrong type arg size. needs 3.");
+        }
+        TypeMirror typeArg = args.get(2);
+        out.printf("processor handler type arg: %s\n", typeArg);
+
+        TypeElement typeElement = (TypeElement) typeUtils.asElement(typeArg);
+        this.sourceType = ClassName.get(typeElement);
         this.simple = annotation.simple();
 
         ProxyLog.d(TAG, "module %s", module.getQualifiedName());
@@ -97,18 +145,18 @@ final class ModuleBuilder {
                     ExecutableElement method = (ExecutableElement) sourceElement;
                     String name = method.getSimpleName().toString();
                     if ("build".equals(name)) {
-                        if (method.getParameters().size() != 0) {
-                            throw new IllegalStateException("build() method must not have arguments");
+                        if (method.getParameters().size() == 0) {
+                            buildMethod = method;
+                            break;
                         }
-                        buildMethod = method;
-                        break;
                     } else if ("buildModules".equals(name)) {
                         if (method.getParameters().size() != 0) {
-                            throw new IllegalStateException("buildModules() method must not have arguments");
+                            buildMethod = method;
+                            break;
                         }
-                        buildMethod = method;
-                        break;
-                    } else if (method.getModifiers().contains(Modifier.PUBLIC)) {
+                    }
+                    if (method.getModifiers().contains(Modifier.PUBLIC)
+                            && !method.getModifiers().contains(Modifier.STATIC)) {
                         List<ExecutableElement> list = methods.get(name);
                         if (list == null) {
                             list = new ArrayList<>();

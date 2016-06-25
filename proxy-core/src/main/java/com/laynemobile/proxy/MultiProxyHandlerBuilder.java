@@ -16,8 +16,14 @@
 
 package com.laynemobile.proxy;
 
-import org.immutables.value.Value;
+public abstract class MultiProxyHandlerBuilder<T> implements Builder<ProxyHandler<T>> {
+    public abstract ProxyHandler<T>[] buildModules();
 
-@Value.Immutable
-@Style
-abstract class AbstractInterceptProcessor<T, P> extends InterceptProcessor<T, P> {}
+    @Override public final ProxyHandler<T> build() {
+        ProxyHandler<T>[] modules = buildModules();
+        if (modules.length == 1) {
+            return modules[0];
+        }
+        throw new UnsupportedOperationException("this class builds more than one module");
+    }
+}

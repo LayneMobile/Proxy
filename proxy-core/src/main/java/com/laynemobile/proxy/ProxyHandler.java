@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.types;
+package com.laynemobile.proxy;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,11 +22,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class TypeHandler<T> {
+public final class ProxyHandler<T> {
     final TypeToken<T> type;
     final Map<String, List<MethodHandler>> handlers;
 
-    private TypeHandler(Builder<T> builder) {
+    private ProxyHandler(Builder<T> builder) {
         this.type = builder.type;
         this.handlers = Collections.unmodifiableMap(builder.handlers);
     }
@@ -34,12 +34,16 @@ public final class TypeHandler<T> {
     @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        TypeHandler module = (TypeHandler) o;
+        ProxyHandler module = (ProxyHandler) o;
         return type.equals(module.type);
     }
 
     @Override public int hashCode() {
         return type.hashCode();
+    }
+
+    public static <T> Builder<T> builder(Class<T> type) {
+        return builder(TypeToken.get(type));
     }
 
     public static <T> Builder<T> builder(TypeToken<T> type) {
@@ -65,8 +69,8 @@ public final class TypeHandler<T> {
                     .add();
         }
 
-        public TypeHandler<T> build() {
-            return new TypeHandler<T>(this);
+        public ProxyHandler<T> build() {
+            return new ProxyHandler<T>(this);
         }
 
         private Builder<T> add(MethodBuilder<T> builder) {

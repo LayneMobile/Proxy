@@ -16,5 +16,8 @@
 
 package com.laynemobile.proxy;
 
-public interface ProcessorHandlerBuilder<T, P, H>
-        extends Builder<ProcessorHandler<T, P, H>> {}
+import java.lang.reflect.Method;
+
+public interface MethodHandler {
+    boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable;
+}

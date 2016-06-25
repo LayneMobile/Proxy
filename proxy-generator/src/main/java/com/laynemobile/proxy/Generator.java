@@ -17,6 +17,8 @@
 package com.laynemobile.proxy;
 
 import com.google.auto.service.AutoService;
+import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.internal.ProxyLog;
 
 import java.io.IOException;
 import java.util.Set;
@@ -30,22 +32,24 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 
 import static javax.tools.Diagnostic.Kind.ERROR;
 
 @AutoService(Processor.class)
 public class Generator extends AbstractProcessor {
 
+    private Elements elementUtils;
     private Types typeUtils;
     private Filer filer;
 
     @Override public synchronized void init(ProcessingEnvironment env) {
         super.init(env);
         filer = env.getFiler();
+        elementUtils = env.getElementUtils();
         typeUtils = env.getTypeUtils();
+        ProxyLog.setLogger(new ConsoleLogger());
     }
 
     @Override public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
@@ -63,7 +67,7 @@ public class Generator extends AbstractProcessor {
                 TypeElement typeElement = (TypeElement) element;
                 if (kind.annotationType == GenerateProxyBuilder.class) {
                     try {
-                        new ApiBuilder(typeElement, typeUtils)
+                        new ApiBuilder(typeElement, elementUtils, typeUtils)
                                 .writeTo(filer);
                     } catch (IOException e) {
                         error("exception %s", e);

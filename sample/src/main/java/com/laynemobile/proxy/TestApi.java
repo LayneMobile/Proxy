@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.types;
+package com.laynemobile.proxy;
 
-import java.lang.reflect.Method;
+import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 
-public interface MethodHandler {
-    boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable;
+@GenerateProxyBuilder(TestProxyHandlerModule.class)
+public class TestApi<T, P> {
 }

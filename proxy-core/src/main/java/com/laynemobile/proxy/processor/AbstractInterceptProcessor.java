@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy;
+package com.laynemobile.proxy.processor;
 
-public interface ProcessorHandlerParentBuilder<T, P, H>
-        extends Builder<ProcessorHandlerParent<T, P, H>> {}
+import org.immutables.value.Value;
+
+@Value.Immutable
+@Style
+abstract class AbstractInterceptProcessor<T, P> extends InterceptProcessor<T, P> {}

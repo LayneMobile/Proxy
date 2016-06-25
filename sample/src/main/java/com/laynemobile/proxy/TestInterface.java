@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.types;
+package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.Builder;
-
-public interface TypeHandlerBuilder<T> extends Builder<TypeHandler<T>> {}
+public interface TestInterface {
+    String transform(Integer integer);
+}

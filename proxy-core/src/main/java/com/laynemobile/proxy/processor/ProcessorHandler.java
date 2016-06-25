@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.types;
+package com.laynemobile.proxy.processor;
 
-public abstract class MultiTypeHandlerBuilder<T> implements TypeHandlerBuilder<T> {
-    public abstract TypeHandler<T>[] buildModules();
+import com.laynemobile.proxy.ProxyHandler;
 
-    @Override public final TypeHandler<T> build() {
-        TypeHandler<T>[] modules = buildModules();
-        if (modules.length == 1) {
-            return modules[0];
-        }
-        throw new UnsupportedOperationException("this class builds more than one module");
+public interface ProcessorHandler<T, R, PROXY> {
+    ProxyHandler<PROXY> proxyHandler();
+
+    Processor.Extension<T, R> extension(PROXY proxy);
+
+    interface Parent<T, R, PROXY> extends ProcessorHandler<T, R, PROXY> {
+        @Override Processor.Parent<T, R> extension(PROXY proxy);
     }
 }

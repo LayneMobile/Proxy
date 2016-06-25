@@ -45,7 +45,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.Types;
 
-import static com.laynemobile.proxy.Constants.BaseApi;
 import static com.laynemobile.proxy.Constants.Builder;
 import static com.laynemobile.proxy.Constants.List;
 import static com.laynemobile.proxy.Constants.PACKAGE;
@@ -242,13 +241,13 @@ final class Util {
 
     static ContainerType parseBaseApiType(TypeElement api, Types typeUtils) {
         ContainerType baseApiType = null;
-        TypeMirror superClass = api.getSuperclass();
+        TypeMirror superClass = api.asType();
         while (baseApiType == null && superClass.getKind() != TypeKind.NONE) {
             TypeName superClassType = TypeName.get(superClass);
             if (superClassType instanceof ParameterizedTypeName) {
                 ParameterizedTypeName ptn = (ParameterizedTypeName) superClassType;
-                if (ptn.rawType.equals(BaseApi)) {
-                    baseApiType = new ContainerType(ptn, superClass);
+                if (ptn.typeArguments.size() == 2) {
+                    baseApiType = new ContainerType(superClassType, superClass);
                 }
             }
             if (baseApiType == null) {
@@ -263,11 +262,12 @@ final class Util {
     }
 
     static final class ContainerType {
-        final ParameterizedTypeName typeName;
+        final TypeName typeName;
+        final List<TypeName> typeArguments;
         final TypeMirror type;
         final ParameterizedType parameterizedType;
 
-        private ContainerType(ParameterizedTypeName typeName, TypeMirror type) {
+        private ContainerType(TypeName typeName, TypeMirror type) {
             this.typeName = typeName;
             this.type = type;
             this.parameterizedType = type.accept(new SimpleTypeVisitor7<ParameterizedType, Void>() {
@@ -275,6 +275,11 @@ final class Util {
                     return new ParameterizedType(t);
                 }
             }, null);
+            List<TypeName> typeArguments = new ArrayList<>();
+            for (TypeMirror mirror : parameterizedType.typeArguments) {
+                typeArguments.add(TypeName.get(mirror));
+            }
+            this.typeArguments = Collections.unmodifiableList(typeArguments);
         }
     }
 

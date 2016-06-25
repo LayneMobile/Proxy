@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.types;
+package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.Builder;
 import com.laynemobile.proxy.internal.ProxyLog;
 import com.laynemobile.proxy.internal.Util;
 
@@ -24,7 +23,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,36 +30,39 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public final class TypeBuilder<T> implements Builder<T> {
+public final class ProxyBuilder<T> implements Builder<T> {
     private final TypeToken<T> baseType;
-    private final List<TypeHandler<? extends T>> handlers = new ArrayList<>();
+    private final List<ProxyHandler<? extends T>> handlers = new ArrayList<>();
 
-    public TypeBuilder(TypeToken<T> baseType) {
+    public ProxyBuilder(TypeToken<T> baseType) {
         this.baseType = baseType;
     }
 
-    public final TypeBuilder<T> module(TypeHandler<? extends T> module) {
-        if (contains(module.type)) {
-            String msg = String.format("handler type '%s' already defined", module.type);
+    public final ProxyBuilder<T> add(ProxyHandler<? extends T> handler) {
+        if (contains(handler.type)) {
+            String msg = String.format("handler type '%s' already defined", handler.type);
             throw new IllegalStateException(msg);
         }
-        this.handlers.add(module);
+        this.handlers.add(handler);
         return this;
     }
 
-    @SafeVarargs public final TypeBuilder<T> modules(TypeHandler<? extends T>... modules) {
-        return modules(Arrays.asList(modules));
+    @SafeVarargs public final ProxyBuilder<T> addAll(ProxyHandler<? extends T>... handlers) {
+        for (ProxyHandler<? extends T> handler : handlers) {
+            add(handler);
+        }
+        return this;
     }
 
-    public final TypeBuilder<T> modules(List<? extends TypeHandler<? extends T>> modules) {
-        for (TypeHandler<? extends T> module : modules) {
-            module(module);
+    public final ProxyBuilder<T> addAll(List<? extends ProxyHandler<? extends T>> handlers) {
+        for (ProxyHandler<? extends T> handler : handlers) {
+            add(handler);
         }
         return this;
     }
 
     public final boolean contains(Class<?> type) {
-        for (TypeHandler<?> module : handlers) {
+        for (ProxyHandler<?> module : handlers) {
             if (module.type.getRawType().equals(type)) {
                 return true;
             }
@@ -93,7 +94,7 @@ public final class TypeBuilder<T> implements Builder<T> {
     }
 
     private boolean contains(TypeToken<?> type) {
-        for (TypeHandler<?> module : handlers) {
+        for (ProxyHandler<?> module : handlers) {
             if (module.type.equals(type)) {
                 return true;
             }
@@ -102,10 +103,10 @@ public final class TypeBuilder<T> implements Builder<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T create(TypeToken<T> baseType, Collection<TypeHandler<? extends T>> extensions) {
+    private static <T> T create(TypeToken<T> baseType, Collection<ProxyHandler<? extends T>> extensions) {
         List<Class<?>> classes = new ArrayList<>(extensions.size());
         Map<String, List<MethodHandler>> handlers = new HashMap<>();
-        for (TypeHandler<? extends T> extension : extensions) {
+        for (ProxyHandler<? extends T> extension : extensions) {
             classes.add(extension.type.getRawType());
             for (Map.Entry<String, List<MethodHandler>> entry : extension.handlers.entrySet()) {
                 final String name = entry.getKey();

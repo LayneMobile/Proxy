@@ -16,7 +16,6 @@
 
 package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.types.TypeHandler;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
@@ -25,11 +24,10 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.util.List;
 
 final class Constants {
-    static final String PACKAGE = "com.laynemobile.api";
+    static final String PACKAGE = "com.laynemobile.proxy";
     static final ClassName Override = ClassName.get(Override.class);
-    static final ClassName BaseApi = ClassName.get(PACKAGE, "BaseApi");
     static final ClassName Source = ClassName.get(PACKAGE, "Source");
-    static final ClassName TypeHandler = ClassName.get(TypeHandler.class);
+    static final ClassName TypeHandler = ClassName.get(ProxyHandler.class);
     static final TypeName SourceModule
             = ParameterizedTypeName.get(TypeHandler, WildcardTypeName.subtypeOf(Source));
     static final ClassName Builder = ClassName.get(Builder.class);

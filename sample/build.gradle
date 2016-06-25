@@ -14,9 +14,33 @@
  * limitations under the License.
  */
 
-apply from: "${rootDir}/gradle/java-library.gradle"
+
+apply plugin: 'java'
+apply plugin: 'provided-base'
+
+sourceCompatibility = rootProject.ext.sourceCompatibility
+targetCompatibility = rootProject.ext.sourceCompatibility
+
+// Include the generated Version file
+sourceSets {
+    main {
+        java {
+            srcDir 'build/classes/main/generated'
+        }
+    }
+    test {
+        java {
+            srcDir 'build/classes/test/generated_tests'
+        }
+    }
+}
 
 dependencies {
-    compile "com.google.guava:guava:${appGuavaVersion}"
+    compile project(':proxy-annotations')
+    compile project(':proxy-core')
+    compile "io.reactivex:rxjava:${appRxJavaVersion}"
+
+    provided project(':proxy-generator')
+    provided "com.laynemobile.sourcerer:extensions-processor:${appSourcererVersion}"
     provided "org.immutables:value:${appImmutablesVersion}"
 }

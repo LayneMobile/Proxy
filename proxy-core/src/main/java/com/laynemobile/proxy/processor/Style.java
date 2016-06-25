@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy;
+package com.laynemobile.proxy.processor;
 
 import org.immutables.value.Value;
 
