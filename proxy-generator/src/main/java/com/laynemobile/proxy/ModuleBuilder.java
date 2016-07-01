@@ -48,7 +48,7 @@ import static java.lang.System.out;
 final class ModuleBuilder {
     private static final String TAG = ModuleBuilder.class.getSimpleName();
 
-    private final ApiBuilder apiBuilder;
+    private final ProxyProcessorBuilder processorBuilder;
     private final TypeName moduleType;
     private final ClassName sourceType;
     private final Types typeUtils;
@@ -57,12 +57,12 @@ final class ModuleBuilder {
     private final List<String> orderedMethodNames;
     private final boolean simple;
 
-    ModuleBuilder(ApiBuilder apiBuilder, TypeElement module, Elements elementUtils, Types typeUtils) {
-        this.apiBuilder = apiBuilder;
+    ModuleBuilder(ProxyProcessorBuilder processorBuilder, TypeElement module, Elements elementUtils, Types typeUtils) {
+        this.processorBuilder = processorBuilder;
         this.typeUtils = typeUtils;
         List<TypeVariableName> typeParams = Util.parseTypeParams(module);
         ClassName moduleClass = ClassName.get(module);
-        this.moduleType = Util.coallesceParamType(moduleClass, typeParams, apiBuilder.baseApiType, typeUtils);
+        this.moduleType = Util.coallesceParamType(moduleClass, typeParams, processorBuilder.baseApiType, typeUtils);
 
         ProxyHandlerModule annotation = module.getAnnotation(ProxyHandlerModule.class);
         if (annotation == null) {
@@ -194,10 +194,10 @@ final class ModuleBuilder {
     }
 
     void writeTo(TypeSpec.Builder classBuilder) {
-        ClassName builderName = apiBuilder.builderClassName;
+        ClassName builderName = processorBuilder.builderClassName;
         String packageName = builderName.packageName();
         String builderSimpleName = builderName.simpleName();
-        TypeName builderType = apiBuilder.builderTypeName;
+        TypeName builderType = processorBuilder.builderTypeName;
 
         String name = sourceType.simpleName() + "ModuleBuilder";
         ClassName moduleBuilderType = ClassName.get(packageName, builderSimpleName, name);
@@ -233,7 +233,7 @@ final class ModuleBuilder {
                         .addModifiers(Modifier.PUBLIC)
                         .returns(moduleBuilderType);
                 Util.copyTypeParams(ee, spec);
-                String params = Util.copyParameters(ee, spec, apiBuilder.baseApiType, typeUtils);
+                String params = Util.copyParameters(ee, spec, processorBuilder.baseApiType, typeUtils);
                 spec.addStatement("builder.$L($L)", methodName, params)
                         .addStatement("return this");
                 moduleBuilder.addMethod(spec.build());
@@ -243,7 +243,7 @@ final class ModuleBuilder {
                             .addModifiers(Modifier.PUBLIC)
                             .returns(builderType);
                     Util.copyTypeParams(ee, spec);
-                    params = Util.copyParameters(ee, spec, apiBuilder.baseApiType, typeUtils);
+                    params = Util.copyParameters(ee, spec, processorBuilder.baseApiType, typeUtils);
                     spec.addCode(CodeBlock.builder()
                             .add("return new $T()\n", moduleBuilderType)
                             .indent().indent().indent().indent()

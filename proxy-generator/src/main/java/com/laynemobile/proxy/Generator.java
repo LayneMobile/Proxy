@@ -67,7 +67,7 @@ public class Generator extends AbstractProcessor {
                 TypeElement typeElement = (TypeElement) element;
                 if (kind.annotationType == GenerateProxyBuilder.class) {
                     try {
-                        new ApiBuilder(typeElement, elementUtils, typeUtils)
+                        new ProxyProcessorBuilder(typeElement, elementUtils, typeUtils)
                                 .writeTo(filer);
                     } catch (IOException e) {
                         error("exception %s", e);

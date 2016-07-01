@@ -16,8 +16,30 @@
 
 package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.processor.Processor;
+import com.laynemobile.proxy.processor.ProcessorBuilder;
+import com.laynemobile.proxy.processor.ProcessorHandler;
 
-@GenerateProxyBuilder(TestProxyHandlerModule.class)
-public class TestApi<T, P> {
+import rx.functions.Func1;
+
+//@GenerateProxyBuilder(TestProxyHandlerModule.class)
+public class TestApi {
+
+    public Step2 setSource(Func1<Integer, String> source) {
+        TestInterfaceHandler builder = new TestInterfaceHandler();
+        builder.setSource(source);
+        return new Step2(builder.build());
+    }
+
+    public static final class Step2 {
+        private final com.laynemobile.proxy.processor.ProcessorBuilder<Integer, String, TestInterface> builder;
+
+        private Step2(ProcessorHandler.Parent<Integer, String, TestInterface> parent) {
+            this.builder = ProcessorBuilder.create(parent);
+        }
+
+        public Processor<Integer, String> build() {
+            return builder.build();
+        }
+    }
 }

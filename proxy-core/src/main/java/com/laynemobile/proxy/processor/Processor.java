@@ -20,10 +20,6 @@ public interface Processor<T, R> {
 
     R call(T t);
 
-    interface ErrorHandlerProcessor<T, R> extends Processor<T, R> {
-        ErrorHandler<R> errorHandler();
-    }
-
     // Marker interface
     interface Extension<T, R> {}
 

@@ -31,6 +31,18 @@ public final class ProxyHandler<T> {
         this.handlers = Collections.unmodifiableMap(builder.handlers);
     }
 
+    public static <T> Builder<T> builder(Class<T> type) {
+        return builder(TypeToken.get(type));
+    }
+
+    public static <T> Builder<T> builder(TypeToken<T> type) {
+        return new Builder<>(type);
+    }
+
+    public TypeToken<T> type() {
+        return type;
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -40,14 +52,6 @@ public final class ProxyHandler<T> {
 
     @Override public int hashCode() {
         return type.hashCode();
-    }
-
-    public static <T> Builder<T> builder(Class<T> type) {
-        return builder(TypeToken.get(type));
-    }
-
-    public static <T> Builder<T> builder(TypeToken<T> type) {
-        return new Builder<>(type);
     }
 
     public static final class Builder<T> {
@@ -61,6 +65,12 @@ public final class ProxyHandler<T> {
 
         public MethodBuilder<T> method(String methodName) {
             return new MethodBuilder<T>(this, methodName);
+        }
+
+        public Builder<T> handle(NamedMethodHandler handler) {
+            return method(handler.name())
+                    .handle(handler)
+                    .add();
         }
 
         public Builder<T> handle(String methodName, MethodHandler handler) {

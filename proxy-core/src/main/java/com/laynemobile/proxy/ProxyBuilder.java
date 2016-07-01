@@ -31,11 +31,14 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class ProxyBuilder<T> implements Builder<T> {
-    private final TypeToken<T> baseType;
-    private final List<ProxyHandler<? extends T>> handlers = new ArrayList<>();
+    private final TypeToken<T> type;
+    private final List<ProxyHandler<? extends T>> handlers;
 
-    public ProxyBuilder(TypeToken<T> baseType) {
-        this.baseType = baseType;
+    public ProxyBuilder(ProxyHandler<T> parent) {
+        List<ProxyHandler<? extends T>> handlers = new ArrayList<>();
+        handlers.add(parent);
+        this.type = parent.type();
+        this.handlers = handlers;
     }
 
     public final ProxyBuilder<T> add(ProxyHandler<? extends T> handler) {
@@ -86,11 +89,11 @@ public final class ProxyBuilder<T> implements Builder<T> {
     @Override public final T build() {
         if (handlers.isEmpty()) {
             throw new IllegalStateException("no handlers");
-        } else if (!contains(baseType.getRawType())) {
-            String msg = String.format(Locale.US, "must contain '%s' module", baseType);
+        } else if (!contains(type.getRawType())) {
+            String msg = String.format(Locale.US, "must contain '%s' module", type);
             throw new IllegalStateException(msg);
         }
-        return create(baseType, handlers);
+        return create(type, handlers);
     }
 
     private boolean contains(TypeToken<?> type) {

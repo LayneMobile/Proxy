@@ -16,6 +16,6 @@
 
 package com.laynemobile.proxy;
 
-public interface TestInterface {
-    String transform(Integer integer);
+public interface TestInterface<T, R> {
+    R call(T t);
 }

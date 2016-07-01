@@ -18,31 +18,31 @@ package com.laynemobile.proxy.processor;
 
 import com.laynemobile.proxy.Builder;
 import com.laynemobile.proxy.ProxyBuilder;
-import com.laynemobile.proxy.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class ProcessorBuilder<T, R, PROXY> implements Builder<Processor<T, R>> {
     private final ProxyBuilder<PROXY> proxyBuilder;
-    private ProcessorHandler.Parent<T, R, PROXY> parent;
+    private final ProcessorHandler.Parent<T, R, PROXY> parent;
     private final List<ProcessorHandler<T, R, ? extends PROXY>> handlers = new ArrayList<>();
 
-    private ProcessorBuilder(TypeToken<PROXY> type) {
-        this.proxyBuilder = new ProxyBuilder<>(type);
+    private ProcessorBuilder(ProcessorHandler.Parent<T, R, PROXY> parent) {
+        if (parent == null) {
+            throw new IllegalArgumentException("parent cannot be null");
+        }
+        this.proxyBuilder = new ProxyBuilder<>(parent.proxyHandler());
+        this.parent = parent;
     }
 
-    public static <T, R, H> ProcessorBuilder<T, R, H> create(TypeToken<H> type,
-            ProcessorHandler.Parent<T, R, H> parent) {
-        return new ProcessorBuilder<T, R, H>(type)
-                .add(parent);
+    public static <T, R, PROXY> ProcessorBuilder<T, R, PROXY> create(ProcessorHandler.Parent<T, R, PROXY> parent) {
+        return new ProcessorBuilder<>(parent);
     }
 
-    @SuppressWarnings("unchecked")
     public ProcessorBuilder<T, R, PROXY> add(ProcessorHandler<T, R, ? extends PROXY> handler) {
         proxyBuilder.add(handler.proxyHandler());
         if (handler instanceof ProcessorHandler.Parent) {
-            parent = (ProcessorHandler.Parent<T, R, PROXY>) handler;
+            throw new IllegalArgumentException("can only have one parent");
         } else {
             handlers.add(handler);
         }
@@ -64,13 +64,8 @@ public final class ProcessorBuilder<T, R, PROXY> implements Builder<Processor<T,
     }
 
     @Override public final Processor<T, R> build() {
-        if (parent == null) {
-            throw new IllegalArgumentException("ProcessorHandler.Parent cannot be null");
-        }
-
         final PROXY proxy = proxyBuilder.build();
-        final ImmutableInterceptProcessor.Builder<T, R> builder
-                = ImmutableInterceptProcessor.<T, R>builder()
+        final ImmutableInterceptProcessor.Builder<T, R> builder = ImmutableInterceptProcessor.<T, R>builder()
                 .setProcessor(parent.extension(proxy));
 
         for (ProcessorHandler<T, R, ? extends PROXY> handler : handlers) {

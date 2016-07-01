@@ -17,6 +17,7 @@
 apply from: "${rootDir}/gradle/java-library.gradle"
 
 dependencies {
+    compile project(':proxy-functions')
     compile "com.google.guava:guava:${appGuavaVersion}"
     provided "org.immutables:value:${appImmutablesVersion}"
 }

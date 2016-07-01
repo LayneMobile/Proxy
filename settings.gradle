@@ -17,6 +17,7 @@
 include 'proxy-generator',
         'proxy-core',
         'proxy-annotations',
+        'proxy-functions',
         'sample'
 
 rootProject.name = 'com.laynemobile.proxy'

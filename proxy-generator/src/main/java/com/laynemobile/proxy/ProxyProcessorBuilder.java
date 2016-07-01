@@ -50,8 +50,8 @@ import javax.lang.model.util.Types;
 import static com.laynemobile.proxy.Constants.Override;
 import static com.laynemobile.proxy.Constants.SourceModule;
 
-final class ApiBuilder {
-    private static final String TAG = ApiBuilder.class.getSimpleName();
+final class ProxyProcessorBuilder {
+    private static final String TAG = ProxyProcessorBuilder.class.getSimpleName();
 
     private final TypeElement api;
     private final Elements elementUtils;
@@ -67,7 +67,7 @@ final class ApiBuilder {
     final ClassName builderClassName;
     final TypeName builderTypeName;
 
-    ApiBuilder(TypeElement api, Elements elementUtils, Types typeUtils) {
+    ProxyProcessorBuilder(TypeElement api, Elements elementUtils, Types typeUtils) {
         this.api = api;
         this.elementUtils = elementUtils;
         this.typeUtils = typeUtils;
