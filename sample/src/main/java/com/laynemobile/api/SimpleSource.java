@@ -20,6 +20,7 @@ import com.laynemobile.proxy.annotations.Generate;
 
 import rx.Subscriber;
 
+@Generate.ProxyBuilder(replaces = Source.class)
 public interface SimpleSource<T> extends Source<T, SimpleParams> {
     @Generate.ProxyFunction("source")
     @Override void call(SimpleParams ignored, Subscriber<? super T> subscriber);

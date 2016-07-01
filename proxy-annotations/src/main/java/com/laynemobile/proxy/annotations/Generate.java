@@ -29,7 +29,11 @@ public interface Generate {
     @Documented
     @Retention(RetentionPolicy.SOURCE)
     @Target(ElementType.TYPE)
-    @interface ProxyBuilder {}
+    @interface ProxyBuilder {
+        Class<?>[] dependsOn() default {};
+
+        Class<?> replaces() default Void.class;
+    }
 
     @Documented
     @Retention(RetentionPolicy.SOURCE)

@@ -20,6 +20,7 @@ import com.laynemobile.api.NetworkChecker;
 import com.laynemobile.api.generated.AbstractNetworkSource_networkCheckerFunction;
 import com.laynemobile.proxy.functions.Func0;
 
+// subclass template created for user for constructor extensions
 public class NetworkSource_networkCheckerFunction extends AbstractNetworkSource_networkCheckerFunction {
     public NetworkSource_networkCheckerFunction(Func0<NetworkChecker> networkCheckerFunc0) {
         super(networkCheckerFunc0);
