@@ -20,7 +20,7 @@ import com.laynemobile.proxy.annotations.Generate;
 
 import rx.Subscriber;
 
-@Generate.ProxyBuilder
+@Generate.ProxyBuilder(parent = true)
 public interface Source<T, P extends Params> {
     @Generate.ProxyFunction("source")
     void call(P p, Subscriber<? super T> subscriber);
