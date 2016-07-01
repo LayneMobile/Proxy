@@ -17,12 +17,15 @@
 package com.laynemobile.api.generated;
 
 import com.laynemobile.api.NetworkChecker;
+import com.laynemobile.api.templates.NetworkSource_networkCheckerFunction;
 import com.laynemobile.proxy.NamedMethodHandler;
+import com.laynemobile.proxy.annotations.Generate;
 import com.laynemobile.proxy.functions.AbstractProxyFunction;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.functions.FunctionHandlers;
 
-public class AbstractNetworkSource_networkCheckerFunction
+@Generate.ProxyFunctionImplementation(NetworkSource_networkCheckerFunction.class)
+public abstract class AbstractNetworkSource_networkCheckerFunction
         extends AbstractProxyFunction<Func0<NetworkChecker>> {
     protected static final String NAME = "networkChecker";
 

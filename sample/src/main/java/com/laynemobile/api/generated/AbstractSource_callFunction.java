@@ -17,7 +17,9 @@
 package com.laynemobile.api.generated;
 
 import com.laynemobile.api.Params;
+import com.laynemobile.api.templates.Source_callFunction;
 import com.laynemobile.proxy.NamedMethodHandler;
+import com.laynemobile.proxy.annotations.Generate;
 import com.laynemobile.proxy.functions.AbstractProxyFunction;
 import com.laynemobile.proxy.functions.Action2;
 
@@ -25,6 +27,7 @@ import rx.Subscriber;
 
 import static com.laynemobile.proxy.functions.FunctionHandlers.from;
 
+@Generate.ProxyFunctionImplementation(Source_callFunction.class)
 public abstract class AbstractSource_callFunction<T, P extends Params>
         extends AbstractProxyFunction<Action2<P, Subscriber<? super T>>> {
     protected static final String NAME = "call";

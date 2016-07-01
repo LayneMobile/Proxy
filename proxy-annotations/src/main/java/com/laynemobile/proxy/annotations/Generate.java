@@ -17,6 +17,7 @@
 package com.laynemobile.proxy.annotations;
 
 import com.laynemobile.proxy.Builder;
+import com.laynemobile.proxy.functions.AbstractProxyFunction;
 import com.laynemobile.proxy.processor.ProcessorHandler;
 
 import java.lang.annotation.Documented;
@@ -44,6 +45,12 @@ public interface Generate {
     @Target(ElementType.METHOD)
     @interface ProxyFunction {
         String value() default "";
+    }
+
+    @Documented
+    @Retention(RetentionPolicy.SOURCE)
+    @interface ProxyFunctionImplementation {
+        Class<? extends AbstractProxyFunction> value();
     }
 
     @Documented
