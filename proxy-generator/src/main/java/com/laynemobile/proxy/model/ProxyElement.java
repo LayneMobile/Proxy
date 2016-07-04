@@ -23,51 +23,62 @@ import com.laynemobile.proxy.annotations.Generate;
 import com.squareup.javapoet.ClassName;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
-import javax.lang.model.type.WildcardType;
 
 import sourcerer.processor.Env;
 
-public class ProxyElement {
+public final class ProxyElement {
+    private static final Map<TypeElement, ProxyElement> CACHE = new HashMap<>();
+
     private final TypeElement element;
     private final ClassName className;
     private final ImmutableList<TypeVariable> typeVariables;
-    private final ImmutableList<ProxyElementType> interfaceTypes;
+    private final ImmutableList<ProxyType> interfaceTypes;
+    private final ImmutableList<FunctionElement> functions;
 
-    protected ProxyElement(ProxyElement copy) {
-        this.element = copy.element;
-        this.className = copy.className;
-        this.typeVariables = copy.typeVariables;
-        this.interfaceTypes = copy.interfaceTypes;
-    }
-
-    private ProxyElement(TypeElement element, List<TypeVariable> typeVariables, List<ProxyElementType> interfaceTypes) {
+    private ProxyElement(TypeElement element, List<TypeVariable> typeVariables, List<ProxyType> interfaceTypes,
+            List<FunctionElement> functions) {
         this.element = element;
         this.className = ClassName.get(element);
         this.typeVariables = ImmutableList.copyOf(typeVariables);
         this.interfaceTypes = ImmutableList.copyOf(interfaceTypes);
+        this.functions = ImmutableList.copyOf(functions);
     }
 
-    public static ProxyElement create(Element element, Env env) {
+    public static ProxyElement parse(Element element, Env env) {
         // Ensure it is an interface element
         if (element.getKind() != ElementKind.INTERFACE) {
             env.error(element, "Only interfaces can be annotated with @%s",
                     Generate.ProxyBuilder.class.getSimpleName());
             return null; // Exit processing
         }
-        return create((TypeElement) element, env);
+        TypeElement typeElement = (TypeElement) element;
+        synchronized (CACHE) {
+            ProxyElement proxyElement = CACHE.get(typeElement);
+            if (proxyElement != null) {
+                env.log("returning cached proxy element: %s", proxyElement);
+                return proxyElement;
+            }
+        }
+        ProxyElement proxyElement = parse(typeElement, env);
+        env.log("caching proxy element: %s", proxyElement);
+        synchronized (CACHE) {
+            CACHE.put(typeElement, proxyElement);
+        }
+        return proxyElement;
     }
 
-    private static ProxyElement create(TypeElement element, Env env) {
+    private static ProxyElement parse(TypeElement element, Env env) {
         List<? extends TypeMirror> interfaces = element.getInterfaces();
         List<? extends TypeParameterElement> typeParameters = element.getTypeParameters();
 
@@ -85,34 +96,25 @@ public class ProxyElement {
             }
         }
 
-        List<ProxyElementType> interfaceTypes = new ArrayList<>(interfaces.size());
+        List<ProxyType> interfaceTypes = new ArrayList<>(interfaces.size());
         for (TypeMirror interfaceType : interfaces) {
-            ProxyElementType elementType = ProxyElementType.create(interfaceType, env);
+            ProxyType elementType = ProxyType.parse(interfaceType, env);
             if (elementType != null) {
                 env.log("interface type: %s", interfaceType);
                 interfaceTypes.add(elementType);
-                List<? extends TypeMirror> typeArguments = elementType.type().getTypeArguments();
-                env.log("typeArguments: %s", typeArguments);
-                for (TypeMirror typeArgument : typeArguments) {
-                    TypeKind kind = typeArgument.getKind();
-                    env.log("typeArgument: %s", typeArgument);
-                    env.log("typeArgument kind: %s", kind);
-                    if (kind == TypeKind.TYPEVAR) {
-                        TypeVariable typeVariable = (TypeVariable) typeArgument;
-                        env.log("typeVariable upperBound: %s", typeVariable.getUpperBound());
-                        env.log("typeVariable lowerBound: %s", typeVariable.getLowerBound());
-                    } else if (kind == TypeKind.DECLARED) {
-                        DeclaredType declaredVar = (DeclaredType) typeArgument;
-                        env.log("declaredTypeArgument typeArguments: %s", declaredVar.getTypeArguments());
-                    } else if (kind == TypeKind.WILDCARD) {
-                        WildcardType wildcardType = (WildcardType) typeArgument;
-                        env.log("wildcardType extendsBound: %s", wildcardType.getExtendsBound());
-                        env.log("wildcardType superBound: %s", wildcardType.getSuperBound());
-                    }
-                }
             }
         }
-        return new ProxyElement(element, typeVariables, interfaceTypes);
+
+        List<? extends Element> enclosedElements = element.getEnclosedElements();
+        List<FunctionElement> functions = new ArrayList<>(enclosedElements.size());
+        for (Element enclosed : enclosedElements) {
+            FunctionElement functionElement = FunctionElement.create(enclosed, env);
+            if (functionElement == null) {
+                continue;
+            }
+            functions.add(functionElement);
+        }
+        return new ProxyElement(element, typeVariables, interfaceTypes, functions);
     }
 
     public TypeElement element() {
@@ -131,8 +133,12 @@ public class ProxyElement {
         return typeVariables;
     }
 
-    public ImmutableList<ProxyElementType> interfaceTypes() {
+    public ImmutableList<ProxyType> interfaceTypes() {
         return interfaceTypes;
+    }
+
+    public ImmutableList<FunctionElement> functions() {
+        return functions;
     }
 
     @Override public boolean equals(Object o) {

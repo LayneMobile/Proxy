@@ -16,9 +16,13 @@
 
 package com.laynemobile.proxy.model;
 
+import com.squareup.javapoet.JavaFile;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 
 import sourcerer.processor.Env;
@@ -31,7 +35,7 @@ public final class Proxies extends Env {
     }
 
     boolean add(Element element) {
-        ProxyElement proxyElement = ProxyElement.create(element, this);
+        ProxyElement proxyElement = ProxyElement.parse(element, this);
         if (proxyElement == null) {
             return false;
         }
@@ -49,8 +53,14 @@ public final class Proxies extends Env {
         }
     }
 
-    boolean process() {
-        // TODO:
-        return true;
+    public void writeTo(Filer filer) throws IOException {
+        // TODO: order, etc.
+        for (ProxyElement proxyElement : proxyElements()) {
+            for (FunctionElement functionElement : proxyElement.functions()) {
+                JavaFile javaFile = functionElement.newJavaFile(proxyElement);
+                log("writing abstract class type thing -> \n" + javaFile.toString());
+                javaFile.writeTo(filer);
+            }
+        }
     }
 }
