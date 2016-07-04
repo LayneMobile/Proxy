@@ -14,19 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy;
+package com.laynemobile.proxy.model;
 
-import com.google.auto.service.AutoService;
-import com.laynemobile.proxy.model.ProxyTemplate;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.Processor;
-
-import sourcerer.processor.TemplateProcessor;
-
-@AutoService(Processor.class)
-public class ProxyGenerator extends TemplateProcessor<ProxyTemplate> {
-    @Override protected ProxyTemplate createEnv(ProcessingEnvironment processingEnv) {
-        return new ProxyTemplate(processingEnv);
-    }
+public class ProxyType {
 }
