@@ -22,24 +22,23 @@ import com.laynemobile.proxy.annotations.Generate.ProxyBuilder;
 import java.io.IOException;
 import java.util.Set;
 
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
+import sourcerer.processor.Env;
 import sourcerer.processor.Template;
 
 public class ProxyTemplate extends Template {
     private final Proxies proxies;
 
     public ProxyTemplate(ProxyTemplate template) {
-        super(template);
-        this.proxies = new Proxies(this);
+        this((Env) template);
     }
 
-    public ProxyTemplate(ProcessingEnvironment processingEnv) {
-        super(processingEnv);
-        this.proxies = new Proxies(this);
+    public ProxyTemplate(Env env) {
+        super(env);
+        this.proxies = new Proxies(env);
     }
 
     @Override public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

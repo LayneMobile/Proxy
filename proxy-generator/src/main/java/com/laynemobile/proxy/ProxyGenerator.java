@@ -19,14 +19,14 @@ package com.laynemobile.proxy;
 import com.google.auto.service.AutoService;
 import com.laynemobile.proxy.model.ProxyTemplate;
 
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 
+import sourcerer.processor.Env;
 import sourcerer.processor.TemplateProcessor;
 
 @AutoService(Processor.class)
 public class ProxyGenerator extends TemplateProcessor<ProxyTemplate> {
-    @Override protected ProxyTemplate createEnv(ProcessingEnvironment processingEnv) {
-        return new ProxyTemplate(processingEnv);
+    @Override protected ProxyTemplate createEnv(Env env) {
+        return new ProxyTemplate(env);
     }
 }
