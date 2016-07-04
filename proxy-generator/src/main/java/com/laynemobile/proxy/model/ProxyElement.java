@@ -108,7 +108,7 @@ public final class ProxyElement {
         List<? extends Element> enclosedElements = element.getEnclosedElements();
         List<FunctionElement> functions = new ArrayList<>(enclosedElements.size());
         for (Element enclosed : enclosedElements) {
-            FunctionElement functionElement = FunctionElement.create(enclosed, env);
+            FunctionElement functionElement = FunctionElement.parse(enclosed, env);
             if (functionElement == null) {
                 continue;
             }

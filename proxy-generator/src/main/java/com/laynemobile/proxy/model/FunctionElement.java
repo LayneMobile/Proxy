@@ -76,7 +76,7 @@ public class FunctionElement {
         this.abstractProxyFunctionType = abstractProxyFunctionType;
     }
 
-    public static FunctionElement create(Element element, Env env) {
+    public static FunctionElement parse(Element element, Env env) {
         if (element.getKind() != ElementKind.METHOD) {
             return null;
         }
@@ -90,7 +90,7 @@ public class FunctionElement {
         }
 
         env.log(methodElement, "processing method element: %s", methodElement);
-        FunctionElement functionElement = create(methodElement, env);
+        FunctionElement functionElement = parse(methodElement, env);
         env.log("caching function element: %s", functionElement);
         synchronized (CACHE) {
             CACHE.put(methodElement, functionElement);
@@ -98,7 +98,7 @@ public class FunctionElement {
         return functionElement;
     }
 
-    private static FunctionElement create(ExecutableElement element, Env env) {
+    private static FunctionElement parse(ExecutableElement element, Env env) {
         Generate.ProxyFunction function = element.getAnnotation(Generate.ProxyFunction.class);
         String name = function == null ? "" : function.value();
         if (name.isEmpty()) {
