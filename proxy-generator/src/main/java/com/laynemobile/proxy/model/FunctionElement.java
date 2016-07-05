@@ -217,13 +217,13 @@ public class FunctionElement {
 
     @Override public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("element", element)
-                .add("name", name)
-                .add("returnType", returnType)
-                .add("params", params)
-                .add("paramTypes", paramTypes)
-                .add("functionType", functionType)
-                .add("abstractProxyFunctionType", abstractProxyFunctionType)
+                .add("\nelement", element)
+                .add("\nname", name)
+                .add("\nreturnType", returnType)
+                .add("\nparams", params)
+                .add("\nparamTypes", paramTypes)
+                .add("\nfunctionType", functionType)
+                .add("\nabstractProxyFunctionType", abstractProxyFunctionType)
                 .toString();
     }
 }

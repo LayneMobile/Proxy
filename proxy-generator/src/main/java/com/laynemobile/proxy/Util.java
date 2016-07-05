@@ -19,6 +19,7 @@ package com.laynemobile.proxy;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.internal.ProxyLog;
+import com.laynemobile.proxy.model.ProxyElement;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -73,6 +74,14 @@ public final class Util {
         }
     }
 
+    public static ProxyElement parseProxy(Func0<Class<?>> classFunc, Env env) {
+        TypeElement typeElement = parse(classFunc, env);
+        if (typeElement != null) {
+            return ProxyElement.parse(typeElement, env);
+        }
+        return null;
+    }
+
     public static ImmutableList<TypeElement> parseList(Func0<Class<?>[]> classesFunc, Env env) {
         final Types typeUtils = env.types();
         final Elements elementUtils = env.elements();
@@ -87,6 +96,20 @@ public final class Util {
             }
         }
         return typeElements.build();
+    }
+
+    public static ImmutableList<ProxyElement> parseProxyList(Func0<Class<?>[]> classesFunc, Env env) {
+        ImmutableList.Builder<ProxyElement> proxyElements = ImmutableList.builder();
+        List<TypeElement> typeElements = parseList(classesFunc, env);
+        if (typeElements != null) {
+            for (TypeElement typeElement : typeElements) {
+                ProxyElement proxyElement = ProxyElement.parse(typeElement, env);
+                if (proxyElement != null) {
+                    proxyElements.add(proxyElement);
+                }
+            }
+        }
+        return proxyElements.build();
     }
 
     public static TypeElement parse(TypeMirror typeMirror, Types typeUtils) {

@@ -17,6 +17,7 @@
 package com.laynemobile.proxy.model;
 
 import com.google.common.collect.ImmutableSet;
+import com.laynemobile.proxy.annotations.Generate;
 import com.laynemobile.proxy.annotations.Generate.ProxyBuilder;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ import java.util.Set;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 
 import sourcerer.processor.Env;
@@ -46,6 +48,13 @@ public class ProxyTemplate extends Template {
         boolean processed = false;
 
         for (Element element : roundEnv.getElementsAnnotatedWith(ProxyBuilder.class)) {
+            // Ensure it is an interface element
+            if (element.getKind() != ElementKind.INTERFACE) {
+                error(element, "Only interfaces can be annotated with @%s",
+                        Generate.ProxyBuilder.class.getSimpleName());
+                return true; // Exit processing
+            }
+
             if (!proxies.add(element)) {
                 return true; // Exit processing
             }

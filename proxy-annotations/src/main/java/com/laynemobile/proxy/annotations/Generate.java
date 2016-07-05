@@ -35,9 +35,9 @@ public interface Generate {
 
         Class<?>[] dependsOn() default {};
 
-        Class<?> replaces() default Void.class;
+        Class<?> replaces() default Object.class;
 
-        Class<?> extendsFrom() default Void.class;
+        Class<?> extendsFrom() default Object.class;
     }
 
     @Documented
