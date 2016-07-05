@@ -173,7 +173,7 @@ public final class ProxyElement implements Comparable<ProxyElement> {
                 || metadata.replaces.equals(element)
                 || metadata.extendsFrom.equals(element)
                 || o.isInList(interfaceTypes)
-                || o.metadata.parent && !metadata.parent;
+                || (o.metadata.parent && !metadata.parent);
     }
 
     private boolean isInList(List<ProxyType> proxyTypes) {
