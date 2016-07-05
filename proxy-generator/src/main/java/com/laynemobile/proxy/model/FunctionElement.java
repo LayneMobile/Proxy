@@ -164,7 +164,7 @@ public class FunctionElement {
                 functionType, abstractProxyFunctionElement, abstractProxyFunctionType);
     }
 
-    public JavaFile newJavaFile(ProxyElement parent) {
+    public JavaFile newAbstractProxyFunctionClass(ProxyElement parent) {
         TypeElement typeElement = parent.element();
         String className = "Abstract" + typeElement.getSimpleName() + "_" + element.getSimpleName() + "Function";
         TypeSpec.Builder classBuilder = TypeSpec.classBuilder(className)

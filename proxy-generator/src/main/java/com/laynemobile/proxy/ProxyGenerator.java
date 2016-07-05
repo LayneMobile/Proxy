@@ -17,6 +17,7 @@
 package com.laynemobile.proxy;
 
 import com.google.auto.service.AutoService;
+import com.laynemobile.proxy.internal.ProxyLog;
 import com.laynemobile.proxy.model.ProxyTemplate;
 
 import javax.annotation.processing.Processor;
@@ -28,5 +29,10 @@ import sourcerer.processor.TemplateProcessor;
 public class ProxyGenerator extends TemplateProcessor<ProxyTemplate> {
     @Override protected ProxyTemplate createEnv(Env env) {
         return new ProxyTemplate(env);
+    }
+
+    @Override protected void init(ProxyTemplate proxyTemplate) {
+        super.init(proxyTemplate);
+        ProxyLog.setLogger(new ConsoleLogger());
     }
 }

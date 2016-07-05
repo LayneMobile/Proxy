@@ -19,7 +19,9 @@ package com.laynemobile.proxy.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.annotations.Generate;
+import com.laynemobile.proxy.functions.Func0;
 import com.squareup.javapoet.ClassName;
 
 import java.util.ArrayList;
@@ -37,19 +39,21 @@ import javax.lang.model.type.TypeVariable;
 
 import sourcerer.processor.Env;
 
-public final class ProxyElement {
+public final class ProxyElement implements Comparable<ProxyElement> {
     private static final Map<TypeElement, ProxyElement> CACHE = new HashMap<>();
 
     private final TypeElement element;
     private final ClassName className;
+    private final Metadata metadata;
     private final ImmutableList<TypeVariable> typeVariables;
     private final ImmutableList<ProxyType> interfaceTypes;
     private final ImmutableList<FunctionElement> functions;
 
-    private ProxyElement(TypeElement element, List<TypeVariable> typeVariables, List<ProxyType> interfaceTypes,
-            List<FunctionElement> functions) {
+    private ProxyElement(TypeElement element, Metadata metadata, List<TypeVariable> typeVariables,
+            List<ProxyType> interfaceTypes, List<FunctionElement> functions) {
         this.element = element;
         this.className = ClassName.get(element);
+        this.metadata = metadata;
         this.typeVariables = ImmutableList.copyOf(typeVariables);
         this.interfaceTypes = ImmutableList.copyOf(interfaceTypes);
         this.functions = ImmutableList.copyOf(functions);
@@ -114,7 +118,9 @@ public final class ProxyElement {
             }
             functions.add(functionElement);
         }
-        return new ProxyElement(element, typeVariables, interfaceTypes, functions);
+
+        Metadata metadata = Metadata.parse(element, env);
+        return new ProxyElement(element, metadata, typeVariables, interfaceTypes, functions);
     }
 
     public TypeElement element() {
@@ -129,6 +135,10 @@ public final class ProxyElement {
         return className.packageName();
     }
 
+    public Metadata metadata() {
+        return metadata;
+    }
+
     public ImmutableList<TypeVariable> typeVariables() {
         return typeVariables;
     }
@@ -139,6 +149,40 @@ public final class ProxyElement {
 
     public ImmutableList<FunctionElement> functions() {
         return functions;
+    }
+
+    @Override public int compareTo(ProxyElement o) {
+        if (equals(o) || element.equals(o.element)) {
+            System.out.printf("\n\n'%s'\nequals\n'%s'\n\n", this, o);
+            return 0;
+        } else if (o.dependsOn(this)) {
+            System.out.printf("\n\n'%s'\ndependsOn\n'%s'\n\n", o, this);
+            return -1;
+        } else if (dependsOn(o)) {
+            System.out.printf("\n\n'%s'\ndependsOn\n'%s'\n\n", this, o);
+            return 1;
+        }
+        System.out.printf("\n\n'%s'\nequals-compareName\n'%s'\n\n", this, o);
+        return element.getQualifiedName().toString()
+                .compareTo(o.element.getQualifiedName().toString());
+    }
+
+    private boolean dependsOn(ProxyElement o) {
+        TypeElement element = o.element;
+        return metadata.dependsOn.contains(element)
+                || metadata.replaces.equals(element)
+                || metadata.extendsFrom.equals(element)
+                || o.isInList(interfaceTypes)
+                || o.metadata.parent && !metadata.parent;
+    }
+
+    private boolean isInList(List<ProxyType> proxyTypes) {
+        for (ProxyType proxyType : proxyTypes) {
+            if (proxyType.element().element.equals(element)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override public boolean equals(Object o) {
@@ -154,10 +198,72 @@ public final class ProxyElement {
 
     @Override public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("className", className)
                 .add("element", element)
+                .add("className", className)
+                .add("metadata", metadata)
                 .add("typeVariables", typeVariables)
                 .add("interfaceTypes", interfaceTypes)
+                .add("functions", functions)
                 .toString();
+    }
+
+    public static final class Metadata {
+        private final boolean parent;
+        private final ImmutableList<TypeElement> dependsOn;
+        private final TypeElement replaces;
+        private final TypeElement extendsFrom;
+
+        private Metadata(boolean parent, List<TypeElement> dependsOn, TypeElement replaces, TypeElement extendsFrom) {
+            this.parent = parent;
+            this.dependsOn = ImmutableList.copyOf(dependsOn);
+            this.replaces = replaces;
+            this.extendsFrom = extendsFrom;
+        }
+
+        private static Metadata parse(TypeElement element, Env env) {
+            final Generate.ProxyBuilder annotation = element.getAnnotation(Generate.ProxyBuilder.class);
+            final boolean parent = annotation != null && annotation.parent();
+            final List<TypeElement> dependsOn = Util.parseList(new Func0<Class<?>[]>() {
+                @Override public Class<?>[] call() {
+                    return annotation == null ? new Class[]{} : annotation.dependsOn();
+                }
+            }, env);
+            final TypeElement replaces = Util.parse(new Func0<Class<?>>() {
+                @Override public Class<?> call() {
+                    return annotation == null ? Void.class : annotation.replaces();
+                }
+            }, env);
+            final TypeElement extendsFrom = Util.parse(new Func0<Class<?>>() {
+                @Override public Class<?> call() {
+                    return annotation == null ? Void.class : annotation.extendsFrom();
+                }
+            }, env);
+            return new Metadata(parent, dependsOn, replaces, extendsFrom);
+        }
+
+        public boolean isParent() {
+            return parent;
+        }
+
+        public ImmutableList<TypeElement> dependsOn() {
+            return dependsOn;
+        }
+
+        public TypeElement replaces() {
+            return replaces;
+        }
+
+        public TypeElement extendsFrom() {
+            return extendsFrom;
+        }
+
+        @Override public String toString() {
+            return MoreObjects.toStringHelper(this)
+                    .add("parent", parent)
+                    .add("dependsOn", dependsOn)
+                    .add("replaces", replaces)
+                    .add("extendsFrom", extendsFrom)
+                    .toString();
+        }
     }
 }

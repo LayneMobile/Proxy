@@ -21,6 +21,7 @@ import com.squareup.javapoet.JavaFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
@@ -28,7 +29,7 @@ import javax.lang.model.element.Element;
 import sourcerer.processor.Env;
 
 public final class Proxies extends Env {
-    private final List<ProxyElement> proxyElements = new ArrayList<>();
+    private final TreeSet<ProxyElement> proxyElements = new TreeSet<>();
 
     Proxies(Env env) {
         super(env);
@@ -54,12 +55,11 @@ public final class Proxies extends Env {
     }
 
     public void writeTo(Filer filer) throws IOException {
-        // TODO: order, etc.
         for (ProxyElement proxyElement : proxyElements()) {
             for (FunctionElement functionElement : proxyElement.functions()) {
-                JavaFile javaFile = functionElement.newJavaFile(proxyElement);
-                log("writing abstract class type thing -> \n" + javaFile.toString());
-                javaFile.writeTo(filer);
+                JavaFile abstractProxyFunctionClass = functionElement.newAbstractProxyFunctionClass(proxyElement);
+                log("writing AbstractProxyFunctionClass -> \n" + abstractProxyFunctionClass.toString());
+                abstractProxyFunctionClass.writeTo(filer);
             }
         }
     }

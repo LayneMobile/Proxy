@@ -16,6 +16,8 @@
 
 package com.laynemobile.proxy;
 
+import com.google.common.collect.ImmutableList;
+import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.internal.ProxyLog;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
@@ -40,10 +42,15 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.MirroredTypesException;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.Types;
+
+import sourcerer.processor.Env;
 
 import static com.laynemobile.proxy.Constants.Builder;
 import static com.laynemobile.proxy.Constants.List;
@@ -53,8 +60,42 @@ import static com.laynemobile.proxy.Constants.RequestProcessorBuilder;
 import static com.laynemobile.proxy.Constants.Source;
 import static com.laynemobile.proxy.Constants.SourceBuilder;
 
-final class Util {
+public final class Util {
     private static final String TAG = Util.class.getSimpleName();
+
+    public static TypeElement parse(Func0<Class<?>> classFunc, Env env) {
+        final Types typeUtils = env.types();
+        final Elements elementUtils = env.elements();
+        try {
+            return parse(classFunc.call(), elementUtils);
+        } catch (MirroredTypeException e) {
+            return parse(e.getTypeMirror(), typeUtils);
+        }
+    }
+
+    public static ImmutableList<TypeElement> parseList(Func0<Class<?>[]> classesFunc, Env env) {
+        final Types typeUtils = env.types();
+        final Elements elementUtils = env.elements();
+        ImmutableList.Builder<TypeElement> typeElements = ImmutableList.builder();
+        try {
+            for (Class<?> clazz : classesFunc.call()) {
+                typeElements.add(parse(clazz, elementUtils));
+            }
+        } catch (MirroredTypesException e) {
+            for (TypeMirror typeMirror : e.getTypeMirrors()) {
+                typeElements.add(parse(typeMirror, typeUtils));
+            }
+        }
+        return typeElements.build();
+    }
+
+    public static TypeElement parse(TypeMirror typeMirror, Types typeUtils) {
+        return (TypeElement) typeUtils.asElement(typeMirror);
+    }
+
+    public static TypeElement parse(Class<?> clazz, Elements elementUtils) {
+        return elementUtils.getTypeElement(clazz.getCanonicalName());
+    }
 
     static void copyTypeParams(ExecutableElement method, MethodSpec.Builder spec) {
         for (TypeParameterElement typeParameterElement : method.getTypeParameters()) {
