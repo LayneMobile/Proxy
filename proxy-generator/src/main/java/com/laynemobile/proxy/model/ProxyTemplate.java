@@ -17,8 +17,11 @@
 package com.laynemobile.proxy.model;
 
 import com.google.common.collect.ImmutableSet;
-import com.laynemobile.proxy.annotations.Generate;
-import com.laynemobile.proxy.annotations.Generate.ProxyBuilder;
+import com.laynemobile.proxy.Util;
+import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.annotations.Generated;
+import com.laynemobile.proxy.annotations.ProxyFunctionImplementation;
+import com.laynemobile.proxy.functions.Func0;
 
 import java.io.IOException;
 import java.util.Set;
@@ -47,11 +50,11 @@ public class ProxyTemplate extends Template {
         final Proxies proxies = this.proxies;
         boolean processed = false;
 
-        for (Element element : roundEnv.getElementsAnnotatedWith(ProxyBuilder.class)) {
+        for (Element element : roundEnv.getElementsAnnotatedWith(GenerateProxyBuilder.class)) {
             // Ensure it is an interface element
             if (element.getKind() != ElementKind.INTERFACE) {
                 error(element, "Only interfaces can be annotated with @%s",
-                        Generate.ProxyBuilder.class.getSimpleName());
+                        GenerateProxyBuilder.class.getSimpleName());
                 return true; // Exit processing
             }
 
@@ -60,7 +63,6 @@ public class ProxyTemplate extends Template {
             }
             processed = true;
         }
-
         if (processed) {
             // Write
             try {
@@ -70,10 +72,57 @@ public class ProxyTemplate extends Template {
             }
         }
 
+        for (Element element : roundEnv.getElementsAnnotatedWith(Generated.class)) {
+            // Ensure it is a class element
+            if (element.getKind() != ElementKind.CLASS) {
+                error(element, "Only classes can be annotated with @%s",
+                        Generated.class.getSimpleName());
+                return true; // Exit processing
+            }
+
+            log(element, "say\n\n");
+            log(element, "processing generated type!\n\n");
+
+            final Generated annotation = element.getAnnotation(Generated.class);
+            if (annotation != null) {
+                log(element, "has annotation: %s", annotation);
+            }
+
+            processed = true;
+        }
+        for (Element element : roundEnv.getElementsAnnotatedWith(ProxyFunctionImplementation.class)) {
+            // Ensure it is a class element
+            if (element.getKind() != ElementKind.CLASS) {
+                error(element, "Only classes can be annotated with @%s",
+                        ProxyFunctionImplementation.class.getSimpleName());
+                return true; // Exit processing
+            }
+
+            log("\n\n");
+            log(element, "processing abstract function type!\n\n");
+
+            final ProxyFunctionImplementation annotation = element.getAnnotation(ProxyFunctionImplementation.class);
+            if (annotation != null) {
+                log(element, "has annotation: %s", annotation);
+                TypeElement implementation = Util.parse(new Func0<Class<?>>() {
+                    @Override public Class<?> call() {
+                        return annotation.value();
+                    }
+                }, this);
+                log(element, "implementation = %s", implementation);
+            }
+
+            processed = true;
+        }
+
         return processed;
     }
 
     @Override public Set<String> supportedAnnotationTypes() {
-        return ImmutableSet.of(ProxyBuilder.class.getCanonicalName());
+        return ImmutableSet.<String>builder()
+                .add(GenerateProxyBuilder.class.getCanonicalName())
+                .add(Generated.class.getCanonicalName())
+                .add(ProxyFunctionImplementation.class.getCanonicalName())
+                .build();
     }
 }

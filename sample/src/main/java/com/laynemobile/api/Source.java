@@ -16,12 +16,13 @@
 
 package com.laynemobile.api;
 
-import com.laynemobile.proxy.annotations.Generate;
+import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.annotations.GenerateProxyFunction;
 
 import rx.Subscriber;
 
-@Generate.ProxyBuilder(parent = true)
+@GenerateProxyBuilder(parent = true)
 public interface Source<T, P extends Params> {
-    @Generate.ProxyFunction("source")
+    @GenerateProxyFunction("source")
     void call(P p, Subscriber<? super T> subscriber);
 }

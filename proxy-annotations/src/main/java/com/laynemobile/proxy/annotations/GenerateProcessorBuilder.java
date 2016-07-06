@@ -16,23 +16,20 @@
 
 package com.laynemobile.proxy.annotations;
 
+import com.laynemobile.proxy.Builder;
+import com.laynemobile.proxy.processor.ProcessorHandler;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Inherited
 @Documented
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.TYPE)
-public @interface GenerateProxyBuilder {
-    boolean parent() default false;
+@Retention(RetentionPolicy.SOURCE)
+@Target({ElementType.TYPE})
+public @interface GenerateProcessorBuilder {
+    Class<? extends Builder<? extends ProcessorHandler.Parent<?, ?, ?>>> value();
 
-    Class<?>[] dependsOn() default {};
-
-    Class<?> replaces() default Object.class;
-
-    Class<?> extendsFrom() default Object.class;
+    Class<? extends Builder<? extends ProcessorHandler<?, ?, ?>>>[] extensions() default {};
 }

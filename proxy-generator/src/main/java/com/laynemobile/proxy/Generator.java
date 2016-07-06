@@ -17,7 +17,7 @@
 package com.laynemobile.proxy;
 
 import com.google.auto.service.AutoService;
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.annotations.GenerateProcessorBuilder;
 import com.laynemobile.proxy.internal.ProxyLog;
 
 import java.io.IOException;
@@ -65,7 +65,7 @@ public class Generator extends AbstractProcessor {
                 }
 
                 TypeElement typeElement = (TypeElement) element;
-                if (kind.annotationType == GenerateProxyBuilder.class) {
+                if (kind.annotationType == GenerateProcessorBuilder.class) {
                     try {
                         new ProxyProcessorBuilder(typeElement, elementUtils, typeUtils)
                                 .writeTo(filer);

@@ -16,7 +16,7 @@
 
 package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.annotations.GenerateProcessorBuilder;
 import com.laynemobile.proxy.internal.ProxyLog;
 import com.laynemobile.proxy.processor.ProcessorHandler;
 import com.squareup.javapoet.ArrayTypeName;
@@ -105,7 +105,7 @@ final class ProxyProcessorBuilder {
     private JavaFile build() {
         Set<ClassName> sourceTypes = new HashSet<>();
         ProxyLog.d(TAG, "GenerateApiBuilder element: %s", api.getQualifiedName());
-        GenerateProxyBuilder annotation = api.getAnnotation(GenerateProxyBuilder.class);
+        GenerateProcessorBuilder annotation = api.getAnnotation(GenerateProcessorBuilder.class);
 
         try {
             Class<? extends Builder<? extends ProcessorHandler.Parent<?, ?, ?>>> parent = annotation.value();

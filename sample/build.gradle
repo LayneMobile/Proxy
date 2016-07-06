@@ -39,6 +39,7 @@ dependencies {
     compile project(':proxy-annotations')
     compile project(':proxy-core')
     compile "io.reactivex:rxjava:${appRxJavaVersion}"
+    compile "com.squareup.retrofit:retrofit:${appRetrofitVersion}"
 
     provided project(':proxy-generator')
     provided "com.laynemobile.sourcerer:extensions-processor:${appSourcererVersion}"

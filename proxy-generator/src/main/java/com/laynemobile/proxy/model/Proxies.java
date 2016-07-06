@@ -57,10 +57,44 @@ public final class Proxies extends Env {
     public void writeTo(Filer filer) throws IOException {
         for (ProxyElement proxyElement : proxyElements()) {
             for (FunctionElement functionElement : proxyElement.functions()) {
-                JavaFile abstractProxyFunctionClass = functionElement.newAbstractProxyFunctionClass(proxyElement);
+                JavaFile abstractProxyFunctionClass
+                        = functionElement.newAbstractProxyFunctionTypeJavaFile(proxyElement);
                 log("writing AbstractProxyFunctionClass -> \n" + abstractProxyFunctionClass.toString());
                 abstractProxyFunctionClass.writeTo(filer);
             }
         }
     }
+
+    // TODO: tree structure for the proxy elements, write in pre-order traversal
+//
+//    private interface Node<T> {
+//        T data();
+//
+//        Node<T> parent();
+//
+//        List<? extends Node<T>> children();
+//    }
+//
+//    private static class ProxyNode implements Node<ProxyElement> {
+//        private final ProxyElement element;
+//        private final boolean root;
+//        private ProxyNode parent;
+//        private List<ProxyNode> children;
+//
+//        public ProxyNode(ProxyElement element) {
+//            this.element = element;
+//        }
+//
+//        @Override public ProxyElement data() {
+//            return element;
+//        }
+//
+//        @Override public ProxyNode parent() {
+//            return parent;
+//        }
+//
+//        @Override public List<ProxyNode> children() {
+//            return children;
+//        }
+//    }
 }

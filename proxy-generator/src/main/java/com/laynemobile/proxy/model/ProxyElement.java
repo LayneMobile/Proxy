@@ -20,7 +20,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.Util;
-import com.laynemobile.proxy.annotations.Generate;
+import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.functions.Func0;
 import com.squareup.javapoet.ClassName;
 
@@ -190,18 +190,23 @@ public final class ProxyElement implements Comparable<ProxyElement> {
         } else if (dependsOn(o)) {
             System.out.printf("\n\n'%s'\ndependsOn\n'%s'\n\n", this, o);
             return 1;
+        } else if (metadata.parent && !o.metadata.parent) {
+            System.out.printf("\n\n'%s' is a parent\n\n", this);
+            return -1;
+        } else if (o.metadata.parent && !metadata.parent) {
+            System.out.printf("\n\n'%s' is a parent\n\n", o);
+            return 1;
         }
         System.out.printf("\n\n'%s'\nequals-compareName\n'%s'\n\n", this, o);
         return element.getQualifiedName().toString()
                 .compareTo(o.element.getQualifiedName().toString());
     }
 
-    private boolean dependsOn(ProxyElement o) {
+    boolean dependsOn(ProxyElement o) {
         return metadata.dependsOn.contains(o)
                 || metadata.replaces.equals(o)
                 || metadata.extendsFrom.equals(o)
-                || o.isInList(interfaceTypes)
-                || (o.metadata.parent && !metadata.parent);
+                || o.isInList(interfaceTypes);
     }
 
     private boolean isInList(List<ProxyType> proxyTypes) {
@@ -262,7 +267,7 @@ public final class ProxyElement implements Comparable<ProxyElement> {
         }
 
         private static Metadata parse(TypeElement element, Env env) {
-            final Generate.ProxyBuilder annotation = element.getAnnotation(Generate.ProxyBuilder.class);
+            final GenerateProxyBuilder annotation = element.getAnnotation(GenerateProxyBuilder.class);
             final boolean parent = annotation != null && annotation.parent();
             final List<ProxyElement> dependsOn = Util.parseProxyList(new Func0<Class<?>[]>() {
                 @Override public Class<?>[] call() {

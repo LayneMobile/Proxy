@@ -16,14 +16,14 @@
 
 package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.annotations.GenerateProcessorBuilder;
 
 import java.lang.annotation.Annotation;
 import java.util.HashSet;
 import java.util.Set;
 
 enum Kind {
-    ApiBuilder(GenerateProxyBuilder.class);
+    ApiBuilder(GenerateProcessorBuilder.class);
 
     final Class<? extends Annotation> annotationType;
 

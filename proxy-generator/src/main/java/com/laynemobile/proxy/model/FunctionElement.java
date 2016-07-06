@@ -19,7 +19,8 @@ package com.laynemobile.proxy.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.laynemobile.proxy.annotations.Generate;
+import com.laynemobile.proxy.annotations.GenerateProxyFunction;
+import com.laynemobile.proxy.annotations.Generated;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
@@ -28,11 +29,13 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -99,7 +102,7 @@ public class FunctionElement {
     }
 
     private static FunctionElement parse(ExecutableElement element, Env env) {
-        Generate.ProxyFunction function = element.getAnnotation(Generate.ProxyFunction.class);
+        GenerateProxyFunction function = element.getAnnotation(GenerateProxyFunction.class);
         String name = function == null ? "" : function.value();
         if (name.isEmpty()) {
             name = element.getSimpleName().toString();
@@ -164,12 +167,38 @@ public class FunctionElement {
                 functionType, abstractProxyFunctionElement, abstractProxyFunctionType);
     }
 
-    public JavaFile newAbstractProxyFunctionClass(ProxyElement parent) {
+    private static final String ABSTRACT_PREFIX = "Abstract";
+
+    public void writeTo(Filer filer, ProxyElement parent, Env env) throws IOException {
+        TypeSpec abstractType = newAbstractProxyFunctionTypeSpec(parent);
+        String generated = parent.packageName() + ".generated";
+        JavaFile abstractTypeFile = JavaFile.builder(generated, abstractType)
+                .build();
+        abstractTypeFile.writeTo(filer);
+//
+//        String templates = parent.packageName() + ".templates.temp";
+//        String className = abstractType.name.substring(ABSTRACT_PREFIX.length());
+//
+//        TypeSpec.Builder classBuider = TypeSpec.classBuilder(className)
+//                .superclass()
+    }
+
+    public TypeSpec newAbstractProxyFunctionTypeSpec(ProxyElement parent) {
         TypeElement typeElement = parent.element();
-        String className = "Abstract" + typeElement.getSimpleName() + "_" + element.getSimpleName() + "Function";
+        String subclassName = typeElement.getSimpleName() + "_" + element.getSimpleName() + "Function";
+        String subclassPackage = parent.packageName() + ".templates";
+        ClassName subclass = ClassName.get(subclassPackage, subclassName);
+
+        String className = ABSTRACT_PREFIX + subclassName;
         TypeSpec.Builder classBuilder = TypeSpec.classBuilder(className)
                 .superclass(TypeName.get(abstractProxyFunctionType))
-                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
+                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                .addAnnotation(Generated.class)
+                // TODO: add annotation!
+//                .addAnnotation(AnnotationSpec.builder(Generate.ProxyFunctionImplementation.class)
+//                        .addMember("value", "$T.class", subclass)
+//                        .build())
+                ;
         for (TypeVariable typeVariable : parent.typeVariables()) {
             classBuilder.addTypeVariable(TypeVariableName.get(typeVariable));
         }
@@ -198,9 +227,13 @@ public class FunctionElement {
                         .add(";\n$]")
                         .build())
                 .build());
+        return classBuilder.build();
+    }
 
+    public JavaFile newAbstractProxyFunctionTypeJavaFile(ProxyElement parent) {
+        TypeSpec typeSpec = newAbstractProxyFunctionTypeSpec(parent);
         String packageName = parent.packageName() + ".generated";
-        return JavaFile.builder(packageName, classBuilder.build())
+        return JavaFile.builder(packageName, typeSpec)
                 .build();
     }
 
