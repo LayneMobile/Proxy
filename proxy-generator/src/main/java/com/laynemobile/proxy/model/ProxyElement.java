@@ -23,9 +23,7 @@ import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.functions.Func0;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -34,13 +32,17 @@ import javax.lang.model.element.TypeElement;
 import sourcerer.processor.Env;
 
 public final class ProxyElement extends TypeElementAlias implements Comparable<ProxyElement> {
-    private static final Map<TypeElement, ProxyElement> CACHE = new HashMap<>();
+    private static final EnvCache<TypeElement, ProxyElement> CACHE = EnvCache.create(new Creator());
 
     private final Metadata metadata;
 
     private ProxyElement(TypeElementAlias source, Metadata metadata) {
         super(source);
         this.metadata = metadata;
+    }
+
+    public static EnvCache<TypeElement, ProxyElement> proxyCache() {
+        return CACHE;
     }
 
     public static ProxyElement from(TypeElementAlias source) {
@@ -59,34 +61,7 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
     }
 
     static ProxyElement get(TypeElement typeElement, Env env) {
-        ProxyElement cached = cached(typeElement);
-        if (cached != null) {
-            env.log("returning cached proxy element: %s", cached.className());
-            return cached;
-        }
-        env.log("creating proxy element: %s", typeElement);
-        ProxyElement created = create(typeElement, env);
-        synchronized (CACHE) {
-            cached = cached(typeElement);
-            if (cached != null) {
-                return cached;
-            }
-            env.log("caching proxy element: %s", created);
-            CACHE.put(typeElement, created);
-            return created;
-        }
-    }
-
-    static ProxyElement cached(TypeElement typeElement) {
-        synchronized (CACHE) {
-            return CACHE.get(typeElement);
-        }
-    }
-
-    private static ProxyElement create(TypeElement element, Env env) {
-        TypeElementAlias source = TypeElementAlias.get(element, env);
-        Metadata metadata = Metadata.parse(element, env);
-        return new ProxyElement(source, metadata);
+        return CACHE.getOrCreate(typeElement, env);
     }
 
     public Metadata metadata() {
@@ -207,6 +182,14 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
                     .add("\nreplaces", replaces)
                     .add("\nextendsFrom", extendsFrom)
                     .toString();
+        }
+    }
+
+    private static final class Creator extends EnvCache.ValueCreator<TypeElement, ProxyElement> {
+        @Override public ProxyElement create(TypeElement typeElement, Env env) {
+            TypeElementAlias source = TypeElementAlias.get(typeElement, env);
+            Metadata metadata = Metadata.parse(typeElement, env);
+            return new ProxyElement(source, metadata);
         }
     }
 }

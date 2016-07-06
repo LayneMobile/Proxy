@@ -22,9 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -37,7 +35,7 @@ import javax.lang.model.type.TypeVariable;
 import sourcerer.processor.Env;
 
 public class TypeElementAlias {
-    private static final Map<TypeElement, TypeElementAlias> CACHE = new HashMap<>();
+    private static final EnvCache<TypeElement, TypeElementAlias> CACHE = EnvCache.create(new Creator());
     private static volatile TypeElementAlias OBJECT_ELEMENT;
 
     private final Env env;
@@ -49,7 +47,7 @@ public class TypeElementAlias {
     private final ImmutableList<DeclaredTypeAlias> interfaceTypes;
     private final ImmutableList<FunctionElement> functions;
 
-    protected TypeElementAlias(TypeElementAlias source) {
+    TypeElementAlias(TypeElementAlias source) {
         this.env = source.env;
         this.element = source.element;
         this.kind = source.kind;
@@ -84,6 +82,10 @@ public class TypeElementAlias {
         this.functions = ImmutableList.copyOf(functions);
     }
 
+    public static EnvCache<TypeElement, TypeElementAlias> elementCache() {
+        return CACHE;
+    }
+
     public static TypeElementAlias parse(Element element, Env env) {
         if (element.getKind() == ElementKind.CLASS || element.getKind() == ElementKind.INTERFACE) {
             return get((TypeElement) element, env);
@@ -92,76 +94,7 @@ public class TypeElementAlias {
     }
 
     static TypeElementAlias get(TypeElement typeElement, Env env) {
-        if (typeElement.getKind() == ElementKind.CLASS) {
-            // Special parsing for java.lang.Object class
-            TypeElementAlias objectElement = objectElement(env);
-            if (objectElement.element.equals(typeElement)) {
-                return objectElement;
-            }
-        }
-        TypeElementAlias cached = cached(typeElement);
-        if (cached != null) {
-            env.log("returning cached type element alias: %s", cached.className);
-            return cached;
-        }
-        env.log("creating type element alias: %s", typeElement);
-        TypeElementAlias created = create(typeElement, env);
-        synchronized (CACHE) {
-            cached = cached(typeElement);
-            if (cached != null) {
-                return cached;
-            }
-            env.log("caching type element alias: %s", created);
-            CACHE.put(typeElement, created);
-            return created;
-        }
-    }
-
-    static TypeElementAlias cached(TypeElement typeElement) {
-        synchronized (CACHE) {
-            return CACHE.get(typeElement);
-        }
-    }
-
-    private static TypeElementAlias create(TypeElement element, Env env) {
-        List<? extends TypeMirror> interfaces = element.getInterfaces();
-        List<? extends TypeParameterElement> typeParameters = element.getTypeParameters();
-
-        List<TypeVariable> typeVariables = new ArrayList<>(typeParameters.size());
-        env.log("typeParameters: %s", typeParameters);
-        for (TypeParameterElement typeParameter : typeParameters) {
-            env.log("typeParameter: %s", typeParameter);
-            env.log("typeParameter bounds: %s", typeParameter.getBounds());
-            ElementKind paramKind = typeParameter.getKind();
-            env.log("typeParameter kind: %s", paramKind);
-            TypeMirror paramType = typeParameter.asType();
-            env.log("typeParameter type: %s", paramType);
-            if (paramType.getKind() == TypeKind.TYPEVAR) {
-                typeVariables.add((TypeVariable) paramType);
-            }
-        }
-
-        List<DeclaredTypeAlias> interfaceTypes = new ArrayList<>(interfaces.size());
-        for (TypeMirror interfaceType : interfaces) {
-            DeclaredTypeAlias elementType = DeclaredTypeAlias.parse(interfaceType, env);
-            if (elementType != null) {
-                env.log("interface type: %s", interfaceType);
-                interfaceTypes.add(elementType);
-            }
-        }
-
-        List<? extends Element> enclosedElements = element.getEnclosedElements();
-        List<FunctionElement> functions = new ArrayList<>(enclosedElements.size());
-        for (Element enclosed : enclosedElements) {
-            FunctionElement functionElement = FunctionElement.parse(element, enclosed, env);
-            if (functionElement == null) {
-                continue;
-            }
-            functions.add(functionElement);
-        }
-
-        DeclaredTypeAlias superClass = DeclaredTypeAlias.parse(element.getSuperclass(), env);
-        return new TypeElementAlias(env, element, superClass, typeVariables, interfaceTypes, functions);
+        return CACHE.getOrCreate(typeElement, env);
     }
 
     private static TypeElementAlias objectElement(Env env) {
@@ -170,7 +103,6 @@ public class TypeElementAlias {
             synchronized (CACHE) {
                 if ((oe = OBJECT_ELEMENT) == null) {
                     oe = OBJECT_ELEMENT = new TypeElementAlias(env);
-                    CACHE.put(oe.element, oe);
                 }
             }
         }
@@ -246,5 +178,53 @@ public class TypeElementAlias {
                 .add("\ninterfaceTypes", interfaceTypes)
                 .add("\nfunctions", functions)
                 .toString();
+    }
+
+    private static final class Creator extends EnvCache.ValueCreator<TypeElement, TypeElementAlias> {
+        @Override public TypeElementAlias create(TypeElement typeElement, Env env) {
+            // Special parsing for java.lang.Object class
+            if ("java.lang.Object".equals(typeElement.getQualifiedName().toString())) {
+                return objectElement(env);
+            }
+
+            List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
+            List<? extends TypeParameterElement> typeParameters = typeElement.getTypeParameters();
+
+            List<TypeVariable> typeVariables = new ArrayList<>(typeParameters.size());
+            env.log("typeParameters: %s", typeParameters);
+            for (TypeParameterElement typeParameter : typeParameters) {
+                env.log("typeParameter: %s", typeParameter);
+                env.log("typeParameter bounds: %s", typeParameter.getBounds());
+                ElementKind paramKind = typeParameter.getKind();
+                env.log("typeParameter kind: %s", paramKind);
+                TypeMirror paramType = typeParameter.asType();
+                env.log("typeParameter type: %s", paramType);
+                if (paramType.getKind() == TypeKind.TYPEVAR) {
+                    typeVariables.add((TypeVariable) paramType);
+                }
+            }
+
+            List<DeclaredTypeAlias> interfaceTypes = new ArrayList<>(interfaces.size());
+            for (TypeMirror interfaceType : interfaces) {
+                DeclaredTypeAlias elementType = DeclaredTypeAlias.parse(interfaceType, env);
+                if (elementType != null) {
+                    env.log("interface type: %s", interfaceType);
+                    interfaceTypes.add(elementType);
+                }
+            }
+
+            List<? extends Element> enclosedElements = typeElement.getEnclosedElements();
+            List<FunctionElement> functions = new ArrayList<>(enclosedElements.size());
+            for (Element enclosed : enclosedElements) {
+                FunctionElement functionElement = FunctionElement.parse(typeElement, enclosed, env);
+                if (functionElement == null) {
+                    continue;
+                }
+                functions.add(functionElement);
+            }
+
+            DeclaredTypeAlias superClass = DeclaredTypeAlias.parse(typeElement.getSuperclass(), env);
+            return new TypeElementAlias(env, typeElement, superClass, typeVariables, interfaceTypes, functions);
+        }
     }
 }

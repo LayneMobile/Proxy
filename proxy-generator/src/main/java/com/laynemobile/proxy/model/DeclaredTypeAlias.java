@@ -21,9 +21,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
@@ -35,7 +33,7 @@ import javax.lang.model.type.WildcardType;
 import sourcerer.processor.Env;
 
 public final class DeclaredTypeAlias {
-    private static final Map<DeclaredType, DeclaredTypeAlias> CACHE = new HashMap<>();
+    private static final EnvCache<DeclaredType, DeclaredTypeAlias> CACHE = EnvCache.create(new Creator());
 
     private final DeclaredType type;
     private final TypeElementAlias element;
@@ -47,6 +45,10 @@ public final class DeclaredTypeAlias {
         this.directSuperTypes = ImmutableList.copyOf(directSuperTypes);
     }
 
+    public static EnvCache<DeclaredType, DeclaredTypeAlias> typeCache() {
+        return CACHE;
+    }
+
     public static DeclaredTypeAlias parse(TypeMirror type, Env env) {
         if (type.getKind() != TypeKind.DECLARED) {
             return null;
@@ -55,57 +57,7 @@ public final class DeclaredTypeAlias {
     }
 
     static DeclaredTypeAlias get(DeclaredType declaredType, Env env) {
-        synchronized (CACHE) {
-            DeclaredTypeAlias typeAlias = CACHE.get(declaredType);
-            if (typeAlias != null) {
-                env.log("returning cached declared type alias: %s", typeAlias);
-                return typeAlias;
-            }
-        }
-        env.log("creating declared type alias: %s", declaredType);
-        DeclaredTypeAlias typeAlias = parse(declaredType, env);
-        if (typeAlias != null) {
-            env.log("caching declared type alias: %s", typeAlias);
-            synchronized (CACHE) {
-                CACHE.put(declaredType, typeAlias);
-            }
-        }
-        return typeAlias;
-    }
-
-    private static DeclaredTypeAlias parse(DeclaredType type, Env env) {
-        TypeElement typeElement = (TypeElement) env.types().asElement(type);
-        TypeElementAlias typeElementAlias = TypeElementAlias.get(typeElement, env);
-
-        List<? extends TypeMirror> typeArguments = type.getTypeArguments();
-        env.log("typeArguments: %s", typeArguments);
-        for (TypeMirror typeArgument : typeArguments) {
-            TypeKind kind = typeArgument.getKind();
-            env.log("typeArgument: %s", typeArgument);
-            env.log("typeArgument kind: %s", kind);
-            if (kind == TypeKind.TYPEVAR) {
-                TypeVariable typeVariable = (TypeVariable) typeArgument;
-                env.log("typeVariable upperBound: %s", typeVariable.getUpperBound());
-                env.log("typeVariable lowerBound: %s", typeVariable.getLowerBound());
-            } else if (kind == TypeKind.DECLARED) {
-                DeclaredType declaredVar = (DeclaredType) typeArgument;
-                env.log("declaredTypeArgument typeArguments: %s", declaredVar.getTypeArguments());
-            } else if (kind == TypeKind.WILDCARD) {
-                WildcardType wildcardType = (WildcardType) typeArgument;
-                env.log("wildcardType extendsBound: %s", wildcardType.getExtendsBound());
-                env.log("wildcardType superBound: %s", wildcardType.getSuperBound());
-            }
-        }
-
-        List<? extends TypeMirror> _directSupertypes = env.types().directSupertypes(type);
-        List<DeclaredTypeAlias> directSuperTypes = new ArrayList<>(_directSupertypes.size());
-        for (TypeMirror typeMirror : _directSupertypes) {
-            if (typeMirror.getKind() == TypeKind.DECLARED) {
-                directSuperTypes.add(get((DeclaredType) typeMirror, env));
-            }
-        }
-
-        return new DeclaredTypeAlias(type, typeElementAlias, directSuperTypes);
+        return CACHE.getOrCreate(declaredType, env);
     }
 
     public DeclaredType type() {
@@ -136,5 +88,43 @@ public final class DeclaredTypeAlias {
         return MoreObjects.toStringHelper(this)
                 .add("type", type)
                 .toString();
+    }
+
+    private static final class Creator extends EnvCache.ValueCreator<DeclaredType, DeclaredTypeAlias> {
+        @Override public DeclaredTypeAlias create(DeclaredType declaredType, Env env) {
+            env.log("creating declared type alias: %s", declaredType);
+            TypeElement typeElement = (TypeElement) env.types().asElement(declaredType);
+            TypeElementAlias typeElementAlias = TypeElementAlias.get(typeElement, env);
+
+            List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
+            env.log("typeArguments: %s", typeArguments);
+            for (TypeMirror typeArgument : typeArguments) {
+                TypeKind kind = typeArgument.getKind();
+                env.log("typeArgument: %s", typeArgument);
+                env.log("typeArgument kind: %s", kind);
+                if (kind == TypeKind.TYPEVAR) {
+                    TypeVariable typeVariable = (TypeVariable) typeArgument;
+                    env.log("typeVariable upperBound: %s", typeVariable.getUpperBound());
+                    env.log("typeVariable lowerBound: %s", typeVariable.getLowerBound());
+                } else if (kind == TypeKind.DECLARED) {
+                    DeclaredType declaredVar = (DeclaredType) typeArgument;
+                    env.log("declaredTypeArgument typeArguments: %s", declaredVar.getTypeArguments());
+                } else if (kind == TypeKind.WILDCARD) {
+                    WildcardType wildcardType = (WildcardType) typeArgument;
+                    env.log("wildcardType extendsBound: %s", wildcardType.getExtendsBound());
+                    env.log("wildcardType superBound: %s", wildcardType.getSuperBound());
+                }
+            }
+
+            List<? extends TypeMirror> _directSupertypes = env.types().directSupertypes(declaredType);
+            List<DeclaredTypeAlias> directSuperTypes = new ArrayList<>(_directSupertypes.size());
+            for (TypeMirror typeMirror : _directSupertypes) {
+                if (typeMirror.getKind() == TypeKind.DECLARED) {
+                    directSuperTypes.add(get((DeclaredType) typeMirror, env));
+                }
+            }
+
+            return new DeclaredTypeAlias(declaredType, typeElementAlias, directSuperTypes);
+        }
     }
 }
