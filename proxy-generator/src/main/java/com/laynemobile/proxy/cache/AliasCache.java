@@ -40,10 +40,10 @@ public abstract class AliasCache<K, V, P> {
             if (cached != null) {
                 return cached;
             }
-            log(p, "caching value: %s", created);
             cache.put(key, created);
-            return created;
         }
+        log(p, "caching value: %s", created);
+        return created;
     }
 
     public final V get(K key) {
