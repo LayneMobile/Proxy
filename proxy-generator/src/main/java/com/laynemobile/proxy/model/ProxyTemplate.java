@@ -22,10 +22,15 @@ import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.annotations.ProxyFunctionImplementation;
 import com.laynemobile.proxy.functions.Func0;
+import com.squareup.javapoet.JavaFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
+import javax.annotation.processing.Filer;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -35,19 +40,21 @@ import sourcerer.processor.Env;
 import sourcerer.processor.Template;
 
 public class ProxyTemplate extends Template {
-    private final Proxies proxies;
-
-    public ProxyTemplate(ProxyTemplate template) {
-        this((Env) template);
-    }
+    private final TreeSet<ProxyElement> proxyElements = new TreeSet<>();
 
     public ProxyTemplate(Env env) {
         super(env);
-        this.proxies = new Proxies(env);
+    }
+
+    @Override public Set<String> supportedAnnotationTypes() {
+        return ImmutableSet.<String>builder()
+                .add(GenerateProxyBuilder.class.getCanonicalName())
+                .add(Generated.class.getCanonicalName())
+                .add(ProxyFunctionImplementation.class.getCanonicalName())
+                .build();
     }
 
     @Override public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        final Proxies proxies = this.proxies;
         boolean processed = false;
 
         for (Element element : roundEnv.getElementsAnnotatedWith(GenerateProxyBuilder.class)) {
@@ -58,7 +65,7 @@ public class ProxyTemplate extends Template {
                 return true; // Exit processing
             }
 
-            if (!proxies.add(element)) {
+            if (!add(element)) {
                 return true; // Exit processing
             }
             processed = true;
@@ -66,7 +73,7 @@ public class ProxyTemplate extends Template {
         if (processed) {
             // Write
             try {
-                proxies.writeTo(filer());
+                write();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -118,11 +125,34 @@ public class ProxyTemplate extends Template {
         return processed;
     }
 
-    @Override public Set<String> supportedAnnotationTypes() {
-        return ImmutableSet.<String>builder()
-                .add(GenerateProxyBuilder.class.getCanonicalName())
-                .add(Generated.class.getCanonicalName())
-                .add(ProxyFunctionImplementation.class.getCanonicalName())
-                .build();
+    private boolean add(Element element) {
+        ProxyElement proxyElement = ProxyElement.cache().parse(element, this);
+        if (proxyElement == null) {
+            return false;
+        }
+        synchronized (proxyElements) {
+            if (!proxyElements.contains(proxyElement)) {
+                proxyElements.add(proxyElement);
+            }
+        }
+        return true;
+    }
+
+    private List<ProxyElement> proxyElements() {
+        synchronized (proxyElements) {
+            return new ArrayList<>(proxyElements);
+        }
+    }
+
+    private void write() throws IOException {
+        Filer filer = filer();
+        for (ProxyElement proxyElement : proxyElements()) {
+            for (ProxyFunctionElement functionElement : proxyElement.functions()) {
+                JavaFile abstractProxyFunctionClass
+                        = functionElement.newAbstractProxyFunctionTypeJavaFile();
+                log("writing AbstractProxyFunctionClass -> \n" + abstractProxyFunctionClass.toString());
+                abstractProxyFunctionClass.writeTo(filer);
+            }
+        }
     }
 }
