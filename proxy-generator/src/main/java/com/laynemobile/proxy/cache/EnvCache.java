@@ -36,4 +36,8 @@ public abstract class EnvCache<S, K extends S, V> extends AliasCache<K, V, Env> 
         }
         return null;
     }
+
+    @Override protected final void log(Env env, String format, Object... args) {
+        env.log(format, args);
+    }
 }

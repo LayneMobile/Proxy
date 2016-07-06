@@ -37,6 +37,7 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
     private final ImmutableList<? extends TypeElementAlias> dependsOn;
     private final TypeElementAlias replaces;
     private final TypeElementAlias extendsFrom;
+    private final ImmutableList<ProxyFunctionElement> functions;
 
     private ProxyElement(TypeElementAlias source, boolean parent, List<TypeElementAlias> dependsOn,
             TypeElementAlias replaces, TypeElementAlias extendsFrom) {
@@ -45,6 +46,7 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
         this.dependsOn = ImmutableList.copyOf(dependsOn);
         this.replaces = replaces;
         this.extendsFrom = extendsFrom;
+        this.functions = ProxyFunctionElement.from(source.functions());
     }
 
     public static EnvCache<Element, TypeElement, ? extends ProxyElement> cache() {
@@ -72,6 +74,10 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
 
     public TypeElementAlias extendsFrom() {
         return extendsFrom;
+    }
+
+    @Override public ImmutableList<ProxyFunctionElement> functions() {
+        return functions;
     }
 
     @Override public int compareTo(ProxyElement o) {
@@ -114,7 +120,13 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
 
     @Override public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("super", className())
+                .add("element", element())
+                .toString();
+    }
+
+    public String toDebugString() {
+        return MoreObjects.toStringHelper(this)
+                .add("element", element())
                 .add("\nparent", parent)
                 .add("\ndependsOn", dependsOn)
                 .add("\nreplaces", replaces)
@@ -161,7 +173,9 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
                     return annotation == null ? Object.class : annotation.extendsFrom();
                 }
             }, env);
-            return new ProxyElement(source, parent, dependsOn, replaces, extendsFrom);
+            ProxyElement proxyElement = new ProxyElement(source, parent, dependsOn, replaces, extendsFrom);
+            env.log("created proxyElement: %s\n\n", proxyElement.toDebugString());
+            return proxyElement;
         }
     }
 }

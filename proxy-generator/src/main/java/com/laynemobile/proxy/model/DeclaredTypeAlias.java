@@ -78,6 +78,14 @@ public final class DeclaredTypeAlias {
                 .toString();
     }
 
+    public String toDebugString() {
+        return MoreObjects.toStringHelper(this)
+                .add("type", type)
+                .add("element", element())
+                .add("directSuperTypes", directSuperTypes())
+                .toString();
+    }
+
     private static final class Cache extends EnvCache<TypeMirror, DeclaredType, DeclaredTypeAlias> {
         private static final Cache INSTANCE = new Cache();
 
@@ -123,7 +131,9 @@ public final class DeclaredTypeAlias {
                 }
             }
 
-            return new DeclaredTypeAlias(declaredType, typeElementAlias, directSuperTypes);
+            DeclaredTypeAlias typeAlias = new DeclaredTypeAlias(declaredType, typeElementAlias, directSuperTypes);
+            env.log("created type: %s\n\n", typeAlias.toDebugString());
+            return typeAlias;
         }
     }
 }

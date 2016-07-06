@@ -35,12 +35,11 @@ import java.util.List;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
@@ -49,44 +48,45 @@ import javax.lang.model.util.Types;
 
 import sourcerer.processor.Env;
 
-public class FunctionElement {
-    private final TypeElement typeElement;
-    private final ExecutableElement element;
+public class ProxyFunctionElement extends MethodElement {
+    private static final String ABSTRACT_PREFIX = "Abstract";
+
     private final String name;
-    private final TypeMirror returnType;
-    private final ImmutableList<? extends VariableElement> params;
-    private final ImmutableList<TypeMirror> paramTypes;
     private final TypeElement functionElement;
     private final DeclaredType functionType;
     private final TypeElement abstractProxyFunctionElement;
     private final DeclaredType abstractProxyFunctionType;
 
-    private FunctionElement(TypeElement typeElement, ExecutableElement element, String name, TypeMirror returnType,
-            List<? extends VariableElement> params, List<TypeMirror> paramTypes, TypeElement functionElement,
+    public ProxyFunctionElement(MethodElement source, String name, TypeElement functionElement,
             DeclaredType functionType, TypeElement abstractProxyFunctionElement,
             DeclaredType abstractProxyFunctionType) {
-        this.typeElement = typeElement;
-        this.element = element;
+        super(source);
         this.name = name;
-        this.returnType = returnType;
-        this.params = ImmutableList.copyOf(params);
-        this.paramTypes = ImmutableList.copyOf(paramTypes);
         this.functionElement = functionElement;
         this.functionType = functionType;
         this.abstractProxyFunctionElement = abstractProxyFunctionElement;
         this.abstractProxyFunctionType = abstractProxyFunctionType;
     }
 
-    public static FunctionElement parse(TypeElement typeElement, Element element, Env env) {
-        if (element.getKind() != ElementKind.METHOD) {
-            return null;
-        }
-        ExecutableElement methodElement = (ExecutableElement) element;
-        env.log(methodElement, "processing method element: %s", methodElement);
-        return parse(typeElement, methodElement, env);
+    public static ProxyFunctionElement parse(TypeElement typeElement, Element element, Env env) {
+        MethodElement source = MethodElement.parse(typeElement, element, env);
+        return source == null ? null : from(source);
     }
 
-    private static FunctionElement parse(TypeElement typeElement, ExecutableElement element, Env env) {
+    public static ImmutableList<ProxyFunctionElement> from(List<? extends MethodElement> elements) {
+        ImmutableList.Builder<ProxyFunctionElement> builder = ImmutableList.builder();
+        for (MethodElement element : elements) {
+            builder.add(from(element));
+        }
+        return builder.build();
+    }
+
+    public static ProxyFunctionElement from(MethodElement source) {
+        if (source instanceof ProxyFunctionElement) {
+            return (ProxyFunctionElement) source;
+        }
+        Env env = source.env();
+        ExecutableElement element = source.element();
         GenerateProxyFunction function = element.getAnnotation(GenerateProxyFunction.class);
         String name = function == null ? "" : function.value();
         if (name.isEmpty()) {
@@ -94,7 +94,7 @@ public class FunctionElement {
         }
         env.log("name: %s", name);
 
-        List<? extends VariableElement> params = element.getParameters();
+        List<TypeMirror> params = source.paramTypes();
         int length = params.size();
         String num;
         if (length > 9) {
@@ -104,7 +104,7 @@ public class FunctionElement {
             num = Integer.toString(length);
         }
 
-        TypeMirror returnType = element.getReturnType();
+        TypeMirror returnType = source.returnType();
         String functionClass;
         TypeMirror[] paramTypes;
         env.log("returnType: %s", returnType);
@@ -115,21 +115,14 @@ public class FunctionElement {
         } else {
             env.log("not void");
             paramTypes = new TypeMirror[length + 1];
-            paramTypes[length] = returnType;
+            paramTypes[length] = boxedType(returnType, env);
             functionClass = "Func";
         }
 
         env.log("params length: %d", length);
         env.log("params: %s", params);
-
         for (int i = 0; i < length; i++) {
-            VariableElement param = params.get(i);
-            env.log("param: %s", param);
-            ElementKind paramKind = param.getKind();
-            env.log("param kind: %s", paramKind);
-            TypeMirror paramType = param.asType();
-            env.log("param type: %s", paramType);
-            paramTypes[i] = paramType;
+            paramTypes[i] = boxedType(params.get(i), env);
         }
         env.log("paramTypes: %s", Arrays.toString(paramTypes));
 
@@ -148,13 +141,21 @@ public class FunctionElement {
         env.log("AbstractProxyFunction type: %s", abstractProxyFunctionType);
         env.log("AbstractProxyFunction type typeArguments: %s", abstractProxyFunctionType.getTypeArguments());
 
-        return new FunctionElement(typeElement, element, name, returnType, params, Arrays.asList(paramTypes),
-                functionElement, functionType, abstractProxyFunctionElement, abstractProxyFunctionType);
+        return new ProxyFunctionElement(source, name, functionElement, functionType, abstractProxyFunctionElement,
+                abstractProxyFunctionType);
     }
 
-    private static final String ABSTRACT_PREFIX = "Abstract";
+    private static TypeMirror boxedType(TypeMirror typeMirror, Env env) {
+        Types typeUtils = env.types();
+        if (typeMirror.getKind().isPrimitive()) {
+            return typeUtils.boxedClass((PrimitiveType) typeMirror)
+                    .asType();
+        }
+        return typeMirror;
+    }
 
     public void writeTo(Filer filer, Env env) throws IOException {
+        TypeElement typeElement = typeElement();
         ProxyElement parent = ProxyElement.cache().get(typeElement);
         if (parent == null) {
             throw new IllegalStateException(typeElement + " parent must be in cache");
@@ -173,10 +174,12 @@ public class FunctionElement {
     }
 
     public TypeSpec newAbstractProxyFunctionTypeSpec() {
+        TypeElement typeElement = typeElement();
         ProxyElement parent = ProxyElement.cache().get(typeElement);
         if (parent == null) {
             throw new IllegalStateException(typeElement + " parent must be in cache");
         }
+        ExecutableElement element = element();
         String subclassName = typeElement.getSimpleName() + "_" + element.getSimpleName() + "Function";
         String subclassPackage = parent.packageName() + ".templates";
         ClassName subclass = ClassName.get(subclassPackage, subclassName);
@@ -223,9 +226,9 @@ public class FunctionElement {
     }
 
     public JavaFile newAbstractProxyFunctionTypeJavaFile() {
-        ProxyElement parent = ProxyElement.cache().get(typeElement);
+        ProxyElement parent = ProxyElement.cache().get(typeElement());
         if (parent == null) {
-            throw new IllegalStateException(typeElement + " parent must be in cache");
+            throw new IllegalStateException(typeElement() + " parent must be in cache");
         }
         TypeSpec typeSpec = newAbstractProxyFunctionTypeSpec();
         String packageName = parent.packageName() + ".generated";
@@ -233,26 +236,27 @@ public class FunctionElement {
                 .build();
     }
 
+    @Override public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("name", name)
+                .add("functionElement", functionElement)
+                .add("abstractProxyFunctionElement", abstractProxyFunctionElement)
+                .add("functionType", functionType)
+                .add("abstractProxyFunctionType", abstractProxyFunctionType)
+                .toString();
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof FunctionElement)) return false;
-        FunctionElement that = (FunctionElement) o;
-        return Objects.equal(element, that.element);
+        if (!(o instanceof ProxyFunctionElement)) return false;
+        if (!super.equals(o)) return false;
+        ProxyFunctionElement that = (ProxyFunctionElement) o;
+        return Objects.equal(name, that.name) &&
+                Objects.equal(functionElement, that.functionElement) &&
+                Objects.equal(functionType, that.functionType);
     }
 
     @Override public int hashCode() {
-        return Objects.hashCode(element);
-    }
-
-    @Override public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("\nelement", element)
-                .add("\nname", name)
-                .add("\nreturnType", returnType)
-                .add("\nparams", params)
-                .add("\nparamTypes", paramTypes)
-                .add("\nfunctionType", functionType)
-                .add("\nabstractProxyFunctionType", abstractProxyFunctionType)
-                .toString();
+        return Objects.hashCode(super.hashCode(), name, functionElement, functionType);
     }
 }

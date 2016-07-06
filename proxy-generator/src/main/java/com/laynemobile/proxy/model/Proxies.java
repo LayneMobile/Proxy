@@ -56,7 +56,7 @@ public final class Proxies extends Env {
 
     public void writeTo(Filer filer) throws IOException {
         for (ProxyElement proxyElement : proxyElements()) {
-            for (FunctionElement functionElement : proxyElement.functions()) {
+            for (ProxyFunctionElement functionElement : proxyElement.functions()) {
                 JavaFile abstractProxyFunctionClass
                         = functionElement.newAbstractProxyFunctionTypeJavaFile();
                 log("writing AbstractProxyFunctionClass -> \n" + abstractProxyFunctionClass.toString());
