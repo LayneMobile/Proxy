@@ -41,7 +41,7 @@ public class AliasCache<K, V, P> {
         if (valueCreator instanceof LoggingValueCreator) {
             return (LoggingValueCreator<K, V, P>) valueCreator;
         } else {
-            return defaultLogger();
+            return Logger.DEFAULT;
         }
     }
 
@@ -79,17 +79,12 @@ public class AliasCache<K, V, P> {
         logger.log(p, format, args);
     }
 
-    @SuppressWarnings("unchecked")
-    public static <P> Logger<? super P> defaultLogger() {
-        return (Logger<? super P>) Logger.DEFAULT;
-    }
-
     public interface ValueCreator<K, V, P> {
         V create(K k, P p);
     }
 
     public interface Logger<P> {
-        Logger DEFAULT = new Logger() {
+        Logger<Object> DEFAULT = new Logger<Object>() {
             @Override public void log(Object ignored, String format, Object... args) {
                 System.out.printf(format, args);
                 System.out.println();
