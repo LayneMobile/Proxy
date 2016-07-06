@@ -56,18 +56,6 @@ public class TypeElementAlias {
         this.functions = source.functions;
     }
 
-    /* java.lang.Object element constructor. */
-    private TypeElementAlias(Env env) {
-        this.env = env;
-        this.element = env.elements().getTypeElement("java.lang.Object");
-        this.kind = ElementKind.CLASS;
-        this.className = ClassName.get(element);
-        this.superClass = null;
-        this.typeVariables = ImmutableList.of();
-        this.interfaceTypes = ImmutableList.of();
-        this.functions = ImmutableList.of();
-    }
-
     private TypeElementAlias(Env env, TypeElement element, DeclaredTypeAlias superClass,
             List<TypeVariable> typeVariables, List<DeclaredTypeAlias> interfaceTypes, List<MethodElement> functions) {
         this.env = env;

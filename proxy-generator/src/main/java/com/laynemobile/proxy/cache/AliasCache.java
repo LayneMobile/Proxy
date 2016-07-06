@@ -36,8 +36,7 @@ public abstract class AliasCache<K, V, P> {
         log(p, "creating value from key: %s", key);
         V created = create(key, p);
         synchronized (cache) {
-            cached = get(key);
-            if (cached != null) {
+            if ((cached = get(key)) != null) {
                 return cached;
             }
             cache.put(key, created);
