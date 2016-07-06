@@ -18,7 +18,9 @@ package com.laynemobile.proxy.model;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,47 +34,48 @@ import javax.lang.model.type.WildcardType;
 
 import sourcerer.processor.Env;
 
-public final class ProxyType {
-    private static final Map<DeclaredType, ProxyType> CACHE = new HashMap<>();
+public final class DeclaredTypeAlias {
+    private static final Map<DeclaredType, DeclaredTypeAlias> CACHE = new HashMap<>();
 
     private final DeclaredType type;
-    private final ProxyElement element;
+    private final TypeElementAlias element;
+    private final ImmutableList<DeclaredTypeAlias> directSuperTypes;
 
-    private ProxyType(DeclaredType type, ProxyElement element) {
+    private DeclaredTypeAlias(DeclaredType type, TypeElementAlias element, List<DeclaredTypeAlias> directSuperTypes) {
         this.type = type;
         this.element = element;
+        this.directSuperTypes = ImmutableList.copyOf(directSuperTypes);
     }
 
-    public static ProxyType parse(TypeMirror type, Env env) {
+    public static DeclaredTypeAlias parse(TypeMirror type, Env env) {
         if (type.getKind() != TypeKind.DECLARED) {
             return null;
         }
-
-        DeclaredType declaredType = (DeclaredType) type;
-        synchronized (CACHE) {
-            ProxyType proxyType = CACHE.get(type);
-            if (proxyType != null) {
-                env.log("returning cached proxy type: %s", proxyType);
-                return proxyType;
-            }
-        }
-
-        ProxyType proxyType = parse(declaredType, env);
-        if (proxyType != null) {
-            env.log("caching proxy type: %s", proxyType);
-            synchronized (CACHE) {
-                CACHE.put(declaredType, proxyType);
-            }
-        }
-        return proxyType;
+        return get((DeclaredType) type, env);
     }
 
-    private static ProxyType parse(DeclaredType type, Env env) {
-        TypeElement interfaceElement = (TypeElement) env.types().asElement(type);
-        ProxyElement proxyElement = ProxyElement.parse(interfaceElement, env);
-        if (proxyElement == null) {
-            return null;
+    static DeclaredTypeAlias get(DeclaredType declaredType, Env env) {
+        synchronized (CACHE) {
+            DeclaredTypeAlias typeAlias = CACHE.get(declaredType);
+            if (typeAlias != null) {
+                env.log("returning cached declared type alias: %s", typeAlias);
+                return typeAlias;
+            }
         }
+        env.log("creating declared type alias: %s", declaredType);
+        DeclaredTypeAlias typeAlias = parse(declaredType, env);
+        if (typeAlias != null) {
+            env.log("caching declared type alias: %s", typeAlias);
+            synchronized (CACHE) {
+                CACHE.put(declaredType, typeAlias);
+            }
+        }
+        return typeAlias;
+    }
+
+    private static DeclaredTypeAlias parse(DeclaredType type, Env env) {
+        TypeElement typeElement = (TypeElement) env.types().asElement(type);
+        TypeElementAlias typeElementAlias = TypeElementAlias.get(typeElement, env);
 
         List<? extends TypeMirror> typeArguments = type.getTypeArguments();
         env.log("typeArguments: %s", typeArguments);
@@ -93,22 +96,35 @@ public final class ProxyType {
                 env.log("wildcardType superBound: %s", wildcardType.getSuperBound());
             }
         }
-        return new ProxyType(type, proxyElement);
+
+        List<? extends TypeMirror> _directSupertypes = env.types().directSupertypes(type);
+        List<DeclaredTypeAlias> directSuperTypes = new ArrayList<>(_directSupertypes.size());
+        for (TypeMirror typeMirror : _directSupertypes) {
+            if (typeMirror.getKind() == TypeKind.DECLARED) {
+                directSuperTypes.add(get((DeclaredType) typeMirror, env));
+            }
+        }
+
+        return new DeclaredTypeAlias(type, typeElementAlias, directSuperTypes);
     }
 
     public DeclaredType type() {
         return type;
     }
 
-    public ProxyElement element() {
+    public TypeElementAlias element() {
         return element;
+    }
+
+    public ImmutableList<DeclaredTypeAlias> directSuperTypes() {
+        return directSuperTypes;
     }
 
     @Override public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ProxyType)) return false;
+        if (!(o instanceof DeclaredTypeAlias)) return false;
         if (!super.equals(o)) return false;
-        ProxyType that = (ProxyType) o;
+        DeclaredTypeAlias that = (DeclaredTypeAlias) o;
         return Objects.equal(type, that.type);
     }
 

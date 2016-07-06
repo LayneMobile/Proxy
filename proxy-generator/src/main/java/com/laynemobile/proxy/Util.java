@@ -19,7 +19,7 @@ package com.laynemobile.proxy;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.internal.ProxyLog;
-import com.laynemobile.proxy.model.ProxyElement;
+import com.laynemobile.proxy.model.TypeElementAlias;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -74,10 +74,10 @@ public final class Util {
         }
     }
 
-    public static ProxyElement parseProxy(Func0<Class<?>> classFunc, Env env) {
+    public static TypeElementAlias parseAlias(Func0<Class<?>> classFunc, Env env) {
         TypeElement typeElement = parse(classFunc, env);
         if (typeElement != null) {
-            return ProxyElement.parse(typeElement, env);
+            return TypeElementAlias.parse(typeElement, env);
         }
         return null;
     }
@@ -98,18 +98,18 @@ public final class Util {
         return typeElements.build();
     }
 
-    public static ImmutableList<ProxyElement> parseProxyList(Func0<Class<?>[]> classesFunc, Env env) {
-        ImmutableList.Builder<ProxyElement> proxyElements = ImmutableList.builder();
+    public static ImmutableList<TypeElementAlias> parseAliasList(Func0<Class<?>[]> classesFunc, Env env) {
+        ImmutableList.Builder<TypeElementAlias> aliasList = ImmutableList.builder();
         List<TypeElement> typeElements = parseList(classesFunc, env);
         if (typeElements != null) {
             for (TypeElement typeElement : typeElements) {
-                ProxyElement proxyElement = ProxyElement.parse(typeElement, env);
-                if (proxyElement != null) {
-                    proxyElements.add(proxyElement);
+                TypeElementAlias typeElementAlias = TypeElementAlias.parse(typeElement, env);
+                if (typeElementAlias != null) {
+                    aliasList.add(typeElementAlias);
                 }
             }
         }
-        return proxyElements.build();
+        return aliasList.build();
     }
 
     public static TypeElement parse(TypeMirror typeMirror, Types typeUtils) {

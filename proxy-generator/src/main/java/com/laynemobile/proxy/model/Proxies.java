@@ -58,7 +58,7 @@ public final class Proxies extends Env {
         for (ProxyElement proxyElement : proxyElements()) {
             for (FunctionElement functionElement : proxyElement.functions()) {
                 JavaFile abstractProxyFunctionClass
-                        = functionElement.newAbstractProxyFunctionTypeJavaFile(proxyElement);
+                        = functionElement.newAbstractProxyFunctionTypeJavaFile();
                 log("writing AbstractProxyFunctionClass -> \n" + abstractProxyFunctionClass.toString());
                 abstractProxyFunctionClass.writeTo(filer);
             }

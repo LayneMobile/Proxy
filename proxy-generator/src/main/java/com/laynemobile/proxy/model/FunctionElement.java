@@ -31,9 +31,7 @@ import com.squareup.javapoet.TypeVariableName;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
@@ -52,8 +50,7 @@ import javax.lang.model.util.Types;
 import sourcerer.processor.Env;
 
 public class FunctionElement {
-    private static final Map<ExecutableElement, FunctionElement> CACHE = new HashMap<>();
-
+    private final TypeElement typeElement;
     private final ExecutableElement element;
     private final String name;
     private final TypeMirror returnType;
@@ -64,10 +61,11 @@ public class FunctionElement {
     private final TypeElement abstractProxyFunctionElement;
     private final DeclaredType abstractProxyFunctionType;
 
-    private FunctionElement(ExecutableElement element, String name, TypeMirror returnType,
+    private FunctionElement(TypeElement typeElement, ExecutableElement element, String name, TypeMirror returnType,
             List<? extends VariableElement> params, List<TypeMirror> paramTypes, TypeElement functionElement,
             DeclaredType functionType, TypeElement abstractProxyFunctionElement,
             DeclaredType abstractProxyFunctionType) {
+        this.typeElement = typeElement;
         this.element = element;
         this.name = name;
         this.returnType = returnType;
@@ -79,29 +77,16 @@ public class FunctionElement {
         this.abstractProxyFunctionType = abstractProxyFunctionType;
     }
 
-    public static FunctionElement parse(Element element, Env env) {
+    public static FunctionElement parse(TypeElement typeElement, Element element, Env env) {
         if (element.getKind() != ElementKind.METHOD) {
             return null;
         }
         ExecutableElement methodElement = (ExecutableElement) element;
-        synchronized (CACHE) {
-            FunctionElement functionElement = CACHE.get(methodElement);
-            if (functionElement != null) {
-                env.log("returning cached function element: %s", functionElement);
-                return functionElement;
-            }
-        }
-
         env.log(methodElement, "processing method element: %s", methodElement);
-        FunctionElement functionElement = parse(methodElement, env);
-        env.log("caching function element: %s", functionElement);
-        synchronized (CACHE) {
-            CACHE.put(methodElement, functionElement);
-        }
-        return functionElement;
+        return parse(typeElement, methodElement, env);
     }
 
-    private static FunctionElement parse(ExecutableElement element, Env env) {
+    private static FunctionElement parse(TypeElement typeElement, ExecutableElement element, Env env) {
         GenerateProxyFunction function = element.getAnnotation(GenerateProxyFunction.class);
         String name = function == null ? "" : function.value();
         if (name.isEmpty()) {
@@ -163,14 +148,18 @@ public class FunctionElement {
         env.log("AbstractProxyFunction type: %s", abstractProxyFunctionType);
         env.log("AbstractProxyFunction type typeArguments: %s", abstractProxyFunctionType.getTypeArguments());
 
-        return new FunctionElement(element, name, returnType, params, Arrays.asList(paramTypes), functionElement,
-                functionType, abstractProxyFunctionElement, abstractProxyFunctionType);
+        return new FunctionElement(typeElement, element, name, returnType, params, Arrays.asList(paramTypes),
+                functionElement, functionType, abstractProxyFunctionElement, abstractProxyFunctionType);
     }
 
     private static final String ABSTRACT_PREFIX = "Abstract";
 
-    public void writeTo(Filer filer, ProxyElement parent, Env env) throws IOException {
-        TypeSpec abstractType = newAbstractProxyFunctionTypeSpec(parent);
+    public void writeTo(Filer filer, Env env) throws IOException {
+        ProxyElement parent = ProxyElement.cached(typeElement);
+        if (parent == null) {
+            throw new IllegalStateException(typeElement + " parent must be in cache");
+        }
+        TypeSpec abstractType = newAbstractProxyFunctionTypeSpec();
         String generated = parent.packageName() + ".generated";
         JavaFile abstractTypeFile = JavaFile.builder(generated, abstractType)
                 .build();
@@ -183,8 +172,11 @@ public class FunctionElement {
 //                .superclass()
     }
 
-    public TypeSpec newAbstractProxyFunctionTypeSpec(ProxyElement parent) {
-        TypeElement typeElement = parent.element();
+    public TypeSpec newAbstractProxyFunctionTypeSpec() {
+        ProxyElement parent = ProxyElement.cached(typeElement);
+        if (parent == null) {
+            throw new IllegalStateException(typeElement + " parent must be in cache");
+        }
         String subclassName = typeElement.getSimpleName() + "_" + element.getSimpleName() + "Function";
         String subclassPackage = parent.packageName() + ".templates";
         ClassName subclass = ClassName.get(subclassPackage, subclassName);
@@ -195,7 +187,7 @@ public class FunctionElement {
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                 .addAnnotation(Generated.class)
                 // TODO: add annotation!
-//                .addAnnotation(AnnotationSpec.builder(Generate.ProxyFunctionImplementation.class)
+//                .addAnnotation(AnnotationSpec.builder(ProxyFunctionImplementation.class)
 //                        .addMember("value", "$T.class", subclass)
 //                        .build())
                 ;
@@ -230,8 +222,12 @@ public class FunctionElement {
         return classBuilder.build();
     }
 
-    public JavaFile newAbstractProxyFunctionTypeJavaFile(ProxyElement parent) {
-        TypeSpec typeSpec = newAbstractProxyFunctionTypeSpec(parent);
+    public JavaFile newAbstractProxyFunctionTypeJavaFile() {
+        ProxyElement parent = ProxyElement.cached(typeElement);
+        if (parent == null) {
+            throw new IllegalStateException(typeElement + " parent must be in cache");
+        }
+        TypeSpec typeSpec = newAbstractProxyFunctionTypeSpec();
         String packageName = parent.packageName() + ".generated";
         return JavaFile.builder(packageName, typeSpec)
                 .build();
