@@ -21,6 +21,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.cache.EnvCache;
 import com.laynemobile.proxy.functions.Func0;
 
 import java.util.List;
@@ -32,8 +33,6 @@ import javax.lang.model.element.TypeElement;
 import sourcerer.processor.Env;
 
 public final class ProxyElement extends TypeElementAlias implements Comparable<ProxyElement> {
-    private static final EnvCache<TypeElement, ProxyElement> CACHE = EnvCache.create(new Creator());
-
     private final Metadata metadata;
 
     private ProxyElement(TypeElementAlias source, Metadata metadata) {
@@ -41,27 +40,15 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
         this.metadata = metadata;
     }
 
-    public static EnvCache<TypeElement, ProxyElement> proxyCache() {
-        return CACHE;
+    public static EnvCache<Element, TypeElement, ? extends ProxyElement> cache() {
+        return Cache.INSTANCE;
     }
 
     public static ProxyElement from(TypeElementAlias source) {
         if (source.kind() == ElementKind.INTERFACE) {
-            return get(source.element(), source.env());
+            return cache().getOrCreate(source.element(), source.env());
         }
         return null;
-    }
-
-    public static ProxyElement parse(Element element, Env env) {
-        // Only interfaces allowed
-        if (element.getKind() != ElementKind.INTERFACE) {
-            return null;
-        }
-        return get((TypeElement) element, env);
-    }
-
-    static ProxyElement get(TypeElement typeElement, Env env) {
-        return CACHE.getOrCreate(typeElement, env);
     }
 
     public Metadata metadata() {
@@ -185,9 +172,21 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
         }
     }
 
-    private static final class Creator extends EnvCache.ValueCreator<TypeElement, ProxyElement> {
-        @Override public ProxyElement create(TypeElement typeElement, Env env) {
-            TypeElementAlias source = TypeElementAlias.get(typeElement, env);
+    private static final class Cache extends EnvCache<Element, TypeElement, ProxyElement> {
+        private static final Cache INSTANCE = new Cache();
+
+        private Cache() {}
+
+        @Override protected TypeElement cast(Element element) throws Exception {
+            // Only interfaces allowed
+            if (element.getKind() != ElementKind.INTERFACE) {
+                return null;
+            }
+            return (TypeElement) element;
+        }
+
+        @Override protected ProxyElement create(TypeElement typeElement, Env env) {
+            TypeElementAlias source = TypeElementAlias.cache().getOrCreate(typeElement, env);
             Metadata metadata = Metadata.parse(typeElement, env);
             return new ProxyElement(source, metadata);
         }

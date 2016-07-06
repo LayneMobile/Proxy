@@ -77,7 +77,7 @@ public final class Util {
     public static TypeElementAlias parseAlias(Func0<Class<?>> classFunc, Env env) {
         TypeElement typeElement = parse(classFunc, env);
         if (typeElement != null) {
-            return TypeElementAlias.parse(typeElement, env);
+            return TypeElementAlias.cache().parse(typeElement, env);
         }
         return null;
     }
@@ -103,7 +103,7 @@ public final class Util {
         List<TypeElement> typeElements = parseList(classesFunc, env);
         if (typeElements != null) {
             for (TypeElement typeElement : typeElements) {
-                TypeElementAlias typeElementAlias = TypeElementAlias.parse(typeElement, env);
+                TypeElementAlias typeElementAlias = TypeElementAlias.cache().parse(typeElement, env);
                 if (typeElementAlias != null) {
                     aliasList.add(typeElementAlias);
                 }

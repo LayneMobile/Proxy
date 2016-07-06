@@ -19,6 +19,7 @@ package com.laynemobile.proxy.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.laynemobile.proxy.cache.EnvCache;
 import com.squareup.javapoet.ClassName;
 
 import java.util.ArrayList;
@@ -35,9 +36,6 @@ import javax.lang.model.type.TypeVariable;
 import sourcerer.processor.Env;
 
 public class TypeElementAlias {
-    private static final EnvCache<TypeElement, TypeElementAlias> CACHE = EnvCache.create(new Creator());
-    private static volatile TypeElementAlias OBJECT_ELEMENT;
-
     private final Env env;
     private final TypeElement element;
     private final ElementKind kind;
@@ -82,31 +80,8 @@ public class TypeElementAlias {
         this.functions = ImmutableList.copyOf(functions);
     }
 
-    public static EnvCache<TypeElement, TypeElementAlias> elementCache() {
-        return CACHE;
-    }
-
-    public static TypeElementAlias parse(Element element, Env env) {
-        if (element.getKind() == ElementKind.CLASS || element.getKind() == ElementKind.INTERFACE) {
-            return get((TypeElement) element, env);
-        }
-        return null;
-    }
-
-    static TypeElementAlias get(TypeElement typeElement, Env env) {
-        return CACHE.getOrCreate(typeElement, env);
-    }
-
-    private static TypeElementAlias objectElement(Env env) {
-        TypeElementAlias oe;
-        if ((oe = OBJECT_ELEMENT) == null) {
-            synchronized (CACHE) {
-                if ((oe = OBJECT_ELEMENT) == null) {
-                    oe = OBJECT_ELEMENT = new TypeElementAlias(env);
-                }
-            }
-        }
-        return oe;
+    public static EnvCache<Element, TypeElement, ? extends TypeElementAlias> cache() {
+        return Cache.INSTANCE;
     }
 
     public Env env() {
@@ -166,7 +141,7 @@ public class TypeElementAlias {
     }
 
     @Override public String toString() {
-        if (this == OBJECT_ELEMENT) {
+        if (this == Cache.INSTANCE.objectElement) {
             return MoreObjects.toStringHelper(this)
                     .add("\nelement", element)
                     .toString();
@@ -180,8 +155,21 @@ public class TypeElementAlias {
                 .toString();
     }
 
-    private static final class Creator extends EnvCache.ValueCreator<TypeElement, TypeElementAlias> {
-        @Override public TypeElementAlias create(TypeElement typeElement, Env env) {
+    private static final class Cache extends EnvCache<Element, TypeElement, TypeElementAlias> {
+        private static final Cache INSTANCE = new Cache();
+
+        private volatile TypeElementAlias objectElement;
+
+        private Cache() {}
+
+        @Override protected TypeElement cast(Element element) throws Exception {
+            if (element.getKind() == ElementKind.CLASS || element.getKind() == ElementKind.INTERFACE) {
+                return (TypeElement) element;
+            }
+            return null;
+        }
+
+        @Override protected TypeElementAlias create(TypeElement typeElement, Env env) {
             // Special parsing for java.lang.Object class
             if ("java.lang.Object".equals(typeElement.getQualifiedName().toString())) {
                 return objectElement(env);
@@ -206,7 +194,7 @@ public class TypeElementAlias {
 
             List<DeclaredTypeAlias> interfaceTypes = new ArrayList<>(interfaces.size());
             for (TypeMirror interfaceType : interfaces) {
-                DeclaredTypeAlias elementType = DeclaredTypeAlias.parse(interfaceType, env);
+                DeclaredTypeAlias elementType = DeclaredTypeAlias.cache().parse(interfaceType, env);
                 if (elementType != null) {
                     env.log("interface type: %s", interfaceType);
                     interfaceTypes.add(elementType);
@@ -223,8 +211,20 @@ public class TypeElementAlias {
                 functions.add(functionElement);
             }
 
-            DeclaredTypeAlias superClass = DeclaredTypeAlias.parse(typeElement.getSuperclass(), env);
+            DeclaredTypeAlias superClass = DeclaredTypeAlias.cache().parse(typeElement.getSuperclass(), env);
             return new TypeElementAlias(env, typeElement, superClass, typeVariables, interfaceTypes, functions);
+        }
+
+        private TypeElementAlias objectElement(Env env) {
+            TypeElementAlias oe;
+            if ((oe = objectElement) == null) {
+                synchronized (this) {
+                    if ((oe = objectElement) == null) {
+                        oe = objectElement = new TypeElementAlias(env);
+                    }
+                }
+            }
+            return oe;
         }
     }
 }

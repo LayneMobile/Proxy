@@ -19,6 +19,7 @@ package com.laynemobile.proxy.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.laynemobile.proxy.cache.EnvCache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +34,6 @@ import javax.lang.model.type.WildcardType;
 import sourcerer.processor.Env;
 
 public final class DeclaredTypeAlias {
-    private static final EnvCache<DeclaredType, DeclaredTypeAlias> CACHE = EnvCache.create(new Creator());
-
     private final DeclaredType type;
     private final TypeElementAlias element;
     private final ImmutableList<DeclaredTypeAlias> directSuperTypes;
@@ -45,19 +44,8 @@ public final class DeclaredTypeAlias {
         this.directSuperTypes = ImmutableList.copyOf(directSuperTypes);
     }
 
-    public static EnvCache<DeclaredType, DeclaredTypeAlias> typeCache() {
-        return CACHE;
-    }
-
-    public static DeclaredTypeAlias parse(TypeMirror type, Env env) {
-        if (type.getKind() != TypeKind.DECLARED) {
-            return null;
-        }
-        return get((DeclaredType) type, env);
-    }
-
-    static DeclaredTypeAlias get(DeclaredType declaredType, Env env) {
-        return CACHE.getOrCreate(declaredType, env);
+    public static EnvCache<TypeMirror, DeclaredType, ? extends DeclaredTypeAlias> cache() {
+        return Cache.INSTANCE;
     }
 
     public DeclaredType type() {
@@ -90,11 +78,22 @@ public final class DeclaredTypeAlias {
                 .toString();
     }
 
-    private static final class Creator extends EnvCache.ValueCreator<DeclaredType, DeclaredTypeAlias> {
-        @Override public DeclaredTypeAlias create(DeclaredType declaredType, Env env) {
+    private static final class Cache extends EnvCache<TypeMirror, DeclaredType, DeclaredTypeAlias> {
+        private static final Cache INSTANCE = new Cache();
+
+        private Cache() {}
+
+        @Override protected DeclaredType cast(TypeMirror typeMirror) throws Exception {
+            if (typeMirror.getKind() != TypeKind.DECLARED) {
+                return null;
+            }
+            return (DeclaredType) typeMirror;
+        }
+
+        @Override protected DeclaredTypeAlias create(DeclaredType declaredType, Env env) {
             env.log("creating declared type alias: %s", declaredType);
             TypeElement typeElement = (TypeElement) env.types().asElement(declaredType);
-            TypeElementAlias typeElementAlias = TypeElementAlias.get(typeElement, env);
+            TypeElementAlias typeElementAlias = TypeElementAlias.cache().getOrCreate(typeElement, env);
 
             List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
             env.log("typeArguments: %s", typeArguments);
@@ -120,7 +119,7 @@ public final class DeclaredTypeAlias {
             List<DeclaredTypeAlias> directSuperTypes = new ArrayList<>(_directSupertypes.size());
             for (TypeMirror typeMirror : _directSupertypes) {
                 if (typeMirror.getKind() == TypeKind.DECLARED) {
-                    directSuperTypes.add(get((DeclaredType) typeMirror, env));
+                    directSuperTypes.add(getOrCreate((DeclaredType) typeMirror, env));
                 }
             }
 

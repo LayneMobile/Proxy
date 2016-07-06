@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.model;
+package com.laynemobile.proxy.cache;
+
+import com.laynemobile.proxy.internal.ProxyLog;
 
 import sourcerer.processor.Env;
 
-public final class EnvCache<K, V> extends AliasCache<K, V, Env> {
-    private EnvCache(ValueCreator<K, V> valueCreator) {
-        super(valueCreator);
-    }
+public abstract class EnvCache<S, K extends S, V> extends AliasCache<K, V, Env> {
+    protected EnvCache() {}
 
-    public static <K, V> EnvCache<K, V> create(ValueCreator<K, V> valueCreator) {
-        return new EnvCache<>(valueCreator);
-    }
+    protected abstract K cast(S s) throws Exception;
 
-    public static abstract class ValueCreator<K, V> implements LoggingValueCreator<K, V, Env> {
-        @Override public void log(Env env, String format, Object... args) {
-            env.log(format, args);
+    public final V parse(S superType, Env env) {
+        try {
+            K k = cast(superType);
+            if (k != null) {
+                return getOrCreate(k, env);
+            }
+        } catch (Exception e) {
+            env.log("error %s", ProxyLog.getStackTraceString(e));
         }
+        return null;
     }
 }

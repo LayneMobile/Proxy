@@ -36,7 +36,7 @@ public final class Proxies extends Env {
     }
 
     boolean add(Element element) {
-        ProxyElement proxyElement = ProxyElement.parse(element, this);
+        ProxyElement proxyElement = ProxyElement.cache().parse(element, this);
         if (proxyElement == null) {
             return false;
         }

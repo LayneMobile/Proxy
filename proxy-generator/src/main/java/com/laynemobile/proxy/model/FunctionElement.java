@@ -155,7 +155,7 @@ public class FunctionElement {
     private static final String ABSTRACT_PREFIX = "Abstract";
 
     public void writeTo(Filer filer, Env env) throws IOException {
-        ProxyElement parent = ProxyElement.proxyCache().get(typeElement);
+        ProxyElement parent = ProxyElement.cache().get(typeElement);
         if (parent == null) {
             throw new IllegalStateException(typeElement + " parent must be in cache");
         }
@@ -173,7 +173,7 @@ public class FunctionElement {
     }
 
     public TypeSpec newAbstractProxyFunctionTypeSpec() {
-        ProxyElement parent = ProxyElement.proxyCache().get(typeElement);
+        ProxyElement parent = ProxyElement.cache().get(typeElement);
         if (parent == null) {
             throw new IllegalStateException(typeElement + " parent must be in cache");
         }
@@ -223,7 +223,7 @@ public class FunctionElement {
     }
 
     public JavaFile newAbstractProxyFunctionTypeJavaFile() {
-        ProxyElement parent = ProxyElement.proxyCache().get(typeElement);
+        ProxyElement parent = ProxyElement.cache().get(typeElement);
         if (parent == null) {
             throw new IllegalStateException(typeElement + " parent must be in cache");
         }
