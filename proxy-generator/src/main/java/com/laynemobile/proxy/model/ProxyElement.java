@@ -33,11 +33,18 @@ import javax.lang.model.element.TypeElement;
 import sourcerer.processor.Env;
 
 public final class ProxyElement extends TypeElementAlias implements Comparable<ProxyElement> {
-    private final Metadata metadata;
+    private final boolean parent;
+    private final ImmutableList<? extends TypeElementAlias> dependsOn;
+    private final TypeElementAlias replaces;
+    private final TypeElementAlias extendsFrom;
 
-    private ProxyElement(TypeElementAlias source, Metadata metadata) {
+    private ProxyElement(TypeElementAlias source, boolean parent, List<TypeElementAlias> dependsOn,
+            TypeElementAlias replaces, TypeElementAlias extendsFrom) {
         super(source);
-        this.metadata = metadata;
+        this.parent = parent;
+        this.dependsOn = ImmutableList.copyOf(dependsOn);
+        this.replaces = replaces;
+        this.extendsFrom = extendsFrom;
     }
 
     public static EnvCache<Element, TypeElement, ? extends ProxyElement> cache() {
@@ -51,8 +58,20 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
         return null;
     }
 
-    public Metadata metadata() {
-        return metadata;
+    public boolean isParent() {
+        return parent;
+    }
+
+    public ImmutableList<? extends TypeElementAlias> dependsOn() {
+        return dependsOn;
+    }
+
+    public TypeElementAlias replaces() {
+        return replaces;
+    }
+
+    public TypeElementAlias extendsFrom() {
+        return extendsFrom;
     }
 
     @Override public int compareTo(ProxyElement o) {
@@ -66,10 +85,10 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
         } else if (dependsOn(o)) {
             System.out.printf("'%s' dependsOn '%s'\n", className(), o.className());
             return 1;
-        } else if (metadata.parent && !o.metadata.parent) {
+        } else if (parent && !o.parent) {
             System.out.printf("'%s' is a parent\n", className());
             return -1;
-        } else if (o.metadata.parent && !metadata.parent) {
+        } else if (o.parent && !parent) {
             System.out.printf("'%s' is a parent\n", o.className());
             return 1;
         }
@@ -83,93 +102,31 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
         if (!(o instanceof ProxyElement)) return false;
         if (!super.equals(o)) return false;
         ProxyElement that = (ProxyElement) o;
-        return Objects.equal(metadata, that.metadata);
+        return parent == that.parent &&
+                Objects.equal(dependsOn, that.dependsOn) &&
+                Objects.equal(replaces, that.replaces) &&
+                Objects.equal(extendsFrom, that.extendsFrom);
     }
 
     @Override public int hashCode() {
-        return Objects.hashCode(super.hashCode(), metadata);
+        return Objects.hashCode(super.hashCode(), parent, dependsOn, replaces, extendsFrom);
     }
 
     @Override public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("element", element())
-                .add("metadata", metadata)
+                .add("super", className())
+                .add("\nparent", parent)
+                .add("\ndependsOn", dependsOn)
+                .add("\nreplaces", replaces)
+                .add("\nextendsFrom", extendsFrom)
                 .toString();
     }
 
     boolean dependsOn(ProxyElement o) {
-        return metadata.dependsOn.contains(o)
-                || metadata.replaces.equals(o)
-                || metadata.extendsFrom.equals(o)
+        return dependsOn.contains(o)
+                || replaces.equals(o)
+                || extendsFrom.equals(o)
                 || o.isInList(interfaceTypes());
-    }
-
-    public static final class Metadata {
-        private final boolean parent;
-        private final ImmutableList<? extends TypeElementAlias> dependsOn;
-        private final TypeElementAlias replaces;
-        private final TypeElementAlias extendsFrom;
-
-        private Metadata(ProxyElement objectElement) {
-            this.parent = true;
-            this.dependsOn = ImmutableList.of(objectElement);
-            this.replaces = objectElement;
-            this.extendsFrom = objectElement;
-        }
-
-        private Metadata(boolean parent, List<TypeElementAlias> dependsOn, TypeElementAlias replaces,
-                TypeElementAlias extendsFrom) {
-            this.parent = parent;
-            this.dependsOn = ImmutableList.copyOf(dependsOn);
-            this.replaces = replaces;
-            this.extendsFrom = extendsFrom;
-        }
-
-        private static Metadata parse(TypeElement element, Env env) {
-            final GenerateProxyBuilder annotation = element.getAnnotation(GenerateProxyBuilder.class);
-            final boolean parent = annotation != null && annotation.parent();
-            final List<TypeElementAlias> dependsOn = Util.parseAliasList(new Func0<Class<?>[]>() {
-                @Override public Class<?>[] call() {
-                    return annotation == null ? new Class[]{} : annotation.dependsOn();
-                }
-            }, env);
-            final TypeElementAlias replaces = Util.parseAlias(new Func0<Class<?>>() {
-                @Override public Class<?> call() {
-                    return annotation == null ? Object.class : annotation.replaces();
-                }
-            }, env);
-            final TypeElementAlias extendsFrom = Util.parseAlias(new Func0<Class<?>>() {
-                @Override public Class<?> call() {
-                    return annotation == null ? Object.class : annotation.extendsFrom();
-                }
-            }, env);
-            return new Metadata(parent, dependsOn, replaces, extendsFrom);
-        }
-
-        public boolean isParent() {
-            return parent;
-        }
-
-        public ImmutableList<? extends TypeElementAlias> dependsOn() {
-            return dependsOn;
-        }
-
-        public TypeElementAlias replaces() {
-            return replaces;
-        }
-
-        public TypeElementAlias extendsFrom() {
-            return extendsFrom;
-        }
-
-        @Override public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("\nparent", parent)
-                    .add("\ndependsOn", dependsOn)
-                    .add("\nreplaces", replaces)
-                    .add("\nextendsFrom", extendsFrom)
-                    .toString();
-        }
     }
 
     private static final class Cache extends EnvCache<Element, TypeElement, ProxyElement> {
@@ -187,8 +144,24 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
 
         @Override protected ProxyElement create(TypeElement typeElement, Env env) {
             TypeElementAlias source = TypeElementAlias.cache().getOrCreate(typeElement, env);
-            Metadata metadata = Metadata.parse(typeElement, env);
-            return new ProxyElement(source, metadata);
+            final GenerateProxyBuilder annotation = typeElement.getAnnotation(GenerateProxyBuilder.class);
+            final boolean parent = annotation != null && annotation.parent();
+            final List<TypeElementAlias> dependsOn = Util.parseAliasList(new Func0<Class<?>[]>() {
+                @Override public Class<?>[] call() {
+                    return annotation == null ? new Class[]{} : annotation.dependsOn();
+                }
+            }, env);
+            final TypeElementAlias replaces = Util.parseAlias(new Func0<Class<?>>() {
+                @Override public Class<?> call() {
+                    return annotation == null ? Object.class : annotation.replaces();
+                }
+            }, env);
+            final TypeElementAlias extendsFrom = Util.parseAlias(new Func0<Class<?>>() {
+                @Override public Class<?> call() {
+                    return annotation == null ? Object.class : annotation.extendsFrom();
+                }
+            }, env);
+            return new ProxyElement(source, parent, dependsOn, replaces, extendsFrom);
         }
     }
 }
