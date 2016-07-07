@@ -21,6 +21,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.annotations.GenerateProxyFunction;
 import com.laynemobile.proxy.annotations.Generated;
+import com.laynemobile.proxy.cache.MultiAliasCache;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
@@ -34,7 +35,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.processing.Filer;
-import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -49,15 +49,18 @@ import javax.lang.model.util.Types;
 import sourcerer.processor.Env;
 
 public class ProxyFunctionElement extends MethodElement {
+    private static MultiAliasCache<TypeElementAlias, MethodElement, ProxyFunctionElement> CACHE
+            = MultiAliasCache.create(new Creator());
     private static final String ABSTRACT_PREFIX = "Abstract";
 
     private final String name;
+    private final ProxyFunctionElement overrides;
     private final TypeElement functionElement;
     private final DeclaredType functionType;
     private final TypeElement abstractProxyFunctionElement;
     private final DeclaredType abstractProxyFunctionType;
 
-    protected ProxyFunctionElement(MethodElement source, Env env) {
+    private ProxyFunctionElement(MethodElement source, ProxyFunctionElement overrides, Env env) {
         super(source);
         ExecutableElement element = source.element();
         GenerateProxyFunction function = element.getAnnotation(GenerateProxyFunction.class);
@@ -115,30 +118,25 @@ public class ProxyFunctionElement extends MethodElement {
         env.log("AbstractProxyFunction type typeArguments: %s", abstractProxyFunctionType.getTypeArguments());
 
         this.name = name;
+        this.overrides = overrides;
         this.functionElement = functionElement;
         this.functionType = functionType;
         this.abstractProxyFunctionElement = abstractProxyFunctionElement;
         this.abstractProxyFunctionType = abstractProxyFunctionType;
     }
 
-    public static ProxyFunctionElement parse(TypeElement typeElement, Element element, Env env) {
-        MethodElement source = MethodElement.parse(typeElement, element, env);
-        return source == null ? null : from(source, env);
-    }
-
-    public static ImmutableList<ProxyFunctionElement> from(List<? extends MethodElement> elements, Env env) {
+    public static ImmutableList<ProxyFunctionElement> parse(TypeElementAlias typeElement, Env env) {
         ImmutableList.Builder<ProxyFunctionElement> builder = ImmutableList.builder();
-        for (MethodElement element : elements) {
-            builder.add(from(element, env));
+        for (MethodElement element : typeElement.functions()) {
+            ProxyFunctionElement add;
+            if (element instanceof ProxyFunctionElement) {
+                add = (ProxyFunctionElement) element;
+            } else {
+                add = CACHE.getOrCreate(typeElement, element, env);
+            }
+            builder.add(add);
         }
         return builder.build();
-    }
-
-    public static ProxyFunctionElement from(MethodElement source, Env env) {
-        if (source instanceof ProxyFunctionElement) {
-            return (ProxyFunctionElement) source;
-        }
-        return new ProxyFunctionElement(source, env);
     }
 
     private static TypeMirror boxedType(TypeMirror typeMirror, Env env) {
@@ -234,11 +232,19 @@ public class ProxyFunctionElement extends MethodElement {
 
     @Override public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("element", element())
+                .toString();
+    }
+
+    @Override public String toDebugString() {
+        return MoreObjects.toStringHelper(this)
                 .add("name", name)
-                .add("functionElement", functionElement)
-                .add("abstractProxyFunctionElement", abstractProxyFunctionElement)
-                .add("functionType", functionType)
-                .add("abstractProxyFunctionType", abstractProxyFunctionType)
+                .add("\nelement", element())
+                .add("\noverrides", overrides)
+                .add("\nfunctionElement", functionElement)
+                .add("\nabstractProxyFunctionElement", abstractProxyFunctionElement)
+                .add("\nfunctionType", functionType)
+                .add("\nabstractProxyFunctionType", abstractProxyFunctionType)
                 .toString();
     }
 
@@ -248,11 +254,28 @@ public class ProxyFunctionElement extends MethodElement {
         if (!super.equals(o)) return false;
         ProxyFunctionElement that = (ProxyFunctionElement) o;
         return Objects.equal(name, that.name) &&
-                Objects.equal(functionElement, that.functionElement) &&
                 Objects.equal(functionType, that.functionType);
     }
 
     @Override public int hashCode() {
-        return Objects.hashCode(super.hashCode(), name, functionElement, functionType);
+        return Objects.hashCode(super.hashCode(), name, functionType);
+    }
+
+    private static final class Creator implements MultiAliasCache.Creator<TypeElementAlias, MethodElement, ProxyFunctionElement> {
+        @Override public ProxyFunctionElement create(TypeElementAlias typeElement, MethodElement element, Env env) {
+            ProxyFunctionElement overrides = null;
+            OUTER:
+            for (DeclaredTypeAlias typeAlias : typeElement.interfaceTypes()) {
+                for (MethodElement methodElement : typeAlias.element().functions()) {
+                    if (element.overrides(methodElement, env)) {
+                        overrides = create(typeAlias.element(), methodElement, env);
+                        break OUTER;
+                    }
+                }
+            }
+            ProxyFunctionElement proxyFunctionElement = new ProxyFunctionElement(element, overrides, env);
+            env.log("created proxy function element: %s\n\n", proxyFunctionElement.toDebugString());
+            return proxyFunctionElement;
+        }
     }
 }

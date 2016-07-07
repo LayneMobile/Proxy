@@ -81,15 +81,6 @@ public class TypeElementAlias extends Alias {
             }
         }
 
-        List<? extends Element> enclosedElements = typeElement.getEnclosedElements();
-        List<MethodElement> functions = new ArrayList<>(enclosedElements.size());
-        for (Element enclosed : enclosedElements) {
-            MethodElement functionElement = MethodElement.parse(typeElement, enclosed, env);
-            if (functionElement == null) {
-                continue;
-            }
-            functions.add(functionElement);
-        }
         DeclaredTypeAlias superClass = DeclaredTypeAlias.cache()
                 .parse(typeElement.getSuperclass(), env);
 
@@ -99,7 +90,7 @@ public class TypeElementAlias extends Alias {
         this.superClass = superClass;
         this.typeVariables = ImmutableList.copyOf(typeVariables);
         this.interfaceTypes = ImmutableList.copyOf(interfaceTypes);
-        this.functions = ImmutableList.copyOf(functions);
+        this.functions = MethodElement.parse(typeElement, env);
     }
 
     public static AliasCache<TypeElement, ? extends TypeElementAlias, Element> cache() {

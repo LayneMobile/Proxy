@@ -19,14 +19,22 @@ package com.laynemobile.proxy.cache;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class ParameterizedCache<K, V, P> {
+public abstract class AbstractCache<K, V, P> implements Cache<K, V, P> {
     private final Map<K, V> cache = new HashMap<>();
 
-    protected ParameterizedCache() {}
+    protected AbstractCache() {}
 
     protected abstract V create(K k, P p);
 
-    public final V getOrCreate(K key, P p) {
+    public static <K, V, P> AbstractCache<K, V, P> create(final Creator<K, V, P> creator) {
+        return new AbstractCache<K, V, P>() {
+            @Override protected V create(K k, P p) {
+                return creator.create(k, p);
+            }
+        };
+    }
+
+    @Override public final V getOrCreate(K key, P p) {
         V cached = get(key);
         if (cached != null) {
             log(p, "returning cached value: %s", cached);
@@ -45,7 +53,7 @@ public abstract class ParameterizedCache<K, V, P> {
         return created;
     }
 
-    public final V get(K key) {
+    @Override public final V get(K key) {
         synchronized (cache) {
             return cache.get(key);
         }

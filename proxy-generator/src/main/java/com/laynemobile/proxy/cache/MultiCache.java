@@ -16,25 +16,12 @@
 
 package com.laynemobile.proxy.cache;
 
-import com.laynemobile.proxy.internal.ProxyLog;
-import com.laynemobile.proxy.model.Alias;
+public interface MultiCache<K1, K2, V, P> {
+    V get(K1 k1, K2 k2);
 
-import sourcerer.processor.Env;
+    V getOrCreate(K1 k1, K2 k2, P p);
 
-public abstract class AliasCache<K extends SK, V extends Alias, SK> extends EnvCache<K, V> {
-    protected AliasCache() {}
-
-    protected abstract K cast(SK sk) throws Exception;
-
-    public final V parse(SK superType, Env env) {
-        try {
-            K k = cast(superType);
-            if (k != null) {
-                return getOrCreate(k, env);
-            }
-        } catch (Exception e) {
-            env.log("error %s", ProxyLog.getStackTraceString(e));
-        }
-        return null;
+    interface Creator<K1, K2, V, P> {
+        V create(K1 k1, K2 k2, P p);
     }
 }

@@ -16,25 +16,20 @@
 
 package com.laynemobile.proxy.cache;
 
-import com.laynemobile.proxy.internal.ProxyLog;
-import com.laynemobile.proxy.model.Alias;
-
 import sourcerer.processor.Env;
 
-public abstract class AliasCache<K extends SK, V extends Alias, SK> extends EnvCache<K, V> {
-    protected AliasCache() {}
-
-    protected abstract K cast(SK sk) throws Exception;
-
-    public final V parse(SK superType, Env env) {
-        try {
-            K k = cast(superType);
-            if (k != null) {
-                return getOrCreate(k, env);
+public abstract class EnvCache<K, V> extends AbstractCache<K, V, Env> {
+    public static <K, V> EnvCache<K, V> create(final Creator<K, V> creator) {
+        return new EnvCache<K, V>() {
+            @Override protected V create(K k, Env env) {
+                return creator.create(k, env);
             }
-        } catch (Exception e) {
-            env.log("error %s", ProxyLog.getStackTraceString(e));
-        }
-        return null;
+        };
     }
+
+    @Override protected void log(Env env, String format, Object... args) {
+        env.log(format, args);
+    }
+
+    public interface Creator<K, V> extends Cache.Creator<K, V, Env> {}
 }

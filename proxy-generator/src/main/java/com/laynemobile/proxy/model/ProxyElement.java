@@ -63,7 +63,7 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
         this.dependsOn = ImmutableList.copyOf(dependsOn);
         this.replaces = replaces;
         this.extendsFrom = extendsFrom;
-        this.functions = ProxyFunctionElement.from(source.functions(), env);
+        this.functions = ProxyFunctionElement.parse(source, env);
     }
 
     public static AliasCache<TypeElement, ? extends ProxyElement, Element> cache() {

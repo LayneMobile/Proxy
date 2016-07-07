@@ -19,6 +19,7 @@ package com.laynemobile.proxy.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.laynemobile.proxy.cache.MultiAliasCache;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -29,7 +30,10 @@ import javax.lang.model.type.TypeMirror;
 
 import sourcerer.processor.Env;
 
-public class MethodElement {
+public class MethodElement extends Alias {
+    private static MultiAliasCache<TypeElement, ExecutableElement, MethodElement> CACHE
+            = MultiAliasCache.create(new Creator());
+
     private final TypeElement typeElement;
     private final ExecutableElement element;
     private final TypeMirror returnType;
@@ -62,26 +66,32 @@ public class MethodElement {
         this.paramTypes = paramTypes.build();
     }
 
-    public static MethodElement parse(TypeElement typeElement, Element element, Env env) {
-        if (element.getKind() != ElementKind.METHOD) {
-            return null;
+    public static MultiAliasCache<TypeElement, ExecutableElement, ? extends MethodElement> cache() {
+        return CACHE;
+    }
+
+    public static ImmutableList<MethodElement> parse(TypeElement typeElement, Env env) {
+        ImmutableList.Builder<MethodElement> elements = ImmutableList.builder();
+        for (Element element : typeElement.getEnclosedElements()) {
+            if (element.getKind() != ElementKind.METHOD) {
+                continue;
+            }
+            ExecutableElement methodElement = (ExecutableElement) element;
+            env.log(methodElement, "processing method element: %s", methodElement);
+            elements.add(CACHE.getOrCreate(typeElement, methodElement, env));
         }
-        ExecutableElement methodElement = (ExecutableElement) element;
-        env.log(methodElement, "processing method element: %s", methodElement);
-        return create(typeElement, methodElement, env);
+        return elements.build();
     }
 
-    private static MethodElement create(TypeElement typeElement, ExecutableElement element, Env env) {
-        MethodElement methodElement = new MethodElement(typeElement, element, env);
-        env.log("created method element: %s", methodElement);
-        return methodElement;
+    public boolean overrides(MethodElement overridden, Env env) {
+        return env.elements().overrides(element, overridden.element, typeElement());
     }
 
-    public TypeElement typeElement() {
+    public final TypeElement typeElement() {
         return typeElement;
     }
 
-    public ExecutableElement element() {
+    public final ExecutableElement element() {
         return element;
     }
 
@@ -101,21 +111,33 @@ public class MethodElement {
         if (this == o) return true;
         if (!(o instanceof MethodElement)) return false;
         MethodElement that = (MethodElement) o;
-        return Objects.equal(typeElement, that.typeElement) &&
-                Objects.equal(element, that.element);
+        return Objects.equal(element, that.element);
     }
 
     @Override public int hashCode() {
-        return Objects.hashCode(typeElement, element);
+        return Objects.hashCode(element);
     }
 
     @Override public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("typeElement", typeElement)
                 .add("element", element)
-                .add("returnType", returnType)
-                .add("params", params)
-                .add("paramTypes", paramTypes)
                 .toString();
+    }
+
+    @Override protected String toDebugString() {
+        return MoreObjects.toStringHelper(this)
+                .add("element", element)
+                .add("\nreturnType", returnType)
+                .add("\nparams", params)
+                .add("\nparamTypes", paramTypes)
+                .toString();
+    }
+
+    private static final class Creator implements MultiAliasCache.Creator<TypeElement, ExecutableElement, MethodElement> {
+        @Override public MethodElement create(TypeElement typeElement, ExecutableElement element, Env env) {
+            MethodElement methodElement = new MethodElement(typeElement, element, env);
+            env.log("created method element: %s\n\n", methodElement.toDebugString());
+            return methodElement;
+        }
     }
 }
