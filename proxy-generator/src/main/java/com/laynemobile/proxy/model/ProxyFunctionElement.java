@@ -265,20 +265,29 @@ public class ProxyFunctionElement extends MethodElement {
 
     private static final class Creator implements MultiAliasCache.ValueCreator<TypeElementAlias, MethodElement, ProxyFunctionElement> {
         @Override public ProxyFunctionElement create(TypeElementAlias typeElement, MethodElement element, Env env) {
-            ProxyFunctionElement overrides = null;
-            OUTER:
-            for (DeclaredTypeAlias typeAlias : typeElement.interfaceTypes()) {
-                TypeElementAlias tea = typeAlias.element();
-                for (MethodElement methodElement : tea.functions()) {
-                    if (element.overrides(methodElement, env)) {
-                        overrides = CACHE.getOrCreate(tea, methodElement, env);
-                        break OUTER;
+            ProxyFunctionElement overrides = overrides(typeElement.superClass(), element, env);
+            if (overrides == null) {
+                for (DeclaredTypeAlias typeAlias : typeElement.interfaceTypes()) {
+                    if ((overrides = overrides(typeAlias, element, env)) != null) {
+                        break;
                     }
                 }
             }
             ProxyFunctionElement proxyFunctionElement = new ProxyFunctionElement(element, overrides, env);
             env.log("created proxy function element: %s\n\n", proxyFunctionElement.toDebugString());
             return proxyFunctionElement;
+        }
+
+        private ProxyFunctionElement overrides(DeclaredTypeAlias typeAlias, MethodElement element, Env env) {
+            if (typeAlias != null) {
+                TypeElementAlias tea = typeAlias.element();
+                for (MethodElement methodElement : tea.functions()) {
+                    if (element.overrides(methodElement, env)) {
+                        return CACHE.getOrCreate(tea, methodElement, env);
+                    }
+                }
+            }
+            return null;
         }
     }
 }
