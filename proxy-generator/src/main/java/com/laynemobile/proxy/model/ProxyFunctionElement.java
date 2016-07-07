@@ -57,35 +57,8 @@ public class ProxyFunctionElement extends MethodElement {
     private final TypeElement abstractProxyFunctionElement;
     private final DeclaredType abstractProxyFunctionType;
 
-    public ProxyFunctionElement(MethodElement source, String name, TypeElement functionElement,
-            DeclaredType functionType, TypeElement abstractProxyFunctionElement,
-            DeclaredType abstractProxyFunctionType) {
+    protected ProxyFunctionElement(MethodElement source, Env env) {
         super(source);
-        this.name = name;
-        this.functionElement = functionElement;
-        this.functionType = functionType;
-        this.abstractProxyFunctionElement = abstractProxyFunctionElement;
-        this.abstractProxyFunctionType = abstractProxyFunctionType;
-    }
-
-    public static ProxyFunctionElement parse(TypeElement typeElement, Element element, Env env) {
-        MethodElement source = MethodElement.parse(typeElement, element, env);
-        return source == null ? null : from(source);
-    }
-
-    public static ImmutableList<ProxyFunctionElement> from(List<? extends MethodElement> elements) {
-        ImmutableList.Builder<ProxyFunctionElement> builder = ImmutableList.builder();
-        for (MethodElement element : elements) {
-            builder.add(from(element));
-        }
-        return builder.build();
-    }
-
-    public static ProxyFunctionElement from(MethodElement source) {
-        if (source instanceof ProxyFunctionElement) {
-            return (ProxyFunctionElement) source;
-        }
-        Env env = source.env();
         ExecutableElement element = source.element();
         GenerateProxyFunction function = element.getAnnotation(GenerateProxyFunction.class);
         String name = function == null ? "" : function.value();
@@ -141,8 +114,31 @@ public class ProxyFunctionElement extends MethodElement {
         env.log("AbstractProxyFunction type: %s", abstractProxyFunctionType);
         env.log("AbstractProxyFunction type typeArguments: %s", abstractProxyFunctionType.getTypeArguments());
 
-        return new ProxyFunctionElement(source, name, functionElement, functionType, abstractProxyFunctionElement,
-                abstractProxyFunctionType);
+        this.name = name;
+        this.functionElement = functionElement;
+        this.functionType = functionType;
+        this.abstractProxyFunctionElement = abstractProxyFunctionElement;
+        this.abstractProxyFunctionType = abstractProxyFunctionType;
+    }
+
+    public static ProxyFunctionElement parse(TypeElement typeElement, Element element, Env env) {
+        MethodElement source = MethodElement.parse(typeElement, element, env);
+        return source == null ? null : from(source, env);
+    }
+
+    public static ImmutableList<ProxyFunctionElement> from(List<? extends MethodElement> elements, Env env) {
+        ImmutableList.Builder<ProxyFunctionElement> builder = ImmutableList.builder();
+        for (MethodElement element : elements) {
+            builder.add(from(element, env));
+        }
+        return builder.build();
+    }
+
+    public static ProxyFunctionElement from(MethodElement source, Env env) {
+        if (source instanceof ProxyFunctionElement) {
+            return (ProxyFunctionElement) source;
+        }
+        return new ProxyFunctionElement(source, env);
     }
 
     private static TypeMirror boxedType(TypeMirror typeMirror, Env env) {

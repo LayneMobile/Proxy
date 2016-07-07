@@ -20,8 +20,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
-import java.util.List;
-
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -32,7 +30,6 @@ import javax.lang.model.type.TypeMirror;
 import sourcerer.processor.Env;
 
 public class MethodElement {
-    private final Env env;
     private final TypeElement typeElement;
     private final ExecutableElement element;
     private final TypeMirror returnType;
@@ -40,7 +37,6 @@ public class MethodElement {
     private final ImmutableList<TypeMirror> paramTypes;
 
     protected MethodElement(MethodElement source) {
-        this.env = source.env;
         this.typeElement = source.typeElement;
         this.element = source.element;
         this.returnType = source.returnType;
@@ -48,13 +44,22 @@ public class MethodElement {
         this.paramTypes = source.paramTypes;
     }
 
-    private MethodElement(Env env, TypeElement typeElement, ExecutableElement element, List<TypeMirror> paramTypes) {
-        this.env = env;
+    private MethodElement(TypeElement typeElement, ExecutableElement element, Env env) {
+        ImmutableList.Builder<TypeMirror> paramTypes = ImmutableList.builder();
+        for (VariableElement param : element.getParameters()) {
+            env.log("param: %s", param);
+            ElementKind paramKind = param.getKind();
+            env.log("param kind: %s", paramKind);
+            TypeMirror paramType = param.asType();
+            env.log("param type: %s", paramType);
+            paramTypes.add(param.asType());
+        }
+
         this.typeElement = typeElement;
         this.element = element;
         this.returnType = element.getReturnType();
         this.params = ImmutableList.copyOf(element.getParameters());
-        this.paramTypes = ImmutableList.copyOf(paramTypes);
+        this.paramTypes = paramTypes.build();
     }
 
     public static MethodElement parse(TypeElement typeElement, Element element, Env env) {
@@ -67,20 +72,9 @@ public class MethodElement {
     }
 
     private static MethodElement create(TypeElement typeElement, ExecutableElement element, Env env) {
-        ImmutableList.Builder<TypeMirror> paramTypes = ImmutableList.builder();
-        for (VariableElement param : element.getParameters()) {
-            env.log("param: %s", param);
-            ElementKind paramKind = param.getKind();
-            env.log("param kind: %s", paramKind);
-            TypeMirror paramType = param.asType();
-            env.log("param type: %s", paramType);
-            paramTypes.add(param.asType());
-        }
-        return new MethodElement(env, typeElement, element, paramTypes.build());
-    }
-
-    public Env env() {
-        return env;
+        MethodElement methodElement = new MethodElement(typeElement, element, env);
+        env.log("created method element: %s", methodElement);
+        return methodElement;
     }
 
     public TypeElement typeElement() {
