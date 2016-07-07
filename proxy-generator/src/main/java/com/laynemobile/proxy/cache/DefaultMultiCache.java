@@ -16,63 +16,30 @@
 
 package com.laynemobile.proxy.cache;
 
-public class DefaultMultiCache<K1, K2, V, P> implements MultiCache<K1, K2, V, P> {
-    private final Cache<K1, ? extends Cache<K2, ? extends V, P>, P> cache;
+public final class DefaultMultiCache<K1, K2, V, P> extends AbstractMultiCache<K1, Cache<K2, V, P>, P, K2, V> {
+    private final MultiCache.ValueCreator<K1, K2, V, P> creator;
 
-    private DefaultMultiCache(Cache<K1, ? extends Cache<K2, ? extends V, P>, P> cache) {
-        this.cache = cache;
+    private DefaultMultiCache(ValueCreator<K1, K2, V, P> creator) {
+        this.creator = creator;
     }
 
-    public static <K1, K2, V, P> MultiCache<K1, K2, V, P> create(
-            Cache<K1, ? extends Cache<K2, ? extends V, P>, P> cache) {
-        return new DefaultMultiCache<>(cache);
+    public static <K1, K2, V, P> DefaultMultiCache<K1, K2, V, P> create(ValueCreator<K1, K2, V, P> creator) {
+        return new DefaultMultiCache<>(creator);
     }
 
-    public static <K1, K2, V, P> MultiCache<K1, K2, V, P> create(
-            Cache.Creator<K1, ? extends Cache<K2, ? extends V, P>, P> creator) {
-        return new DefaultMultiCache<>(AbstractCache.create(creator));
+    @Override protected Cache<K2, V, P> create(K1 k1, P p) {
+        return new ChildCache(k1);
     }
 
-    public static <K1, K2, V, P> MultiCache<K1, K2, V, P> create(Creator<K1, K2, V, P> creator) {
-        return create(new DefaultCache<>(creator));
-    }
+    private final class ChildCache extends AbstractCache<K2, V, P> {
+        private final K1 k1;
 
-    @Override public final V getOrCreate(K1 k1, K2 k2, P p) {
-        return getOrCreateChild(k1, p)
-                .getOrCreate(k2, p);
-    }
-
-    @Override public final V get(K1 k1, K2 k2) {
-        Cache<K2, ? extends V, P> child = cache.get(k1);
-        return child == null ? null : child.get(k2);
-    }
-
-    private Cache<K2, ? extends V, P> getOrCreateChild(K1 k1, P p) {
-        return cache.getOrCreate(k1, p);
-    }
-
-    private static final class DefaultCache<K1, K2, V, P>
-            extends AbstractCache<K1, Cache<K2, ? extends V, P>, P> {
-        private final MultiCache.Creator<K1, K2, V, P> creator;
-
-        private DefaultCache(MultiCache.Creator<K1, K2, V, P> creator) {
-            this.creator = creator;
+        private ChildCache(K1 k1) {
+            this.k1 = k1;
         }
 
-        @Override protected Cache<K2, ? extends V, P> create(K1 k1, P p) {
-            return new ChildCache(k1);
-        }
-
-        private final class ChildCache extends AbstractCache<K2, V, P> {
-            private final K1 k1;
-
-            private ChildCache(K1 k1) {
-                this.k1 = k1;
-            }
-
-            @Override protected V create(K2 k2, P p) {
-                return creator.create(k1, k2, p);
-            }
+        @Override protected V create(K2 k2, P p) {
+            return creator.create(k1, k2, p);
         }
     }
 }

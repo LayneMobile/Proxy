@@ -21,6 +21,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.annotations.GenerateProxyFunction;
 import com.laynemobile.proxy.annotations.Generated;
+import com.laynemobile.proxy.cache.EnvCache;
 import com.laynemobile.proxy.cache.MultiAliasCache;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -126,13 +127,14 @@ public class ProxyFunctionElement extends MethodElement {
     }
 
     public static ImmutableList<ProxyFunctionElement> parse(TypeElementAlias typeElement, Env env) {
+        EnvCache<MethodElement, ProxyFunctionElement> cache = CACHE.getOrCreate(typeElement, env);
         ImmutableList.Builder<ProxyFunctionElement> builder = ImmutableList.builder();
         for (MethodElement element : typeElement.functions()) {
             ProxyFunctionElement add;
             if (element instanceof ProxyFunctionElement) {
                 add = (ProxyFunctionElement) element;
             } else {
-                add = CACHE.getOrCreate(typeElement, element, env);
+                add = cache.getOrCreate(element, env);
             }
             builder.add(add);
         }
@@ -261,7 +263,7 @@ public class ProxyFunctionElement extends MethodElement {
         return Objects.hashCode(super.hashCode(), name, functionType);
     }
 
-    private static final class Creator implements MultiAliasCache.Creator<TypeElementAlias, MethodElement, ProxyFunctionElement> {
+    private static final class Creator implements MultiAliasCache.ValueCreator<TypeElementAlias, MethodElement, ProxyFunctionElement> {
         @Override public ProxyFunctionElement create(TypeElementAlias typeElement, MethodElement element, Env env) {
             ProxyFunctionElement overrides = null;
             OUTER:

@@ -20,48 +20,35 @@ import com.laynemobile.proxy.model.Alias;
 
 import sourcerer.processor.Env;
 
-public final class MultiAliasCache<K1, K2, V extends Alias> implements MultiCache<K1, K2, V, Env> {
-    private final MultiCache<K1, K2, V, Env> cache;
+public abstract class MultiAliasCache<K1, K2, V extends Alias> extends AbstractMultiCache<K1, EnvCache<K2, V>, Env, K2, V> {
+    protected MultiAliasCache() {}
 
-    private MultiAliasCache(Creator<K1, K2, V> creator) {
-        this.cache = DefaultMultiCache.create(new DefaultCache<>(creator));
+    @Override protected void log(Env env, String format, Object... args) {
+        env.log(format, args);
     }
 
-    public static <K1, K2, V extends Alias> MultiAliasCache<K1, K2, V> create(Creator<K1, K2, V> creator) {
-        return new MultiAliasCache<>(creator);
+    public static <K1, K2, V extends Alias> MultiAliasCache<K1, K2, V> create(final ValueCreator<K1, K2, V> creator) {
+        return new MultiAliasCache<K1, K2, V>() {
+            @Override protected EnvCache<K2, V> create(K1 k1, Env env) {
+                return new ChildCache<>(k1, creator);
+            }
+        };
     }
 
-    @Override public V get(K1 k1, K2 k2) {
-        return cache.get(k1, k2);
-    }
+    private static final class ChildCache<K1, K2, V extends Alias> extends EnvCache<K2, V> {
+        private final K1 k1;
+        private final MultiAliasCache.ValueCreator<K1, K2, V> creator;
 
-    @Override public V getOrCreate(K1 k1, K2 k2, Env env) {
-        return cache.getOrCreate(k1, k2, env);
-    }
-
-    private static final class DefaultCache<K1, K2, V extends Alias> extends EnvCache<K1, EnvCache<K2, V>> {
-        private final MultiAliasCache.Creator<K1, K2, V> creator;
-
-        private DefaultCache(MultiAliasCache.Creator<K1, K2, V> creator) {
+        private ChildCache(K1 k1, MultiAliasCache.ValueCreator<K1, K2, V> creator) {
+            this.k1 = k1;
             this.creator = creator;
         }
 
-        @Override protected EnvCache<K2, V> create(K1 k1, Env env) {
-            return new ChildCache(k1);
-        }
-
-        private final class ChildCache extends EnvCache<K2, V> {
-            private final K1 k1;
-
-            private ChildCache(K1 k1) {
-                this.k1 = k1;
-            }
-
-            @Override protected V create(K2 k2, Env env) {
-                return creator.create(k1, k2, env);
-            }
+        @Override protected V create(K2 k2, Env env) {
+            return creator.create(k1, k2, env);
         }
     }
 
-    public interface Creator<K1, K2, V extends Alias> extends MultiCache.Creator<K1, K2, V, Env> {}
+    public interface ValueCreator<K1, K2, V extends Alias>
+            extends MultiCache.ValueCreator<K1, K2, V, Env> {}
 }

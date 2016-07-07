@@ -16,15 +16,17 @@
 
 package com.laynemobile.proxy.cache;
 
-public interface MultiCache<K1, V1 extends Cache<K2, ? extends V2, P>, P, K2, V2> extends Cache<K1, V1, P> {
-    V2 get(K1 k1, K2 k2);
+public abstract class AbstractMultiCache<K1, V1 extends Cache<K2, ? extends V2, P>, P, K2, V2>
+        extends AbstractCache<K1, V1, P>
+        implements MultiCache<K1, V1, P, K2, V2> {
 
-    V2 getOrCreate(K1 k1, K2 k2, P p);
+    @Override public final V2 get(K1 k1, K2 k2) {
+        V1 cache = get(k1);
+        return cache == null ? null : cache.get(k2);
+    }
 
-    interface Creator<K1, V1 extends Cache<K2, V2, P>, P, K2, V2>
-            extends Cache.Creator<K1, V1, P> {}
-
-    interface ValueCreator<K1, K2, V, P> {
-        V create(K1 k1, K2 k2, P p);
+    @Override public final V2 getOrCreate(K1 k1, K2 k2, P p) {
+        return getOrCreate(k1, p)
+                .getOrCreate(k2, p);
     }
 }

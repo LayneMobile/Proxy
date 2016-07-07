@@ -19,6 +19,7 @@ package com.laynemobile.proxy.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.laynemobile.proxy.cache.EnvCache;
 import com.laynemobile.proxy.cache.MultiAliasCache;
 
 import javax.lang.model.element.Element;
@@ -71,6 +72,7 @@ public class MethodElement extends Alias {
     }
 
     public static ImmutableList<MethodElement> parse(TypeElement typeElement, Env env) {
+        EnvCache<ExecutableElement, MethodElement> cache = CACHE.getOrCreate(typeElement, env);
         ImmutableList.Builder<MethodElement> elements = ImmutableList.builder();
         for (Element element : typeElement.getEnclosedElements()) {
             if (element.getKind() != ElementKind.METHOD) {
@@ -78,7 +80,7 @@ public class MethodElement extends Alias {
             }
             ExecutableElement methodElement = (ExecutableElement) element;
             env.log(methodElement, "processing method element: %s", methodElement);
-            elements.add(CACHE.getOrCreate(typeElement, methodElement, env));
+            elements.add(cache.getOrCreate(methodElement, env));
         }
         return elements.build();
     }
@@ -133,7 +135,7 @@ public class MethodElement extends Alias {
                 .toString();
     }
 
-    private static final class Creator implements MultiAliasCache.Creator<TypeElement, ExecutableElement, MethodElement> {
+    private static final class Creator implements MultiAliasCache.ValueCreator<TypeElement, ExecutableElement, MethodElement> {
         @Override public MethodElement create(TypeElement typeElement, ExecutableElement element, Env env) {
             MethodElement methodElement = new MethodElement(typeElement, element, env);
             env.log("created method element: %s\n\n", methodElement.toDebugString());
