@@ -42,7 +42,7 @@ public class TypeElementAlias extends Alias {
     private final DeclaredTypeAlias superClass;
     private final ImmutableList<TypeVariable> typeVariables;
     private final ImmutableList<DeclaredTypeAlias> interfaceTypes;
-    private final ImmutableList<? extends MethodElement> functions;
+    private final ImmutableList<? extends MethodElement> methods;
 
     protected TypeElementAlias(TypeElementAlias source) {
         this.element = source.element;
@@ -51,7 +51,7 @@ public class TypeElementAlias extends Alias {
         this.superClass = source.superClass;
         this.typeVariables = source.typeVariables;
         this.interfaceTypes = source.interfaceTypes;
-        this.functions = source.functions;
+        this.methods = source.methods;
     }
 
     private TypeElementAlias(TypeElement typeElement, Env env) {
@@ -90,7 +90,7 @@ public class TypeElementAlias extends Alias {
         this.superClass = superClass;
         this.typeVariables = ImmutableList.copyOf(typeVariables);
         this.interfaceTypes = ImmutableList.copyOf(interfaceTypes);
-        this.functions = MethodElement.parse(typeElement, env);
+        this.methods = MethodElement.parse(typeElement, env);
     }
 
     public static AliasCache<TypeElement, ? extends TypeElementAlias, Element> cache() {
@@ -125,8 +125,8 @@ public class TypeElementAlias extends Alias {
         return interfaceTypes;
     }
 
-    public ImmutableList<? extends MethodElement> functions() {
-        return functions;
+    public ImmutableList<? extends MethodElement> methods() {
+        return methods;
     }
 
     protected final boolean isInList(List<? extends DeclaredTypeAlias> typeElementAliases) {
@@ -161,7 +161,7 @@ public class TypeElementAlias extends Alias {
                 .add("\nclassName", className)
                 .add("\ntypeVariables", typeVariables)
                 .add("\ninterfaceTypes", interfaceTypes)
-                .add("\nfunctions", functions)
+                .add("\nmethods", methods)
                 .toString();
     }
 

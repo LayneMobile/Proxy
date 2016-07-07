@@ -86,7 +86,7 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
         return extendsFrom;
     }
 
-    @Override public ImmutableList<ProxyFunctionElement> functions() {
+    @Override public ImmutableList<ProxyFunctionElement> methods() {
         return functions;
     }
 

@@ -129,7 +129,7 @@ public class ProxyFunctionElement extends MethodElement {
     public static ImmutableList<ProxyFunctionElement> parse(TypeElementAlias typeElement, Env env) {
         EnvCache<MethodElement, ProxyFunctionElement> cache = CACHE.getOrCreate(typeElement, env);
         ImmutableList.Builder<ProxyFunctionElement> builder = ImmutableList.builder();
-        for (MethodElement element : typeElement.functions()) {
+        for (MethodElement element : typeElement.methods()) {
             ProxyFunctionElement add;
             if (element instanceof ProxyFunctionElement) {
                 add = (ProxyFunctionElement) element;
@@ -281,7 +281,7 @@ public class ProxyFunctionElement extends MethodElement {
         private ProxyFunctionElement overrides(DeclaredTypeAlias typeAlias, MethodElement element, Env env) {
             if (typeAlias != null) {
                 TypeElementAlias tea = typeAlias.element();
-                for (MethodElement methodElement : tea.functions()) {
+                for (MethodElement methodElement : tea.methods()) {
                     if (element.overrides(methodElement, env)) {
                         return CACHE.getOrCreate(tea, methodElement, env);
                     }

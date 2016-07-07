@@ -147,7 +147,7 @@ public class ProxyTemplate extends Template {
     private void write() throws IOException {
         Filer filer = filer();
         for (ProxyElement proxyElement : proxyElements()) {
-            for (ProxyFunctionElement functionElement : proxyElement.functions()) {
+            for (ProxyFunctionElement functionElement : proxyElement.methods()) {
                 JavaFile abstractProxyFunctionClass
                         = functionElement.newAbstractProxyFunctionTypeJavaFile();
                 log("writing AbstractProxyFunctionClass -> \n" + abstractProxyFunctionClass.toString());
