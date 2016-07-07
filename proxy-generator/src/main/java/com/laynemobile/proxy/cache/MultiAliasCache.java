@@ -37,9 +37,9 @@ public abstract class MultiAliasCache<K1, K2, V extends Alias> extends AbstractM
 
     private static final class ChildCache<K1, K2, V extends Alias> extends EnvCache<K2, V> {
         private final K1 k1;
-        private final MultiAliasCache.ValueCreator<K1, K2, V> creator;
+        private final ValueCreator<K1, K2, V> creator;
 
-        private ChildCache(K1 k1, MultiAliasCache.ValueCreator<K1, K2, V> creator) {
+        private ChildCache(K1 k1, ValueCreator<K1, K2, V> creator) {
             this.k1 = k1;
             this.creator = creator;
         }

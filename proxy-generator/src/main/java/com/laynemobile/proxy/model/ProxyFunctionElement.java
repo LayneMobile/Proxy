@@ -268,9 +268,10 @@ public class ProxyFunctionElement extends MethodElement {
             ProxyFunctionElement overrides = null;
             OUTER:
             for (DeclaredTypeAlias typeAlias : typeElement.interfaceTypes()) {
-                for (MethodElement methodElement : typeAlias.element().functions()) {
+                TypeElementAlias tea = typeAlias.element();
+                for (MethodElement methodElement : tea.functions()) {
                     if (element.overrides(methodElement, env)) {
-                        overrides = create(typeAlias.element(), methodElement, env);
+                        overrides = CACHE.getOrCreate(tea, methodElement, env);
                         break OUTER;
                     }
                 }
