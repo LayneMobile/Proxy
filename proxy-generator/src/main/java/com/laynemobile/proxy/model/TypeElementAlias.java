@@ -19,7 +19,7 @@ package com.laynemobile.proxy.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.laynemobile.proxy.cache.EnvCache;
+import com.laynemobile.proxy.cache.AliasCache;
 import com.squareup.javapoet.ClassName;
 
 import java.util.ArrayList;
@@ -35,8 +35,7 @@ import javax.lang.model.type.TypeVariable;
 
 import sourcerer.processor.Env;
 
-public class TypeElementAlias {
-    private final Env env;
+public class TypeElementAlias extends Alias {
     private final TypeElement element;
     private final ElementKind kind;
     private final ClassName className;
@@ -45,8 +44,7 @@ public class TypeElementAlias {
     private final ImmutableList<DeclaredTypeAlias> interfaceTypes;
     private final ImmutableList<? extends MethodElement> functions;
 
-    TypeElementAlias(TypeElementAlias source) {
-        this.env = source.env;
+    protected TypeElementAlias(TypeElementAlias source) {
         this.element = source.element;
         this.kind = source.kind;
         this.className = source.className;
@@ -56,51 +54,83 @@ public class TypeElementAlias {
         this.functions = source.functions;
     }
 
-    private TypeElementAlias(Env env, TypeElement element, DeclaredTypeAlias superClass,
-            List<TypeVariable> typeVariables, List<DeclaredTypeAlias> interfaceTypes, List<MethodElement> functions) {
-        this.env = env;
-        this.element = element;
-        this.kind = element.getKind();
-        this.className = ClassName.get(element);
+    private TypeElementAlias(TypeElement typeElement, Env env) {
+        List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
+        List<? extends TypeParameterElement> typeParameters = typeElement.getTypeParameters();
+
+        List<TypeVariable> typeVariables = new ArrayList<>(typeParameters.size());
+        env.log("typeParameters: %s", typeParameters);
+        for (TypeParameterElement typeParameter : typeParameters) {
+            env.log("typeParameter: %s", typeParameter);
+            env.log("typeParameter bounds: %s", typeParameter.getBounds());
+            ElementKind paramKind = typeParameter.getKind();
+            env.log("typeParameter kind: %s", paramKind);
+            TypeMirror paramType = typeParameter.asType();
+            env.log("typeParameter type: %s", paramType);
+            if (paramType.getKind() == TypeKind.TYPEVAR) {
+                typeVariables.add((TypeVariable) paramType);
+            }
+        }
+
+        List<DeclaredTypeAlias> interfaceTypes = new ArrayList<>(interfaces.size());
+        for (TypeMirror interfaceType : interfaces) {
+            DeclaredTypeAlias elementType = DeclaredTypeAlias.cache().parse(interfaceType, env);
+            if (elementType != null) {
+                env.log("interface type: %s", interfaceType);
+                interfaceTypes.add(elementType);
+            }
+        }
+
+        List<? extends Element> enclosedElements = typeElement.getEnclosedElements();
+        List<MethodElement> functions = new ArrayList<>(enclosedElements.size());
+        for (Element enclosed : enclosedElements) {
+            MethodElement functionElement = MethodElement.parse(typeElement, enclosed, env);
+            if (functionElement == null) {
+                continue;
+            }
+            functions.add(functionElement);
+        }
+        DeclaredTypeAlias superClass = DeclaredTypeAlias.cache()
+                .parse(typeElement.getSuperclass(), env);
+
+        this.element = typeElement;
+        this.kind = typeElement.getKind();
+        this.className = ClassName.get(typeElement);
         this.superClass = superClass;
         this.typeVariables = ImmutableList.copyOf(typeVariables);
         this.interfaceTypes = ImmutableList.copyOf(interfaceTypes);
         this.functions = ImmutableList.copyOf(functions);
     }
 
-    public static EnvCache<Element, TypeElement, ? extends TypeElementAlias> cache() {
+    public static AliasCache<TypeElement, ? extends TypeElementAlias, Element> cache() {
         return Cache.INSTANCE;
     }
 
-    public Env env() {
-        return env;
-    }
-
-    public TypeElement element() {
+    public final TypeElement element() {
         return element;
     }
 
-    public ElementKind kind() {
+    public final ElementKind kind() {
         return kind;
     }
 
-    public ClassName className() {
+    public final ClassName className() {
         return className;
     }
 
-    public String packageName() {
+    public final String packageName() {
         return className.packageName();
     }
 
-    public DeclaredTypeAlias superClass() {
+    public final DeclaredTypeAlias superClass() {
         return superClass;
     }
 
-    public ImmutableList<TypeVariable> typeVariables() {
+    public final ImmutableList<TypeVariable> typeVariables() {
         return typeVariables;
     }
 
-    public ImmutableList<DeclaredTypeAlias> interfaceTypes() {
+    public final ImmutableList<DeclaredTypeAlias> interfaceTypes() {
         return interfaceTypes;
     }
 
@@ -108,7 +138,7 @@ public class TypeElementAlias {
         return functions;
     }
 
-    protected boolean isInList(List<? extends DeclaredTypeAlias> typeElementAliases) {
+    protected final boolean isInList(List<? extends DeclaredTypeAlias> typeElementAliases) {
         for (DeclaredTypeAlias typeAlias : typeElementAliases) {
             if (typeAlias.element().equals(this)) {
                 return true;
@@ -134,7 +164,7 @@ public class TypeElementAlias {
                 .toString();
     }
 
-    public String toDebugString() {
+    @Override public String toDebugString() {
         return MoreObjects.toStringHelper(this)
                 .add("\nelement", element)
                 .add("\nclassName", className)
@@ -144,7 +174,7 @@ public class TypeElementAlias {
                 .toString();
     }
 
-    private static final class Cache extends EnvCache<Element, TypeElement, TypeElementAlias> {
+    private static final class Cache extends AliasCache<TypeElement, TypeElementAlias, Element> {
         private static final Cache INSTANCE = new Cache();
 
         private Cache() {}
@@ -157,45 +187,7 @@ public class TypeElementAlias {
         }
 
         @Override protected TypeElementAlias create(TypeElement typeElement, Env env) {
-            List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
-            List<? extends TypeParameterElement> typeParameters = typeElement.getTypeParameters();
-
-            List<TypeVariable> typeVariables = new ArrayList<>(typeParameters.size());
-            env.log("typeParameters: %s", typeParameters);
-            for (TypeParameterElement typeParameter : typeParameters) {
-                env.log("typeParameter: %s", typeParameter);
-                env.log("typeParameter bounds: %s", typeParameter.getBounds());
-                ElementKind paramKind = typeParameter.getKind();
-                env.log("typeParameter kind: %s", paramKind);
-                TypeMirror paramType = typeParameter.asType();
-                env.log("typeParameter type: %s", paramType);
-                if (paramType.getKind() == TypeKind.TYPEVAR) {
-                    typeVariables.add((TypeVariable) paramType);
-                }
-            }
-
-            List<DeclaredTypeAlias> interfaceTypes = new ArrayList<>(interfaces.size());
-            for (TypeMirror interfaceType : interfaces) {
-                DeclaredTypeAlias elementType = DeclaredTypeAlias.cache().parse(interfaceType, env);
-                if (elementType != null) {
-                    env.log("interface type: %s", interfaceType);
-                    interfaceTypes.add(elementType);
-                }
-            }
-
-            List<? extends Element> enclosedElements = typeElement.getEnclosedElements();
-            List<MethodElement> functions = new ArrayList<>(enclosedElements.size());
-            for (Element enclosed : enclosedElements) {
-                MethodElement functionElement = MethodElement.parse(typeElement, enclosed, env);
-                if (functionElement == null) {
-                    continue;
-                }
-                functions.add(functionElement);
-            }
-
-            DeclaredTypeAlias superClass = DeclaredTypeAlias.cache().parse(typeElement.getSuperclass(), env);
-            TypeElementAlias elementAlias
-                    = new TypeElementAlias(env, typeElement, superClass, typeVariables, interfaceTypes, functions);
+            TypeElementAlias elementAlias = new TypeElementAlias(typeElement, env);
             env.log("created typeElementAlias: %s\n\n", elementAlias.toDebugString());
             return elementAlias;
         }

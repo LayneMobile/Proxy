@@ -16,43 +16,29 @@
 
 package com.laynemobile.proxy.cache;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.laynemobile.proxy.internal.ProxyLog;
+import com.laynemobile.proxy.model.Alias;
 
-public abstract class AliasCache<K, V, P> {
-    private final Map<K, V> cache = new HashMap<>();
+import sourcerer.processor.Env;
 
+public abstract class AliasCache<K extends SK, V extends Alias, SK> extends ParameterizedCache<K, V, Env> {
     protected AliasCache() {}
 
-    protected abstract V create(K k, P p);
+    protected abstract K cast(SK sk) throws Exception;
 
-    public final V getOrCreate(K key, P p) {
-        V cached = get(key);
-        if (cached != null) {
-            log(p, "returning cached value: %s", cached);
-            return cached;
-        }
-
-        log(p, "creating value from key: %s", key);
-        V created = create(key, p);
-        synchronized (cache) {
-            if ((cached = get(key)) != null) {
-                return cached;
+    public final V parse(SK superType, Env env) {
+        try {
+            K k = cast(superType);
+            if (k != null) {
+                return getOrCreate(k, env);
             }
-            cache.put(key, created);
+        } catch (Exception e) {
+            env.log("error %s", ProxyLog.getStackTraceString(e));
         }
-        log(p, "caching value: %s", created);
-        return created;
+        return null;
     }
 
-    public final V get(K key) {
-        synchronized (cache) {
-            return cache.get(key);
-        }
-    }
-
-    protected void log(P p, String format, Object... args) {
-        System.out.printf(format, args);
-        System.out.println();
+    @Override protected final void log(Env env, String format, Object... args) {
+        env.log(format, args);
     }
 }

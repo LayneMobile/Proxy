@@ -21,7 +21,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
-import com.laynemobile.proxy.cache.EnvCache;
+import com.laynemobile.proxy.cache.AliasCache;
+import com.laynemobile.proxy.cache.AliasSubtypeCache;
 import com.laynemobile.proxy.functions.Func0;
 
 import java.util.List;
@@ -39,9 +40,25 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
     private final TypeElementAlias extendsFrom;
     private final ImmutableList<ProxyFunctionElement> functions;
 
-    private ProxyElement(TypeElementAlias source, boolean parent, List<TypeElementAlias> dependsOn,
-            TypeElementAlias replaces, TypeElementAlias extendsFrom) {
+    private ProxyElement(TypeElementAlias source, Env env) {
         super(source);
+        final GenerateProxyBuilder annotation = source.element().getAnnotation(GenerateProxyBuilder.class);
+        final boolean parent = annotation != null && annotation.parent();
+        final List<TypeElementAlias> dependsOn = Util.parseAliasList(new Func0<Class<?>[]>() {
+            @Override public Class<?>[] call() {
+                return annotation == null ? new Class[]{} : annotation.dependsOn();
+            }
+        }, env);
+        final TypeElementAlias replaces = Util.parseAlias(new Func0<Class<?>>() {
+            @Override public Class<?> call() {
+                return annotation == null ? Object.class : annotation.replaces();
+            }
+        }, env);
+        final TypeElementAlias extendsFrom = Util.parseAlias(new Func0<Class<?>>() {
+            @Override public Class<?> call() {
+                return annotation == null ? Object.class : annotation.extendsFrom();
+            }
+        }, env);
         this.parent = parent;
         this.dependsOn = ImmutableList.copyOf(dependsOn);
         this.replaces = replaces;
@@ -49,15 +66,8 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
         this.functions = ProxyFunctionElement.from(source.functions());
     }
 
-    public static EnvCache<Element, TypeElement, ? extends ProxyElement> cache() {
+    public static AliasCache<TypeElement, ? extends ProxyElement, Element> cache() {
         return Cache.INSTANCE;
-    }
-
-    public static ProxyElement from(TypeElementAlias source) {
-        if (source.kind() == ElementKind.INTERFACE) {
-            return cache().getOrCreate(source.element(), source.env());
-        }
-        return null;
     }
 
     public boolean isParent() {
@@ -141,10 +151,12 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
                 || o.isInList(interfaceTypes());
     }
 
-    private static final class Cache extends EnvCache<Element, TypeElement, ProxyElement> {
+    private static final class Cache extends AliasSubtypeCache<TypeElement, ProxyElement, Element, TypeElementAlias> {
         private static final Cache INSTANCE = new Cache();
 
-        private Cache() {}
+        private Cache() {
+            super(TypeElementAlias.cache());
+        }
 
         @Override protected TypeElement cast(Element element) throws Exception {
             // Only interfaces allowed
@@ -154,26 +166,8 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
             return (TypeElement) element;
         }
 
-        @Override protected ProxyElement create(TypeElement typeElement, Env env) {
-            TypeElementAlias source = TypeElementAlias.cache().getOrCreate(typeElement, env);
-            final GenerateProxyBuilder annotation = typeElement.getAnnotation(GenerateProxyBuilder.class);
-            final boolean parent = annotation != null && annotation.parent();
-            final List<TypeElementAlias> dependsOn = Util.parseAliasList(new Func0<Class<?>[]>() {
-                @Override public Class<?>[] call() {
-                    return annotation == null ? new Class[]{} : annotation.dependsOn();
-                }
-            }, env);
-            final TypeElementAlias replaces = Util.parseAlias(new Func0<Class<?>>() {
-                @Override public Class<?> call() {
-                    return annotation == null ? Object.class : annotation.replaces();
-                }
-            }, env);
-            final TypeElementAlias extendsFrom = Util.parseAlias(new Func0<Class<?>>() {
-                @Override public Class<?> call() {
-                    return annotation == null ? Object.class : annotation.extendsFrom();
-                }
-            }, env);
-            ProxyElement proxyElement = new ProxyElement(source, parent, dependsOn, replaces, extendsFrom);
+        @Override protected ProxyElement create(TypeElementAlias source, Env env) {
+            ProxyElement proxyElement = new ProxyElement(source, env);
             env.log("created proxyElement: %s\n\n", proxyElement.toDebugString());
             return proxyElement;
         }
