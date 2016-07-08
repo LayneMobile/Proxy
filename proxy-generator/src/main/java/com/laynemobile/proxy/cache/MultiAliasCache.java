@@ -18,10 +18,17 @@ package com.laynemobile.proxy.cache;
 
 import com.laynemobile.proxy.model.Alias;
 
+import java.util.Map;
+
 import sourcerer.processor.Env;
 
-public abstract class MultiAliasCache<K1, K2, V extends Alias> extends AbstractMultiCache<K1, EnvCache<K2, V>, Env, K2, V> {
+public abstract class MultiAliasCache<K1, K2, V extends Alias>
+        extends AbstractMultiCache<K1, EnvCache<K2, V>, Env, K2, V> {
     protected MultiAliasCache() {}
+
+    protected MultiAliasCache(Map<K1, EnvCache<K2, V>> cache) {
+        super(cache);
+    }
 
     @Override protected void log(Env env, String format, Object... args) {
         env.log(format, args);

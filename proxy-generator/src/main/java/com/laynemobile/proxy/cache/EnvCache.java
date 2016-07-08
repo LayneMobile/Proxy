@@ -16,9 +16,17 @@
 
 package com.laynemobile.proxy.cache;
 
+import java.util.Map;
+
 import sourcerer.processor.Env;
 
 public abstract class EnvCache<K, V> extends AbstractCache<K, V, Env> {
+    protected EnvCache() {}
+
+    protected EnvCache(Map<K, V> cache) {
+        super(cache);
+    }
+
     public static <K, V> EnvCache<K, V> create(final Creator<K, V> creator) {
         return new EnvCache<K, V>() {
             @Override protected V create(K k, Env env) {

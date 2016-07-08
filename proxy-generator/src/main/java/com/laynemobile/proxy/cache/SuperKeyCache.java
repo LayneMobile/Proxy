@@ -16,24 +16,6 @@
 
 package com.laynemobile.proxy.cache;
 
-import java.util.Map;
-
-public abstract class AbstractMultiCache<K1, V1 extends Cache<K2, ? extends V2, P>, P, K2, V2>
-        extends AbstractCache<K1, V1, P>
-        implements MultiCache<K1, V1, P, K2, V2> {
-    protected AbstractMultiCache() {}
-
-    protected AbstractMultiCache(Map<K1, V1> cache) {
-        super(cache);
-    }
-
-    @Override public final V2 get(K1 k1, K2 k2) {
-        V1 cache = get(k1);
-        return cache == null ? null : cache.get(k2);
-    }
-
-    @Override public final V2 getOrCreate(K1 k1, K2 k2, P p) {
-        return getOrCreate(k1, p)
-                .getOrCreate(k2, p);
-    }
+public interface SuperKeyCache<SK, K extends SK, V, P> extends Cache<K, V, P> {
+    V parse(SK sk, P p);
 }

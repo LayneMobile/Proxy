@@ -16,13 +16,21 @@
 
 package com.laynemobile.proxy.cache;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 public abstract class AbstractCache<K, V, P> implements Cache<K, V, P> {
-    private final Map<K, V> cache = new HashMap<>();
+    private final Map<K, V> cache;
 
-    protected AbstractCache() {}
+    protected AbstractCache() {
+        this(new HashMap<K, V>());
+    }
+
+    protected AbstractCache(Map<K, V> cache) {
+        this.cache = cache;
+    }
 
     protected abstract V create(K k, P p);
 
@@ -34,28 +42,35 @@ public abstract class AbstractCache<K, V, P> implements Cache<K, V, P> {
         };
     }
 
-    @Override public final V getOrCreate(K key, P p) {
-        V cached = get(key);
-        if (cached != null) {
-            log(p, "returning cached value: %s", cached);
-            return cached;
-        }
-
-        log(p, "creating value from key: %s", key);
-        V created = create(key, p);
-        synchronized (cache) {
-            if ((cached = get(key)) != null) {
-                return cached;
+    @Override public final V getOrCreate(K k, P p) {
+        V cached;
+        if ((cached = get(k)) == null) {
+            log(p, "creating value from key: %s", k);
+            V created = create(k, p);
+            log(p, "created value: %s", created);
+            synchronized (cache) {
+                if ((cached = get(k)) == null) {
+                    cache.put(k, created);
+                }
             }
-            cache.put(key, created);
+            if (cached == null) {
+                log(p, "caching value: %s", created);
+                return created;
+            }
         }
-        log(p, "caching value: %s", created);
-        return created;
+        log(p, "returning cached value: %s", cached);
+        return cached;
     }
 
     @Override public final V get(K key) {
         synchronized (cache) {
             return cache.get(key);
+        }
+    }
+
+    @Override public final Collection<V> values() {
+        synchronized (cache) {
+            return new LinkedHashSet<>(cache.values());
         }
     }
 

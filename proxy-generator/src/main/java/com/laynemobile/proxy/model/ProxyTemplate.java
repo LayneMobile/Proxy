@@ -87,12 +87,11 @@ public class ProxyTemplate extends Template {
                 return true; // Exit processing
             }
 
-            log(element, "say\n\n");
-            log(element, "processing generated type!\n\n");
+            log("processing generated type! %s", element);
 
             final Generated annotation = element.getAnnotation(Generated.class);
             if (annotation != null) {
-                log(element, "has annotation: %s", annotation);
+                log("has annotation: %s\n\n", annotation);
             }
 
             processed = true;
@@ -105,7 +104,7 @@ public class ProxyTemplate extends Template {
                 return true; // Exit processing
             }
 
-            log("\n\n");
+            log("say\n\n");
             log(element, "processing abstract function type!\n\n");
 
             final ProxyFunctionImplementation annotation = element.getAnnotation(ProxyFunctionImplementation.class);

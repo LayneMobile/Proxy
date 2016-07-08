@@ -18,12 +18,19 @@ package com.laynemobile.proxy.cache;
 
 import com.laynemobile.proxy.model.Alias;
 
+import java.util.Map;
+
 import sourcerer.processor.Env;
 
 public abstract class AliasSubtypeCache<K extends SK, V extends SV, SK, SV extends Alias> extends AliasCache<K, V, SK> {
     private final AliasCache<K, ? extends SV, SK> superCache;
 
     protected AliasSubtypeCache(AliasCache<K, ? extends SV, SK> superCache) {
+        this.superCache = superCache;
+    }
+
+    protected AliasSubtypeCache(Map<K, V> cache, AliasCache<K, ? extends SV, SK> superCache) {
+        super(cache);
         this.superCache = superCache;
     }
 

@@ -43,6 +43,13 @@ public class DeclaredTypeAlias extends Alias {
         this.directSuperTypes = source.directSuperTypes;
     }
 
+    protected DeclaredTypeAlias(DeclaredType type, TypeElementAlias element,
+            List<? extends DeclaredTypeAlias> directSuperTypes) {
+        this.type = type;
+        this.element = element;
+        this.directSuperTypes = ImmutableList.copyOf(directSuperTypes);
+    }
+
     private DeclaredTypeAlias(DeclaredType declaredType, Env env, List<? extends DeclaredTypeAlias> directSuperTypes) {
         env.log("creating declared type alias: %s", declaredType);
         TypeElement typeElement = (TypeElement) env.types().asElement(declaredType);
@@ -80,7 +87,7 @@ public class DeclaredTypeAlias extends Alias {
         return type;
     }
 
-    public final TypeElementAlias element() {
+    public TypeElementAlias element() {
         return element;
     }
 
