@@ -17,7 +17,7 @@
 package com.laynemobile.api.templates;
 
 import com.laynemobile.api.Params;
-import com.laynemobile.api.generated.AbstractSource_callFunction;
+import com.laynemobile.api.generated.AbstractSource_call__P_Subscriber;
 import com.laynemobile.proxy.functions.Action1;
 import com.laynemobile.proxy.functions.Action2;
 import com.laynemobile.proxy.functions.Func0;
@@ -27,7 +27,7 @@ import rx.Observable;
 import rx.Subscriber;
 
 // subclass template created for user for constructor extensions
-public class Source_callFunction<T, P extends Params> extends AbstractSource_callFunction<T, P> {
+public class Source_callFunction<T, P extends Params> extends AbstractSource_call__P_Subscriber<T, P> {
     public Source_callFunction(Action2<P, Subscriber<? super T>> action2) {
         super(action2);
     }

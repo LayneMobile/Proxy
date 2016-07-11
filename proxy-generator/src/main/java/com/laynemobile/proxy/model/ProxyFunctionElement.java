@@ -60,6 +60,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> {
     private final DeclaredType functionType;
     private final TypeElement abstractProxyFunctionElement;
     private final DeclaredType abstractProxyFunctionType;
+    private final ImmutableList<TypeMirror> boxedParamTypes;
 
     private ProxyFunctionElement(MethodElement source, ProxyFunctionElement overrides, Env env) {
         super(source);
@@ -98,8 +99,11 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> {
 
         env.log("params length: %d", length);
         env.log("params: %s", params);
+        ImmutableList.Builder<TypeMirror> boxedParamTypes = ImmutableList.builder();
         for (int i = 0; i < length; i++) {
-            paramTypes[i] = boxedType(params.get(i), env);
+            TypeMirror boxedType = boxedType(params.get(i), env);
+            paramTypes[i] = boxedType;
+            boxedParamTypes.add(boxedType);
         }
         env.log("paramTypes: %s", Arrays.toString(paramTypes));
 
@@ -124,6 +128,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> {
         this.functionType = functionType;
         this.abstractProxyFunctionElement = abstractProxyFunctionElement;
         this.abstractProxyFunctionType = abstractProxyFunctionType;
+        this.boxedParamTypes = boxedParamTypes.build();
     }
 
     public static ImmutableList<ProxyFunctionElement> parse(TypeElementAlias typeElement, Env env) {
@@ -182,7 +187,22 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> {
             throw new IllegalStateException(typeElement + " parent must be in cache");
         }
         ExecutableElement element = element();
-        String subclassName = typeElement.getSimpleName() + "_" + element.getSimpleName() + "Function";
+        String parammys = "";
+        for (TypeMirror paramType : boxedParamTypes) {
+            if (parammys.isEmpty()) {
+                parammys += "__";
+            } else {
+                parammys += "_";
+            }
+            if (paramType.getKind() == TypeKind.DECLARED) {
+                parammys += ((DeclaredType) paramType).asElement().getSimpleName();
+            } else if (paramType.getKind() == TypeKind.TYPEVAR) {
+                parammys += ((TypeVariable) paramType).asElement().getSimpleName();
+            } else {
+                throw new IllegalStateException("unknown param type: " + paramType);
+            }
+        }
+        String subclassName = typeElement.getSimpleName() + "_" + element.getSimpleName() + parammys;
         String subclassPackage = parent.packageName() + ".templates";
         ClassName subclass = ClassName.get(subclassPackage, subclassName);
 

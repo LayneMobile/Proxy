@@ -16,6 +16,7 @@
 
 package com.laynemobile.proxy.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
@@ -71,6 +72,20 @@ public class ProxyTemplate extends Template {
             processed = true;
         }
         if (processed) {
+            // log cached values:
+            ImmutableList<ProxyElement> cachedValues = ImmutableList.copyOf(ProxyElement.cache().values());
+
+            log("cached proxy elements: %s", cachedValues);
+
+            synchronized (proxyElements) {
+                for (ProxyElement proxyElement : cachedValues) {
+                    if (!proxyElements.contains(proxyElement)) {
+                        log("adding new cached proxy elements: %s", proxyElement);
+                        proxyElements.add(proxyElement);
+                    }
+                }
+            }
+
             // Write
             try {
                 write();
@@ -146,7 +161,7 @@ public class ProxyTemplate extends Template {
     private void write() throws IOException {
         Filer filer = filer();
         for (ProxyElement proxyElement : proxyElements()) {
-            for (ProxyFunctionElement functionElement : proxyElement.methods()) {
+            for (ProxyFunctionElement functionElement : proxyElement.functions()) {
                 JavaFile abstractProxyFunctionClass
                         = functionElement.newAbstractProxyFunctionTypeJavaFile();
                 log("writing AbstractProxyFunctionClass -> \n" + abstractProxyFunctionClass.toString());
