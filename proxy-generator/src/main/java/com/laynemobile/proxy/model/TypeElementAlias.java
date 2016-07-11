@@ -17,7 +17,6 @@
 package com.laynemobile.proxy.model;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.cache.AliasCache;
 import com.squareup.javapoet.ClassName;
@@ -35,8 +34,7 @@ import javax.lang.model.type.TypeVariable;
 
 import sourcerer.processor.Env;
 
-public class TypeElementAlias extends Alias {
-    private final TypeElement element;
+public final class TypeElementAlias extends AbstractValueAlias<TypeElement> {
     private final ElementKind kind;
     private final ClassName className;
     private final DeclaredTypeAlias superClass;
@@ -44,17 +42,8 @@ public class TypeElementAlias extends Alias {
     private final ImmutableList<DeclaredTypeAlias> interfaceTypes;
     private final ImmutableList<? extends MethodElement> methods;
 
-    protected TypeElementAlias(TypeElementAlias source) {
-        this.element = source.element;
-        this.kind = source.kind;
-        this.className = source.className;
-        this.superClass = source.superClass;
-        this.typeVariables = source.typeVariables;
-        this.interfaceTypes = source.interfaceTypes;
-        this.methods = source.methods;
-    }
-
     private TypeElementAlias(TypeElement typeElement, Env env) {
+        super(typeElement);
         List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
         List<? extends TypeParameterElement> typeParameters = typeElement.getTypeParameters();
 
@@ -84,7 +73,6 @@ public class TypeElementAlias extends Alias {
         DeclaredTypeAlias superClass = DeclaredTypeAlias.cache()
                 .parse(typeElement.getSuperclass(), env);
 
-        this.element = typeElement;
         this.kind = typeElement.getKind();
         this.className = ClassName.get(typeElement);
         this.superClass = superClass;
@@ -98,7 +86,7 @@ public class TypeElementAlias extends Alias {
     }
 
     public final TypeElement element() {
-        return element;
+        return value();
     }
 
     public final ElementKind kind() {
@@ -139,14 +127,11 @@ public class TypeElementAlias extends Alias {
     }
 
     @Override public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TypeElementAlias)) return false;
-        TypeElementAlias that = (TypeElementAlias) o;
-        return Objects.equal(element, that.element);
+        return this == o || o instanceof TypeElementAlias && super.equals(o);
     }
 
     @Override public int hashCode() {
-        return Objects.hashCode(element);
+        return super.hashCode();
     }
 
     @Override public String toString() {
@@ -157,7 +142,7 @@ public class TypeElementAlias extends Alias {
 
     @Override public String toDebugString() {
         return MoreObjects.toStringHelper(this)
-                .add("\nelement", element)
+                .add("\nelement", element())
                 .add("\nclassName", className)
                 .add("\ntypeVariables", typeVariables)
                 .add("\ninterfaceTypes", interfaceTypes)

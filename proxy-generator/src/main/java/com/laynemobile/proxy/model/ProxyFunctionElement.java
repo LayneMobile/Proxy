@@ -49,7 +49,7 @@ import javax.lang.model.util.Types;
 
 import sourcerer.processor.Env;
 
-public class ProxyFunctionElement extends MethodElement {
+public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> {
     private static MultiAliasCache<TypeElementAlias, MethodElement, ProxyFunctionElement> CACHE
             = MultiAliasCache.create(new Creator());
     private static final String ABSTRACT_PREFIX = "Abstract";
@@ -130,13 +130,7 @@ public class ProxyFunctionElement extends MethodElement {
         EnvCache<MethodElement, ProxyFunctionElement> cache = CACHE.getOrCreate(typeElement, env);
         ImmutableList.Builder<ProxyFunctionElement> builder = ImmutableList.builder();
         for (MethodElement element : typeElement.methods()) {
-            ProxyFunctionElement add;
-            if (element instanceof ProxyFunctionElement) {
-                add = (ProxyFunctionElement) element;
-            } else {
-                add = cache.getOrCreate(element, env);
-            }
-            builder.add(add);
+            builder.add(cache.getOrCreate(element, env));
         }
         return builder.build();
     }
@@ -148,6 +142,18 @@ public class ProxyFunctionElement extends MethodElement {
                     .asType();
         }
         return typeMirror;
+    }
+
+    public MethodElement alias() {
+        return value();
+    }
+
+    public TypeElement typeElement() {
+        return value().typeElement();
+    }
+
+    public ExecutableElement element() {
+        return value().element();
     }
 
     public void writeTo(Filer filer, Env env) throws IOException {
@@ -190,7 +196,7 @@ public class ProxyFunctionElement extends MethodElement {
 //                        .addMember("value", "$T.class", subclass)
 //                        .build())
                 ;
-        for (TypeVariable typeVariable : parent.typeVariables()) {
+        for (TypeVariable typeVariable : parent.alias().typeVariables()) {
             classBuilder.addTypeVariable(TypeVariableName.get(typeVariable));
         }
 

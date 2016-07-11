@@ -22,7 +22,7 @@ import java.util.Map;
 
 import sourcerer.processor.Env;
 
-public abstract class MultiAliasCache<K1, K2, V extends Alias>
+public abstract class MultiAliasCache<K1, K2, V extends Alias<?>>
         extends AbstractMultiCache<K1, EnvCache<K2, V>, Env, K2, V> {
     protected MultiAliasCache() {}
 
@@ -34,7 +34,8 @@ public abstract class MultiAliasCache<K1, K2, V extends Alias>
         env.log(format, args);
     }
 
-    public static <K1, K2, V extends Alias> MultiAliasCache<K1, K2, V> create(final ValueCreator<K1, K2, V> creator) {
+    public static <K1, K2, V extends Alias<?>> MultiAliasCache<K1, K2, V> create(
+            final ValueCreator<K1, K2, V> creator) {
         return new MultiAliasCache<K1, K2, V>() {
             @Override protected EnvCache<K2, V> create(K1 k1, Env env) {
                 return new ChildCache<>(k1, creator);
@@ -42,7 +43,7 @@ public abstract class MultiAliasCache<K1, K2, V extends Alias>
         };
     }
 
-    private static final class ChildCache<K1, K2, V extends Alias> extends EnvCache<K2, V> {
+    private static final class ChildCache<K1, K2, V extends Alias<?>> extends EnvCache<K2, V> {
         private final K1 k1;
         private final ValueCreator<K1, K2, V> creator;
 
@@ -56,6 +57,6 @@ public abstract class MultiAliasCache<K1, K2, V extends Alias>
         }
     }
 
-    public interface ValueCreator<K1, K2, V extends Alias>
+    public interface ValueCreator<K1, K2, V extends Alias<?>>
             extends MultiCache.ValueCreator<K1, K2, V, Env> {}
 }

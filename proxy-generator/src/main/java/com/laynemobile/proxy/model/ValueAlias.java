@@ -16,6 +16,6 @@
 
 package com.laynemobile.proxy.model;
 
-public interface Alias<T> {
-    String toDebugString();
+public interface ValueAlias<T> extends Alias<T> {
+    T value();
 }

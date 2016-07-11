@@ -23,7 +23,7 @@ import java.util.Map;
 
 import sourcerer.processor.Env;
 
-public abstract class AliasCache<K extends SK, V extends Alias, SK>
+public abstract class AliasCache<K extends SK, V extends Alias<?>, SK>
         extends EnvCache<K, V> {
     protected AliasCache() {}
 

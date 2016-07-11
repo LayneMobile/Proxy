@@ -24,6 +24,7 @@ import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.cache.AliasCache;
 import com.laynemobile.proxy.cache.AliasSubtypeCache;
 import com.laynemobile.proxy.functions.Func0;
+import com.squareup.javapoet.ClassName;
 
 import java.util.List;
 
@@ -33,7 +34,9 @@ import javax.lang.model.element.TypeElement;
 
 import sourcerer.processor.Env;
 
-public final class ProxyElement extends TypeElementAlias implements Comparable<ProxyElement> {
+public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
+        implements Comparable<ProxyElement> {
+
     private final boolean parent;
     private final ImmutableList<? extends TypeElementAlias> dependsOn;
     private final TypeElementAlias replaces;
@@ -70,6 +73,22 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
         return Cache.INSTANCE;
     }
 
+    public final TypeElementAlias alias() {
+        return value();
+    }
+
+    public final TypeElement element() {
+        return value().element();
+    }
+
+    public final ClassName className() {
+        return value().className();
+    }
+
+    public String packageName() {
+        return value().packageName();
+    }
+
     public boolean isParent() {
         return parent;
     }
@@ -86,19 +105,20 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
         return extendsFrom;
     }
 
-    @Override public ImmutableList<ProxyFunctionElement> methods() {
+    public ImmutableList<ProxyFunctionElement> methods() {
         return functions;
     }
 
     @Override public int compareTo(ProxyElement o) {
+        TypeElementAlias alias = alias();
         TypeElement element = element();
         if (equals(o) || element.equals(o.element())) {
             System.out.printf("'%s' equals '%s'\n", className(), o.className());
             return 0;
-        } else if (o.dependsOn(this)) {
+        } else if (o.dependsOn(alias)) {
             System.out.printf("'%s' dependsOn '%s'\n", o.className(), this.className());
             return -1;
-        } else if (dependsOn(o)) {
+        } else if (dependsOn(o.alias())) {
             System.out.printf("'%s' dependsOn '%s'\n", className(), o.className());
             return 1;
         } else if (parent && !o.parent) {
@@ -144,11 +164,35 @@ public final class ProxyElement extends TypeElementAlias implements Comparable<P
                 .toString();
     }
 
-    boolean dependsOn(ProxyElement o) {
+    boolean dependsOn(TypeElementAlias o) {
         return dependsOn.contains(o)
                 || replaces.equals(o)
                 || extendsFrom.equals(o)
-                || o.isInList(interfaceTypes());
+                || o.isInList(value().interfaceTypes());
+    }
+
+    protected final boolean dependsOnAny(DeclaredTypeAlias typeAlias) {
+        if (dependsOnAny(typeAlias.element())) {
+            return true;
+        }
+        for (DeclaredTypeAlias superType : typeAlias.directSuperTypes()) {
+            if (dependsOnAny(superType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected final boolean dependsOnAny(TypeElementAlias typeElementAlias) {
+        if (dependsOn(typeElementAlias)) {
+            return true;
+        }
+        for (DeclaredTypeAlias interfaceType : typeElementAlias.interfaceTypes()) {
+            if (dependsOnAny(interfaceType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static final class Cache extends AliasSubtypeCache<TypeElement, ProxyElement, Element, TypeElementAlias> {

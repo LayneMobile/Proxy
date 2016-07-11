@@ -17,7 +17,6 @@
 package com.laynemobile.proxy.model;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.cache.EnvCache;
 import com.laynemobile.proxy.cache.MultiAliasCache;
@@ -31,25 +30,17 @@ import javax.lang.model.type.TypeMirror;
 
 import sourcerer.processor.Env;
 
-public class MethodElement extends Alias {
+public final class MethodElement extends AbstractValueAlias<ExecutableElement> {
     private static MultiAliasCache<TypeElement, ExecutableElement, MethodElement> CACHE
             = MultiAliasCache.create(new Creator());
 
     private final TypeElement typeElement;
-    private final ExecutableElement element;
     private final TypeMirror returnType;
     private final ImmutableList<? extends VariableElement> params;
     private final ImmutableList<TypeMirror> paramTypes;
 
-    protected MethodElement(MethodElement source) {
-        this.typeElement = source.typeElement;
-        this.element = source.element;
-        this.returnType = source.returnType;
-        this.params = source.params;
-        this.paramTypes = source.paramTypes;
-    }
-
     private MethodElement(TypeElement typeElement, ExecutableElement element, Env env) {
+        super(element);
         ImmutableList.Builder<TypeMirror> paramTypes = ImmutableList.builder();
         for (VariableElement param : element.getParameters()) {
             env.log("param: %s", param);
@@ -61,7 +52,6 @@ public class MethodElement extends Alias {
         }
 
         this.typeElement = typeElement;
-        this.element = element;
         this.returnType = element.getReturnType();
         this.params = ImmutableList.copyOf(element.getParameters());
         this.paramTypes = paramTypes.build();
@@ -86,7 +76,7 @@ public class MethodElement extends Alias {
     }
 
     public boolean overrides(MethodElement overridden, Env env) {
-        return env.elements().overrides(element, overridden.element, typeElement());
+        return env.elements().overrides(element(), overridden.element(), typeElement());
     }
 
     public final TypeElement typeElement() {
@@ -94,7 +84,7 @@ public class MethodElement extends Alias {
     }
 
     public final ExecutableElement element() {
-        return element;
+        return value();
     }
 
     public TypeMirror returnType() {
@@ -112,23 +102,22 @@ public class MethodElement extends Alias {
     @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof MethodElement)) return false;
-        MethodElement that = (MethodElement) o;
-        return Objects.equal(element, that.element);
+        return super.equals(o);
     }
 
     @Override public int hashCode() {
-        return Objects.hashCode(element);
+        return super.hashCode();
     }
 
     @Override public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("element", element)
+                .add("element", element())
                 .toString();
     }
 
-    @Override protected String toDebugString() {
+    @Override public String toDebugString() {
         return MoreObjects.toStringHelper(this)
-                .add("element", element)
+                .add("element", element())
                 .add("\nreturnType", returnType)
                 .add("\nparams", params)
                 .add("\nparamTypes", paramTypes)

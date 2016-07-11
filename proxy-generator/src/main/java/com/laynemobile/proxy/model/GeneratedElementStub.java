@@ -16,6 +16,14 @@
 
 package com.laynemobile.proxy.model;
 
-public interface Alias<T> {
-    String toDebugString();
+import com.squareup.javapoet.TypeSpec;
+
+import javax.lang.model.element.TypeElement;
+
+import sourcerer.processor.Env;
+
+public interface GeneratedElementStub {
+    TypeSpec typeSpec();
+
+    TypeElement element(Env env);
 }

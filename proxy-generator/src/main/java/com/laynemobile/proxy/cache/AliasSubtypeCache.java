@@ -22,7 +22,9 @@ import java.util.Map;
 
 import sourcerer.processor.Env;
 
-public abstract class AliasSubtypeCache<K extends SK, V extends SV, SK, SV extends Alias> extends AliasCache<K, V, SK> {
+public abstract class AliasSubtypeCache<K extends SK, V extends Alias<SV>, SK, SV extends Alias<?>>
+        extends AliasCache<K, V, SK> {
+
     private final AliasCache<K, ? extends SV, SK> superCache;
 
     protected AliasSubtypeCache(AliasCache<K, ? extends SV, SK> superCache) {

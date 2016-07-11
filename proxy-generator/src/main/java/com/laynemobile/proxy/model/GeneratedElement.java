@@ -16,6 +16,8 @@
 
 package com.laynemobile.proxy.model;
 
-public interface Alias<T> {
-    String toDebugString();
+public class GeneratedElement extends AbstractValueAlias<TypeElementAlias> {
+    public GeneratedElement(TypeElementAlias source) {
+        super(source);
+    }
 }

@@ -16,6 +16,7 @@
 
 package com.laynemobile.proxy.model;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.cache.AliasCache;
 import com.laynemobile.proxy.cache.AliasSubtypeCache;
@@ -28,12 +29,12 @@ import javax.lang.model.type.TypeMirror;
 
 import sourcerer.processor.Env;
 
-public class ProxyType extends DeclaredTypeAlias {
+public final class ProxyType extends AbstractValueAlias<DeclaredTypeAlias> {
     private final ProxyElement element;
     private final ImmutableList<ProxyType> directSuperTypes;
 
-    protected ProxyType(DeclaredType type, ProxyElement element, List<ProxyType> directSuperTypes) {
-        super(type, element, directSuperTypes);
+    private ProxyType(DeclaredTypeAlias type, ProxyElement element, List<ProxyType> directSuperTypes) {
+        super(type);
         this.element = element;
         this.directSuperTypes = ImmutableList.copyOf(directSuperTypes);
     }
@@ -42,12 +43,35 @@ public class ProxyType extends DeclaredTypeAlias {
         return Cache.INSTANCE;
     }
 
-    @Override public ProxyElement element() {
+    public DeclaredTypeAlias alias() {
+        return value();
+    }
+
+    public DeclaredType type() {
+        return value().type();
+    }
+
+    public ProxyElement element() {
         return element;
     }
 
-    @Override public ImmutableList<ProxyType> directSuperTypes() {
+    public ImmutableList<ProxyType> directSuperTypes() {
         return directSuperTypes;
+    }
+
+    @Override public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("element", element)
+                .add("directSuperTypes", directSuperTypes)
+                .toString();
+    }
+
+    @Override public String toDebugString() {
+        return MoreObjects.toStringHelper(this)
+                .add("type", alias().toDebugString())
+                .add("element", element.toDebugString())
+                .add("directSuperTypes", directSuperTypes)
+                .toString();
     }
 
     private static final class Cache extends AliasSubtypeCache<DeclaredType, ProxyType, TypeMirror, DeclaredTypeAlias> {
@@ -72,7 +96,7 @@ public class ProxyType extends DeclaredTypeAlias {
                     directSuperTypes.add(getOrCreate(superType.type(), env));
                 }
             }
-            return new ProxyType(typeAlias.type(), proxyElement, directSuperTypes.build());
+            return new ProxyType(typeAlias, proxyElement, directSuperTypes.build());
         }
     }
 }
