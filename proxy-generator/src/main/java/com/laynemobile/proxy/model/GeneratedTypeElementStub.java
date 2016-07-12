@@ -16,8 +16,25 @@
 
 package com.laynemobile.proxy.model;
 
-public class GeneratedElement extends AbstractValueAlias<TypeElementAlias> {
-    public GeneratedElement(TypeElementAlias source) {
-        super(source);
-    }
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.TypeSpec;
+
+import javax.lang.model.element.TypeElement;
+
+import sourcerer.processor.Env;
+
+public interface GeneratedTypeElementStub {
+    String packageName();
+
+    String className();
+
+    String qualifiedName();
+
+    TypeSpec newTypeSpec();
+
+    JavaFile.Builder newJavaFile();
+
+    TypeElement element(Env env);
+
+    GeneratedTypeElement generatedOutput(Env env);
 }

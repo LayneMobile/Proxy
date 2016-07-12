@@ -16,14 +16,12 @@
 
 package com.laynemobile.proxy.model;
 
-import com.squareup.javapoet.TypeSpec;
-
-import javax.lang.model.element.TypeElement;
-
 import sourcerer.processor.Env;
 
-public interface GeneratedElementStub {
-    TypeSpec typeSpec();
+public interface GeneratedTypeElement extends ValueAlias<TypeElementAlias> {
+    GeneratedTypeElementStub input();
 
-    TypeElement element(Env env);
+    boolean hasOutput();
+
+    GeneratedTypeElementStub output(Env env);
 }

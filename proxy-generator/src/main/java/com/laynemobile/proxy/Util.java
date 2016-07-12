@@ -16,6 +16,7 @@
 
 package com.laynemobile.proxy;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.internal.ProxyLog;
@@ -63,6 +64,42 @@ import static com.laynemobile.proxy.Constants.SourceBuilder;
 
 public final class Util {
     private static final String TAG = Util.class.getSimpleName();
+
+    public static String className(ClassName typeName) {
+        return className(typeName.simpleNames());
+    }
+
+    public static String className(List<String> simpleNames) {
+        return Joiner.on('.')
+                .join(simpleNames);
+    }
+
+    public static ClassName typeName(String packageName, String className) {
+        if (className.isEmpty()) throw new IllegalArgumentException("empty className");
+        int index = className.indexOf('.');
+        if (index == -1) {
+            return ClassName.get(packageName, className);
+        }
+
+        // Add the class names, like "Map" and "Entry".
+        String[] parts = className.substring(index + 1).split("\\.", -1);
+        return ClassName.get(packageName, className, parts);
+    }
+
+    public static String qualifiedName(ClassName typeName) {
+        String packageName = typeName.packageName();
+        if (packageName.isEmpty()) {
+            return className(typeName);
+        }
+        List<String> names = new ArrayList<>(typeName.simpleNames());
+        names.add(0, packageName);
+        return Joiner.on('.')
+                .join(names);
+    }
+
+    public static String qualifiedName(String packageName, String className) {
+        return qualifiedName(typeName(packageName, className));
+    }
 
     public static TypeElement parse(Func0<Class<?>> classFunc, Env env) {
         final Types typeUtils = env.types();

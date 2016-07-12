@@ -162,8 +162,9 @@ public class ProxyTemplate extends Template {
         Filer filer = filer();
         for (ProxyElement proxyElement : proxyElements()) {
             for (ProxyFunctionElement functionElement : proxyElement.functions()) {
-                JavaFile abstractProxyFunctionClass
-                        = functionElement.newAbstractProxyFunctionTypeJavaFile();
+                GeneratedTypeElementStub output = functionElement.output();
+                JavaFile abstractProxyFunctionClass = output.newJavaFile()
+                        .build();
                 log("writing AbstractProxyFunctionClass -> \n" + abstractProxyFunctionClass.toString());
                 abstractProxyFunctionClass.writeTo(filer);
             }

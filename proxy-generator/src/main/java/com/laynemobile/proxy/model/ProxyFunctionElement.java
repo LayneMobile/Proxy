@@ -34,6 +34,7 @@ import com.squareup.javapoet.TypeVariableName;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.ExecutableElement;
@@ -49,7 +50,7 @@ import javax.lang.model.util.Types;
 
 import sourcerer.processor.Env;
 
-public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> {
+public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> implements TypeElementGenerator {
     private static MultiAliasCache<TypeElementAlias, MethodElement, ProxyFunctionElement> CACHE
             = MultiAliasCache.create(new Creator());
     private static final String ABSTRACT_PREFIX = "Abstract";
@@ -61,6 +62,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> {
     private final TypeElement abstractProxyFunctionElement;
     private final DeclaredType abstractProxyFunctionType;
     private final ImmutableList<TypeMirror> boxedParamTypes;
+    private final AtomicReference<AbstractFunctionOutputStub> output = new AtomicReference<>();
 
     private ProxyFunctionElement(MethodElement source, ProxyFunctionElement overrides, Env env) {
         super(source);
@@ -161,15 +163,26 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> {
         return value().element();
     }
 
+    @Override public GeneratedTypeElementStub output() {
+        AbstractFunctionOutputStub o;
+        AtomicReference<AbstractFunctionOutputStub> ref = output;
+        if ((o = ref.get()) == null) {
+            ref.compareAndSet(null, newOutput());
+            return ref.get();
+        }
+        return o;
+    }
+
     public void writeTo(Filer filer, Env env) throws IOException {
         TypeElement typeElement = typeElement();
         ProxyElement parent = ProxyElement.cache().get(typeElement);
         if (parent == null) {
             throw new IllegalStateException(typeElement + " parent must be in cache");
         }
-        TypeSpec abstractType = newAbstractProxyFunctionTypeSpec();
-        String generated = parent.packageName() + ".generated";
-        JavaFile abstractTypeFile = JavaFile.builder(generated, abstractType)
+        GeneratedTypeElementStub output = output();
+//        TypeSpec abstractType = output.newTypeSpec();
+//        String generated = parent.packageName() + ".generated";
+        JavaFile abstractTypeFile = output.newJavaFile()
                 .build();
         abstractTypeFile.writeTo(filer);
 //
@@ -178,84 +191,6 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> {
 //
 //        TypeSpec.Builder classBuider = TypeSpec.classBuilder(className)
 //                .superclass()
-    }
-
-    public TypeSpec newAbstractProxyFunctionTypeSpec() {
-        TypeElement typeElement = typeElement();
-        ProxyElement parent = ProxyElement.cache().get(typeElement);
-        if (parent == null) {
-            throw new IllegalStateException(typeElement + " parent must be in cache");
-        }
-        ExecutableElement element = element();
-        String parammys = "";
-        for (TypeMirror paramType : boxedParamTypes) {
-            if (parammys.isEmpty()) {
-                parammys += "__";
-            } else {
-                parammys += "_";
-            }
-            if (paramType.getKind() == TypeKind.DECLARED) {
-                parammys += ((DeclaredType) paramType).asElement().getSimpleName();
-            } else if (paramType.getKind() == TypeKind.TYPEVAR) {
-                parammys += ((TypeVariable) paramType).asElement().getSimpleName();
-            } else {
-                throw new IllegalStateException("unknown param type: " + paramType);
-            }
-        }
-        String subclassName = typeElement.getSimpleName() + "_" + element.getSimpleName() + parammys;
-        String subclassPackage = parent.packageName() + ".templates";
-        ClassName subclass = ClassName.get(subclassPackage, subclassName);
-
-        String className = ABSTRACT_PREFIX + subclassName;
-        TypeSpec.Builder classBuilder = TypeSpec.classBuilder(className)
-                .superclass(TypeName.get(abstractProxyFunctionType))
-                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                .addAnnotation(Generated.class)
-                // TODO: add annotation!
-//                .addAnnotation(AnnotationSpec.builder(ProxyFunctionImplementation.class)
-//                        .addMember("value", "$T.class", subclass)
-//                        .build())
-                ;
-        for (TypeVariable typeVariable : parent.alias().typeVariables()) {
-            classBuilder.addTypeVariable(TypeVariableName.get(typeVariable));
-        }
-
-        // Constructor
-        classBuilder.addMethod(MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PROTECTED)
-                .addParameter(TypeName.get(functionType), name)
-                .addStatement("super($L)", name)
-                .build());
-
-        // handler method
-        ClassName NamedMethodHandler = ClassName.get(com.laynemobile.proxy.NamedMethodHandler.class);
-        ClassName NamedMethodHandler_Builder = NamedMethodHandler.nestedClass("Builder");
-        ClassName FunctionHandlers = ClassName.get(com.laynemobile.proxy.functions.FunctionHandlers.class);
-        classBuilder.addMethod(MethodSpec.methodBuilder("handler")
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .returns(NamedMethodHandler)
-                .addCode(CodeBlock.builder()
-                        .add("$[")
-                        .add("return new $T()\n", NamedMethodHandler_Builder)
-                        .add(".setName($S)\n", element.getSimpleName())
-                        .add(".setMethodHandler($T.from(function()))\n", FunctionHandlers)
-                        .add(".build()")
-                        .add(";\n$]")
-                        .build())
-                .build());
-        return classBuilder.build();
-    }
-
-    public JavaFile newAbstractProxyFunctionTypeJavaFile() {
-        ProxyElement parent = ProxyElement.cache().get(typeElement());
-        if (parent == null) {
-            throw new IllegalStateException(typeElement() + " parent must be in cache");
-        }
-        TypeSpec typeSpec = newAbstractProxyFunctionTypeSpec();
-        String packageName = parent.packageName() + ".generated";
-        return JavaFile.builder(packageName, typeSpec)
-                .build();
     }
 
     @Override public String toString() {
@@ -314,6 +249,135 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> {
                 }
             }
             return null;
+        }
+    }
+
+    private AbstractFunctionOutputStub newOutput() {
+        TypeElement typeElement = typeElement();
+        ProxyElement parent = ProxyElement.cache().get(typeElement);
+        if (parent == null) {
+            throw new IllegalStateException(typeElement + " parent must be in cache");
+        }
+        ExecutableElement element = ProxyFunctionElement.this.element();
+        String parammys = "";
+        for (TypeMirror paramType : boxedParamTypes) {
+            if (parammys.isEmpty()) {
+                parammys += "__";
+            } else {
+                parammys += "_";
+            }
+            if (paramType.getKind() == TypeKind.DECLARED) {
+                parammys += ((DeclaredType) paramType).asElement().getSimpleName();
+            } else if (paramType.getKind() == TypeKind.TYPEVAR) {
+                parammys += ((TypeVariable) paramType).asElement().getSimpleName();
+            } else {
+                throw new IllegalStateException("unknown param type: " + paramType);
+            }
+        }
+
+        String baseClassName = typeElement.getSimpleName() + "_" + element.getSimpleName() + parammys;
+        return new AbstractFunctionOutputStub(parent, this, baseClassName);
+    }
+
+    private static final class AbstractFunctionOutputStub extends AbstractGeneratedTypeElementStub {
+        private final ProxyElement parent;
+        private final ProxyFunctionElement function;
+        private final ExecutableElement element;
+        private final String basePackageName;
+        private final String baseClassName;
+
+        private AbstractFunctionOutputStub(ProxyElement parent, ProxyFunctionElement function, String baseClassName) {
+            this(parent, function, parent.packageName(), baseClassName);
+        }
+
+        private AbstractFunctionOutputStub(ProxyElement parent, ProxyFunctionElement function, String basePackageName,
+                String baseClassName) {
+            super(basePackageName + ".generated", ABSTRACT_PREFIX + baseClassName);
+            this.parent = parent;
+            this.function = function;
+            this.element = function.element();
+            this.basePackageName = basePackageName;
+            this.baseClassName = baseClassName;
+        }
+
+        @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
+            classBuilder = classBuilder.superclass(TypeName.get(function.abstractProxyFunctionType))
+                    .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                    .addAnnotation(Generated.class)
+            // TODO: add annotation!
+//                .addAnnotation(AnnotationSpec.builder(ProxyFunctionImplementation.class)
+//                        .addMember("value", "$T.class", subclass)
+//                        .build())
+            ;
+
+            for (TypeVariable typeVariable : parent.alias().typeVariables()) {
+                classBuilder.addTypeVariable(TypeVariableName.get(typeVariable));
+            }
+
+            String name = function.name;
+
+            // Constructor
+            classBuilder.addMethod(MethodSpec.constructorBuilder()
+                    .addModifiers(Modifier.PROTECTED)
+                    .addParameter(TypeName.get(function.functionType), name)
+                    .addStatement("super($L)", name)
+                    .build());
+
+            // handler method
+            ClassName NamedMethodHandler = ClassName.get(com.laynemobile.proxy.NamedMethodHandler.class);
+            ClassName NamedMethodHandler_Builder = NamedMethodHandler.nestedClass("Builder");
+            ClassName FunctionHandlers = ClassName.get(com.laynemobile.proxy.functions.FunctionHandlers.class);
+            classBuilder.addMethod(MethodSpec.methodBuilder("handler")
+                    .addAnnotation(Override.class)
+                    .addModifiers(Modifier.PUBLIC)
+                    .returns(NamedMethodHandler)
+                    .addCode(CodeBlock.builder()
+                            .add("$[")
+                            .add("return new $T()\n", NamedMethodHandler_Builder)
+                            .add(".setName($S)\n", element.getSimpleName())
+                            .add(".setMethodHandler($T.from(function()))\n", FunctionHandlers)
+                            .add(".build()")
+                            .add(";\n$]")
+                            .build())
+                    .build());
+            return classBuilder.build();
+        }
+
+        @Override public GeneratedTypeElement generatedOutput(Env env) {
+            return new AbstractFunctionOutput(this, env);
+        }
+    }
+
+    private static class AbstractFunctionOutput extends AbstractGeneratedTypeElement {
+        private final AbstractFunctionOutputStub stub;
+
+        private AbstractFunctionOutput(AbstractFunctionOutputStub stub, Env env) {
+            super(stub, env);
+            this.stub = stub;
+        }
+
+        @Override public boolean hasOutput() {
+            return true;
+        }
+
+        @Override public GeneratedTypeElementStub output(Env env) {
+            return new FunctionSubclassOutput(this, stub.basePackageName, stub.baseClassName);
+        }
+    }
+
+    private static final class FunctionSubclassOutput extends AbstractGeneratedTypeElementStub {
+        private final AbstractFunctionOutput abstractFunctionOutput;
+
+        private FunctionSubclassOutput(AbstractFunctionOutput abstractFunctionOutput, String packageName,
+                String className) {
+            super(packageName + ".templates", className);
+            this.abstractFunctionOutput = abstractFunctionOutput;
+        }
+
+        @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
+            return classBuilder
+                    // TODO:
+                    .build();
         }
     }
 }
