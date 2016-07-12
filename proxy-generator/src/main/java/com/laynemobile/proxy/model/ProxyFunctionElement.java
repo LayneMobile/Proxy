@@ -62,7 +62,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
     private final TypeElement abstractProxyFunctionElement;
     private final DeclaredType abstractProxyFunctionType;
     private final ImmutableList<TypeMirror> boxedParamTypes;
-    private final AtomicReference<AbstractFunctionOutputStub> output = new AtomicReference<>();
+    private final AtomicReference<FunctionParentOutputStub> output = new AtomicReference<>();
 
     private ProxyFunctionElement(MethodElement source, ProxyFunctionElement overrides, Env env) {
         super(source);
@@ -164,8 +164,8 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
     }
 
     @Override public GeneratedTypeElementStub output() {
-        AbstractFunctionOutputStub o;
-        AtomicReference<AbstractFunctionOutputStub> ref = output;
+        FunctionParentOutputStub o;
+        AtomicReference<FunctionParentOutputStub> ref = output;
         if ((o = ref.get()) == null) {
             ref.compareAndSet(null, newOutput());
             return ref.get();
@@ -252,7 +252,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         }
     }
 
-    private AbstractFunctionOutputStub newOutput() {
+    private FunctionParentOutputStub newOutput() {
         TypeElement typeElement = typeElement();
         ProxyElement parent = ProxyElement.cache().get(typeElement);
         if (parent == null) {
@@ -276,21 +276,21 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         }
 
         String baseClassName = typeElement.getSimpleName() + "_" + element.getSimpleName() + parammys;
-        return new AbstractFunctionOutputStub(parent, this, baseClassName);
+        return new FunctionParentOutputStub(parent, this, baseClassName);
     }
 
-    private static final class AbstractFunctionOutputStub extends AbstractGeneratedTypeElementStub {
+    private static final class FunctionParentOutputStub extends AbstractGeneratedTypeElementStub {
         private final ProxyElement parent;
         private final ProxyFunctionElement function;
         private final ExecutableElement element;
         private final String basePackageName;
         private final String baseClassName;
 
-        private AbstractFunctionOutputStub(ProxyElement parent, ProxyFunctionElement function, String baseClassName) {
+        private FunctionParentOutputStub(ProxyElement parent, ProxyFunctionElement function, String baseClassName) {
             this(parent, function, parent.packageName(), baseClassName);
         }
 
-        private AbstractFunctionOutputStub(ProxyElement parent, ProxyFunctionElement function, String basePackageName,
+        private FunctionParentOutputStub(ProxyElement parent, ProxyFunctionElement function, String basePackageName,
                 String baseClassName) {
             super(basePackageName + ".generated", ABSTRACT_PREFIX + baseClassName);
             this.parent = parent;
@@ -344,14 +344,14 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         }
 
         @Override public GeneratedTypeElement generatedOutput(Env env) {
-            return new AbstractFunctionOutput(this, env);
+            return new FunctionParentOutput(this, env);
         }
     }
 
-    private static class AbstractFunctionOutput extends AbstractGeneratedTypeElement {
-        private final AbstractFunctionOutputStub stub;
+    private static class FunctionParentOutput extends AbstractGeneratedTypeElement {
+        private final FunctionParentOutputStub stub;
 
-        private AbstractFunctionOutput(AbstractFunctionOutputStub stub, Env env) {
+        private FunctionParentOutput(FunctionParentOutputStub stub, Env env) {
             super(stub, env);
             this.stub = stub;
         }
@@ -361,23 +361,28 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         }
 
         @Override public GeneratedTypeElementStub output(Env env) {
-            return new FunctionSubclassOutput(this, stub.basePackageName, stub.baseClassName);
+            return new FunctionSubclassOutputStub(this, stub.basePackageName, stub.baseClassName);
         }
     }
 
-    private static final class FunctionSubclassOutput extends AbstractGeneratedTypeElementStub {
-        private final AbstractFunctionOutput abstractFunctionOutput;
+    private static final class FunctionSubclassOutputStub extends AbstractGeneratedTypeElementStub {
+        private final FunctionParentOutput functionParentOutput;
 
-        private FunctionSubclassOutput(AbstractFunctionOutput abstractFunctionOutput, String packageName,
+        private FunctionSubclassOutputStub(FunctionParentOutput functionParentOutput, String packageName,
                 String className) {
             super(packageName + ".templates", className);
-            this.abstractFunctionOutput = abstractFunctionOutput;
+            this.functionParentOutput = functionParentOutput;
         }
 
         @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
             return classBuilder
                     // TODO:
                     .build();
+        }
+
+        @Override public GeneratedTypeElement generatedOutput(Env env) {
+            // TODO:
+            return super.generatedOutput(env);
         }
     }
 }

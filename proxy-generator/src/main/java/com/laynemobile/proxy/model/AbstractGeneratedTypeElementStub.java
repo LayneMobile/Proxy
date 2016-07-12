@@ -66,7 +66,11 @@ public abstract class AbstractGeneratedTypeElementStub implements GeneratedTypeE
     }
 
     @Override public GeneratedTypeElement generatedOutput(Env env) {
-        return null;
+        return new AbstractGeneratedTypeElement(this, env) {
+            @Override public boolean hasOutput() {
+                return false;
+            }
+        };
     }
 
     @Override public boolean equals(Object o) {
