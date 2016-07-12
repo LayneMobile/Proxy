@@ -94,7 +94,7 @@ public class ProxyRound extends Env {
             synchronized (proxyElements) {
                 for (ProxyElement proxyElement : cachedValues) {
                     if (!proxyElements.contains(proxyElement)) {
-                        log("adding new cached proxy elements: %s", proxyElement);
+                        log("adding new cached proxy element: %s", proxyElement);
                         proxyElements.add(proxyElement);
                     }
                 }
@@ -124,16 +124,16 @@ public class ProxyRound extends Env {
             }
         }
 
-        // add all processed elements (current round)
-        synchronized (processedElements) {
-            processedElements.addAll(round);
-        }
-
         try {
             write(round);
         } catch (IOException e) {
             e.printStackTrace();
             return false;
+        }
+
+        // add all processed elements (current round)
+        synchronized (processedElements) {
+            processedElements.addAll(round);
         }
 
         return true;
