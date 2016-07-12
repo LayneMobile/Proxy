@@ -17,12 +17,16 @@
 package com.laynemobile.proxy.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.squareup.javapoet.JavaFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 import javax.annotation.processing.Filer;
@@ -33,7 +37,8 @@ import javax.lang.model.element.ElementKind;
 import sourcerer.processor.Env;
 
 public class ProxyRound extends Env {
-    private final TreeSet<ProxyElement> proxyElements = new TreeSet<>();
+    private final Set<ProxyElement> proxyElements = new TreeSet<>();
+    private final Set<ProxyElement> processedElements = new TreeSet<>();
     private final ProxyRound previousRound;
 
     private ProxyRound(Env env) {
@@ -43,6 +48,12 @@ public class ProxyRound extends Env {
 
     private ProxyRound(ProxyRound previousRound) {
         super(previousRound);
+        synchronized (previousRound.proxyElements) {
+            this.proxyElements.addAll(previousRound.proxyElements);
+        }
+        synchronized (previousRound.processedElements) {
+            this.processedElements.addAll(previousRound.processedElements);
+        }
         this.previousRound = previousRound;
     }
 
@@ -88,14 +99,43 @@ public class ProxyRound extends Env {
                     }
                 }
             }
+        }
 
-            // Write
-            try {
-                write();
-            } catch (IOException e) {
-                e.printStackTrace();
+        Set<ProxyElement> round = new HashSet<>();
+        Set<ProxyElement> dependencies = new HashSet<>();
+        ImmutableSet<ProxyElement> unprocessedElements = unprocessed();
+        for (ProxyElement unprocessed : unprocessedElements) {
+            for (ProxyElement dependency : unprocessed.allDependencies()) {
+                if (!processedElements.contains(dependency)) {
+                    dependencies.add(dependency);
+                }
             }
         }
+        for (ProxyElement unprocessed : unprocessedElements) {
+            boolean hasDependency = false;
+            for (ProxyElement dependency : unprocessed.allDependencies()) {
+                if (dependencies.contains(dependency)) {
+                    hasDependency = true;
+                    break;
+                }
+            }
+            if (!hasDependency) {
+                round.add(unprocessed);
+            }
+        }
+
+        // add all processed elements (current round)
+        synchronized (processedElements) {
+            processedElements.addAll(round);
+        }
+
+        try {
+            write(round);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
         return true;
     }
 
@@ -118,9 +158,21 @@ public class ProxyRound extends Env {
         }
     }
 
-    private void write() throws IOException {
+    private ImmutableSet<ProxyElement> unprocessed() {
+        ImmutableSet.Builder<ProxyElement> unprocessed = ImmutableSet.builder();
+        synchronized (processedElements) {
+            for (ProxyElement proxyElement : proxyElements()) {
+                if (!processedElements.contains(proxyElement)) {
+                    unprocessed.add(proxyElement);
+                }
+            }
+        }
+        return unprocessed.build();
+    }
+
+    private void write(Collection<ProxyElement> proxyElements) throws IOException {
         Filer filer = filer();
-        for (ProxyElement proxyElement : proxyElements()) {
+        for (ProxyElement proxyElement : proxyElements) {
             for (ProxyFunctionElement functionElement : proxyElement.functions()) {
                 GeneratedTypeElementStub output = functionElement.output();
                 JavaFile abstractProxyFunctionClass = output.newJavaFile()
