@@ -16,6 +16,7 @@
 
 package com.laynemobile.proxy.model;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
@@ -34,12 +35,14 @@ import javax.lang.model.element.ElementKind;
 import sourcerer.processor.Env;
 
 public class ProxyRound extends Env {
+    private final int round;
     private final ImmutableSet<ProxyElement> proxyElements;
     private final ImmutableSet<ProxyElement> processedElements;
     private final ProxyRound previousRound;
 
     private ProxyRound(Env env) {
         super(env);
+        this.round = 1;
         this.proxyElements = ImmutableSet.of();
         this.processedElements = ImmutableSet.of();
         this.previousRound = null;
@@ -47,6 +50,7 @@ public class ProxyRound extends Env {
 
     private ProxyRound(ProxyRound previousRound, Set<ProxyElement> proxyElements, Set<ProxyElement> round) {
         super(previousRound);
+        this.round = previousRound.round + 1;
         this.proxyElements = ImmutableSet.<ProxyElement>builder()
                 .addAll(previousRound.proxyElements)
                 .addAll(proxyElements)
@@ -141,6 +145,7 @@ public class ProxyRound extends Env {
     }
 
     private ImmutableSet<ProxyElement> unprocessed(Set<ProxyElement> proxyElements) {
+        ImmutableSet<ProxyElement> processedElements = this.processedElements;
         ImmutableSet.Builder<ProxyElement> unprocessed = ImmutableSet.builder();
         for (ProxyElement proxyElement : proxyElements) {
             if (!processedElements.contains(proxyElement)) {
@@ -161,5 +166,11 @@ public class ProxyRound extends Env {
                 abstractProxyFunctionClass.writeTo(filer);
             }
         }
+    }
+
+    @Override public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("round", round)
+                .toString();
     }
 }

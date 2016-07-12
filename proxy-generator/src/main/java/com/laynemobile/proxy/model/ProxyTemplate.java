@@ -50,6 +50,7 @@ public class ProxyTemplate extends Template {
     }
 
     @Override public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        log("round=%s", round);
         if ((round = round.process(roundEnv)) == null) {
             return true; // exit processing
         }
