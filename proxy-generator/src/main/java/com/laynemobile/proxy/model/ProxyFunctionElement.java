@@ -361,17 +361,16 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         }
 
         @Override public GeneratedTypeElementStub output(Env env) {
-            return new FunctionSubclassOutputStub(this, stub.basePackageName, stub.baseClassName);
+            return new FunctionSubclassOutputStub(this);
         }
     }
 
     private static final class FunctionSubclassOutputStub extends AbstractGeneratedTypeElementStub {
-        private final FunctionParentOutput functionParentOutput;
+        private final FunctionParentOutput parentOutput;
 
-        private FunctionSubclassOutputStub(FunctionParentOutput functionParentOutput, String packageName,
-                String className) {
-            super(packageName + ".templates", className);
-            this.functionParentOutput = functionParentOutput;
+        private FunctionSubclassOutputStub(FunctionParentOutput parentOutput) {
+            super(parentOutput.stub.basePackageName + ".templates", parentOutput.stub.baseClassName);
+            this.parentOutput = parentOutput;
         }
 
         @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
