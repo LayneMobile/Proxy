@@ -22,12 +22,9 @@ import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.squareup.javapoet.JavaFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.RoundEnvironment;
@@ -37,23 +34,27 @@ import javax.lang.model.element.ElementKind;
 import sourcerer.processor.Env;
 
 public class ProxyRound extends Env {
-    private final Set<ProxyElement> proxyElements = new TreeSet<>();
-    private final Set<ProxyElement> processedElements = new TreeSet<>();
+    private final ImmutableSet<ProxyElement> proxyElements;
+    private final ImmutableSet<ProxyElement> processedElements;
     private final ProxyRound previousRound;
 
     private ProxyRound(Env env) {
         super(env);
+        this.proxyElements = ImmutableSet.of();
+        this.processedElements = ImmutableSet.of();
         this.previousRound = null;
     }
 
-    private ProxyRound(ProxyRound previousRound) {
+    private ProxyRound(ProxyRound previousRound, Set<ProxyElement> proxyElements, Set<ProxyElement> round) {
         super(previousRound);
-        synchronized (previousRound.proxyElements) {
-            this.proxyElements.addAll(previousRound.proxyElements);
-        }
-        synchronized (previousRound.processedElements) {
-            this.processedElements.addAll(previousRound.processedElements);
-        }
+        this.proxyElements = ImmutableSet.<ProxyElement>builder()
+                .addAll(previousRound.proxyElements)
+                .addAll(proxyElements)
+                .build();
+        this.processedElements = ImmutableSet.<ProxyElement>builder()
+                .addAll(previousRound.processedElements)
+                .addAll(round)
+                .build();
         this.previousRound = previousRound;
     }
 
@@ -65,22 +66,19 @@ public class ProxyRound extends Env {
         return previousRound == null;
     }
 
-    public ProxyRound beginNextRound() {
-        return new ProxyRound(this);
-    }
-
-    public boolean process(RoundEnvironment roundEnv) {
+    public ProxyRound process(RoundEnvironment roundEnv) {
         boolean processed = false;
+        Set<ProxyElement> proxyElements = new HashSet<>(this.proxyElements);
         for (Element element : roundEnv.getElementsAnnotatedWith(GenerateProxyBuilder.class)) {
             // Ensure it is an interface element
             if (element.getKind() != ElementKind.INTERFACE) {
                 error(element, "Only interfaces can be annotated with @%s",
                         GenerateProxyBuilder.class.getSimpleName());
-                return true; // Exit processing
+                return null; // Exit processing
             }
 
-            if (!add(element)) {
-                return false; // Exit processing
+            if (!add(proxyElements, element)) {
+                return null; // Exit processing
             }
             processed = true;
         }
@@ -91,19 +89,17 @@ public class ProxyRound extends Env {
 
             log("cached proxy elements: %s", cachedValues);
 
-            synchronized (proxyElements) {
-                for (ProxyElement proxyElement : cachedValues) {
-                    if (!proxyElements.contains(proxyElement)) {
-                        log("adding new cached proxy element: %s", proxyElement);
-                        proxyElements.add(proxyElement);
-                    }
+            for (ProxyElement proxyElement : cachedValues) {
+                if (!proxyElements.contains(proxyElement)) {
+                    log("adding new cached proxy element: %s", proxyElement);
+                    proxyElements.add(proxyElement);
                 }
             }
         }
 
         Set<ProxyElement> round = new HashSet<>();
         Set<ProxyElement> dependencies = new HashSet<>();
-        ImmutableSet<ProxyElement> unprocessedElements = unprocessed();
+        ImmutableSet<ProxyElement> unprocessedElements = unprocessed(proxyElements);
         for (ProxyElement unprocessed : unprocessedElements) {
             for (ProxyElement dependency : unprocessed.allDependencies()) {
                 if (!processedElements.contains(dependency)) {
@@ -128,43 +124,27 @@ public class ProxyRound extends Env {
             write(round);
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
 
-        // add all processed elements (current round)
-        synchronized (processedElements) {
-            processedElements.addAll(round);
-        }
-
-        return true;
+        // add all processed elements from current round
+        return new ProxyRound(this, proxyElements, round);
     }
 
-    private boolean add(Element element) {
+    private boolean add(Set<ProxyElement> proxyElements, Element element) {
         ProxyElement proxyElement = ProxyElement.cache().parse(element, this);
         if (proxyElement == null) {
             return false;
         }
-        synchronized (proxyElements) {
-            if (!proxyElements.contains(proxyElement)) {
-                proxyElements.add(proxyElement);
-            }
-        }
+        proxyElements.add(proxyElement);
         return true;
     }
 
-    private List<ProxyElement> proxyElements() {
-        synchronized (proxyElements) {
-            return new ArrayList<>(proxyElements);
-        }
-    }
-
-    private ImmutableSet<ProxyElement> unprocessed() {
+    private ImmutableSet<ProxyElement> unprocessed(Set<ProxyElement> proxyElements) {
         ImmutableSet.Builder<ProxyElement> unprocessed = ImmutableSet.builder();
-        synchronized (processedElements) {
-            for (ProxyElement proxyElement : proxyElements()) {
-                if (!processedElements.contains(proxyElement)) {
-                    unprocessed.add(proxyElement);
-                }
+        for (ProxyElement proxyElement : proxyElements) {
+            if (!processedElements.contains(proxyElement)) {
+                unprocessed.add(proxyElement);
             }
         }
         return unprocessed.build();

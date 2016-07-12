@@ -34,10 +34,11 @@ import sourcerer.processor.Env;
 import sourcerer.processor.Template;
 
 public class ProxyTemplate extends Template {
-    private ProxyRound round = null;
+    private ProxyRound round;
 
     public ProxyTemplate(Env env) {
         super(env);
+        this.round = ProxyRound.begin(env);
     }
 
     @Override public Set<String> supportedAnnotationTypes() {
@@ -49,13 +50,7 @@ public class ProxyTemplate extends Template {
     }
 
     @Override public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        if (round == null) {
-            round = ProxyRound.begin(this);
-        } else {
-            round = round.beginNextRound();
-        }
-
-        if (!round.process(roundEnv)) {
+        if ((round = round.process(roundEnv)) == null) {
             return true; // exit processing
         }
 
