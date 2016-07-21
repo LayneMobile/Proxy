@@ -36,6 +36,7 @@ class DefaultElementAlias implements ElementAlias {
     private final ImmutableList<? extends AnnotationMirrorAlias> annotationMirrors;
     private final ImmutableList<? extends ElementAlias> enclosedElements;
     private final ImmutableSet<Modifier> modifiers;
+    private final String toString;
 
     DefaultElementAlias(Element element) {
         this.kind = element.getKind();
@@ -45,6 +46,7 @@ class DefaultElementAlias implements ElementAlias {
         this.annotationMirrors = DefaultAnnotationMirrorAlias.of(element.getAnnotationMirrors());
         this.enclosedElements = list(element.getEnclosedElements());
         this.modifiers = ImmutableSet.copyOf(element.getModifiers());
+        this.toString = element.toString();
     }
 
     static ElementAlias of(Element element) {
@@ -103,5 +105,9 @@ class DefaultElementAlias implements ElementAlias {
     @Override public int hashCode() {
         return Objects.hashCode(kind, simpleName, type, enclosingElement, annotationMirrors, enclosedElements,
                 modifiers);
+    }
+
+    @Override public final String toString() {
+        return toString;
     }
 }

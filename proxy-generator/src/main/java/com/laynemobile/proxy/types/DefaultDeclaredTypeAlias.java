@@ -16,14 +16,52 @@
 
 package com.laynemobile.proxy.types;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.laynemobile.proxy.elements.AliasElements;
+import com.laynemobile.proxy.elements.ElementAlias;
+
 import javax.lang.model.type.DeclaredType;
 
 final class DefaultDeclaredTypeAlias extends DefaultTypeMirrorAlias implements DeclaredTypeAlias {
+    private final ElementAlias element;
+    private final TypeMirrorAlias enclosingType;
+    private final ImmutableList<? extends TypeMirrorAlias> typeArguments;
+
     private DefaultDeclaredTypeAlias(DeclaredType declaredType) {
         super(declaredType);
+        this.element = AliasElements.get(declaredType.asElement());
+        this.enclosingType = AliasTypes.get(declaredType.getEnclosingType());
+        this.typeArguments = AliasTypes.get(declaredType.getTypeArguments());
     }
 
     static DeclaredTypeAlias of(DeclaredType declaredType) {
         return new DefaultDeclaredTypeAlias(declaredType);
+    }
+
+    @Override public ElementAlias asElement() {
+        return element;
+    }
+
+    @Override public TypeMirrorAlias enclosingType() {
+        return enclosingType;
+    }
+
+    @Override public ImmutableList<? extends TypeMirrorAlias> typeArguments() {
+        return typeArguments;
+    }
+
+    @Override public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DefaultDeclaredTypeAlias)) return false;
+        if (!super.equals(o)) return false;
+        DefaultDeclaredTypeAlias that = (DefaultDeclaredTypeAlias) o;
+        return Objects.equal(element, that.element) &&
+                Objects.equal(enclosingType, that.enclosingType) &&
+                Objects.equal(typeArguments, that.typeArguments);
+    }
+
+    @Override public int hashCode() {
+        return Objects.hashCode(super.hashCode(), element, enclosingType, typeArguments);
     }
 }

@@ -24,7 +24,12 @@ import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.cache.AliasCache;
 import com.laynemobile.proxy.cache.AliasSubtypeCache;
+import com.laynemobile.proxy.elements.AnnotationMirrorAlias;
+import com.laynemobile.proxy.elements.ElementAlias;
+import com.laynemobile.proxy.elements.TypeElementAlias;
 import com.laynemobile.proxy.functions.Func0;
+import com.laynemobile.proxy.types.DeclaredTypeAlias;
+import com.laynemobile.proxy.types.TypeMirrorAlias;
 import com.squareup.javapoet.ClassName;
 
 import java.util.List;
@@ -33,6 +38,7 @@ import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
 
 import sourcerer.processor.Env;
 
@@ -40,16 +46,18 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         implements Comparable<ProxyElement> {
 
     private final boolean parent;
+    private final ClassName className;
     private final ImmutableList<TypeElementAlias> dependsOn;
     private final TypeElementAlias replaces;
     private final TypeElementAlias extendsFrom;
     private final ImmutableSet<ProxyElement> directDependencies;
     private final ImmutableList<ProxyFunctionElement> functions;
 
-    private ProxyElement(TypeElementAlias source, boolean parent, List<TypeElementAlias> dependsOn,
+    private ProxyElement(TypeElementAlias source, boolean parent, ClassName className, List<TypeElementAlias> dependsOn,
             TypeElementAlias replaces, TypeElementAlias extendsFrom, Set<ProxyElement> directDependencies, Env env) {
         super(source);
         this.parent = parent;
+        this.className = className;
         this.dependsOn = ImmutableList.copyOf(dependsOn);
         this.replaces = replaces;
         this.extendsFrom = extendsFrom;
@@ -61,20 +69,16 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         return Cache.INSTANCE;
     }
 
-    public final TypeElementAlias alias() {
+    public TypeElementAlias element() {
         return value();
     }
 
-    public final TypeElement element() {
-        return value().element();
-    }
-
-    public final ClassName className() {
-        return value().className();
+    public ClassName className() {
+        return className;
     }
 
     public String packageName() {
-        return value().packageName();
+        return className.packageName();
     }
 
     public boolean isParent() {
@@ -102,7 +106,7 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
     }
 
     @Override public int compareTo(ProxyElement o) {
-        TypeElement element = element();
+        TypeElementAlias element = element();
         if (equals(o) || element.equals(o.element())) {
             System.out.printf("'%s' equals '%s'\n", className(), o.className());
             return 0;
@@ -120,8 +124,8 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
             return 1;
         }
         System.out.printf("'%s' equals-compareName '%s'\n", className(), o.className());
-        return element.getQualifiedName().toString()
-                .compareTo(o.element().getQualifiedName().toString());
+        return element.qualifiedName()
+                .compareTo(o.element().qualifiedName());
     }
 
     @Override public boolean equals(Object o) {
@@ -176,7 +180,7 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         return false;
     }
 
-    private static final class Cache extends AliasSubtypeCache<TypeElement, ProxyElement, Element, TypeElementAlias> {
+    private static final class Cache extends AliasSubtypeCache<TypeElement, ProxyElement, ElementAlias, TypeElementAlias> {
         private static final Cache INSTANCE = new Cache();
 
         private Cache() {
@@ -192,7 +196,16 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         }
 
         @Override protected ProxyElement create(TypeElementAlias source, Env env) {
-            final GenerateProxyBuilder annotation = source.element().getAnnotation(GenerateProxyBuilder.class);
+
+            for (AnnotationMirrorAlias ama : source.annotationMirrors()) {
+                DeclaredTypeAlias type = ama.annotationType();
+                type.
+            }
+
+            final GenerateProxyBuilder annotation = new GenerateProxyBuilder();//source.getAnnotation(GenerateProxyBuilder.class);
+
+
+
             final boolean parent = annotation != null && annotation.parent();
             final List<TypeElementAlias> dependsOn = Util.parseAliasList(new Func0<Class<?>[]>() {
                 @Override public Class<?>[] call() {
@@ -223,27 +236,30 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
                     dependencies.add(dependency);
                 }
             }
-            DeclaredTypeAlias superType = source.superClass();
+            TypeMirrorAlias superType = source.superClass();
             if (superType != null) {
-                if ((dependency = dependency(source, superType.element(), env)) != null) {
+                if ((dependency = dependency(source, superType, env)) != null) {
                     dependencies.add(dependency);
                 }
             }
-            for (DeclaredTypeAlias typeAlias : source.interfaceTypes()) {
-                if ((dependency = dependency(source, typeAlias.element(), env)) != null) {
+            for (TypeMirrorAlias typeAlias : source.interfaces()) {
+                if ((dependency = dependency(source, typeAlias, env)) != null) {
                     dependencies.add(dependency);
                 }
             }
 
+            ClassName className = ClassName.bestGuess(source.qualifiedName());
             ProxyElement proxyElement
-                    = new ProxyElement(source, parent, dependsOn, replaces, extendsFrom, dependencies.build(), env);
+                    = new ProxyElement(source, parent, className, dependsOn, replaces, extendsFrom,
+                    dependencies.build(), env);
             env.log("created proxyElement: %s\n\n", proxyElement.toDebugString());
             return proxyElement;
         }
 
-        private ProxyElement dependency(TypeElementAlias source, TypeElementAlias elementAlias, Env env) {
-            if (elementAlias != null && !source.equals(elementAlias)) {
-                return getOrCreate(elementAlias.element(), env);
+        private ProxyElement dependency(TypeElementAlias source, TypeMirrorAlias typeAlias, Env env) {
+            if (typeAlias != null && typeAlias.kind() == TypeKind.DECLARED && !source.equals(typeAlias)) {
+                ElementAlias elementAlias = ((DeclaredTypeAlias) typeAlias).asElement();
+                return parse(elementAlias, env);
             }
             return null;
         }

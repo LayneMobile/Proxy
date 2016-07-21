@@ -18,18 +18,21 @@ package com.laynemobile.proxy.elements;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.cache.AbstractCache;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
 
 import java.util.List;
 import java.util.Set;
 
-import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
@@ -41,11 +44,27 @@ public final class AliasElements {
     private AliasElements() {}
 
     public static ElementAlias get(Element element) {
+        if (element == null) {
+            return null;
+        }
         return element.accept(new Visitor7(), null);
     }
 
     public static TypeElementAlias get(TypeElement typeElement) {
         return DefaultTypeElementAlias.of(typeElement);
+    }
+
+    public static AnnotationMirrorAlias get(AnnotationMirror annotationMirror) {
+        return DefaultAnnotationMirrorAlias.of(annotationMirror);
+    }
+
+    public static ImmutableList<? extends AnnotationMirrorAlias> annotationMirrors(
+            List<? extends AnnotationMirror> annotationMirrors) {
+        return Util.buildList(annotationMirrors, new Util.Transformer<AnnotationMirrorAlias, AnnotationMirror>() {
+            @Override public AnnotationMirrorAlias transform(AnnotationMirror annotationMirror) {
+                return get(annotationMirror);
+            }
+        });
     }
 
 //    private static final class Cache extends AbstractCache<Element, ElementAlias> {
@@ -80,11 +99,15 @@ public final class AliasElements {
         }
 
         @Override public ElementAlias visitVariable(VariableElement e, Void aVoid) {
-            return super.visitVariable(e, aVoid);
+            return DefaultVariableElementAlias.of(e);
         }
 
         @Override public ElementAlias visitExecutable(ExecutableElement e, Void aVoid) {
-            return super.visitExecutable(e, aVoid);
+            return DefaultExecutableElementAlias.of(e);
+        }
+
+        @Override public ElementAlias visitPackage(PackageElement e, Void aVoid) {
+            return DefaultPackageElementAlias.of(e);
         }
     }
 
@@ -169,7 +192,7 @@ public final class AliasElements {
 
         // executable element
 
-        @Override public AnnotationValue defaultValue() {
+        @Override public AnnotationValueAlias defaultValue() {
             return executableElement().defaultValue();
         }
 

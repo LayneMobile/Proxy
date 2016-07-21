@@ -21,11 +21,13 @@ import com.laynemobile.proxy.types.TypeMirrorAlias;
 import java.util.List;
 
 import javax.lang.model.element.NestingKind;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Elements;
 
 public interface TypeElementAlias extends ElementAlias {
+    TypeElement e();
     /**
      * Returns the fields, methods, constructors, and member types that are directly declared in this class or
      * interface.

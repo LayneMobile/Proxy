@@ -16,14 +16,41 @@
 
 package com.laynemobile.proxy.types;
 
+import com.google.common.base.Objects;
+
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
 class DefaultTypeMirrorAlias implements TypeMirrorAlias {
-    DefaultTypeMirrorAlias(TypeMirror typeMirror) {
+    private final TypeKind kind;
+    private final String toString;
 
+    DefaultTypeMirrorAlias(TypeMirror typeMirror) {
+        this.kind = typeMirror.getKind();
+        this.toString = typeMirror.toString();
     }
 
     static DefaultTypeMirrorAlias of(TypeMirror typeMirror) {
         return new DefaultTypeMirrorAlias(typeMirror);
+    }
+
+    @Override public TypeKind kind() {
+        return kind;
+    }
+
+    @Override public final String toString() {
+        return toString;
+    }
+
+    @Override public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DefaultTypeMirrorAlias)) return false;
+        DefaultTypeMirrorAlias that = (DefaultTypeMirrorAlias) o;
+        return kind == that.kind &&
+                Objects.equal(toString, that.toString);
+    }
+
+    @Override public int hashCode() {
+        return Objects.hashCode(kind, toString);
     }
 }

@@ -20,11 +20,13 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.cache.AliasCache;
 import com.laynemobile.proxy.cache.AliasSubtypeCache;
+import com.laynemobile.proxy.types.DeclaredTypeAlias;
 
 import java.util.List;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
 import sourcerer.processor.Env;
@@ -43,12 +45,8 @@ public final class ProxyType extends AbstractValueAlias<DeclaredTypeAlias> {
         return Cache.INSTANCE;
     }
 
-    public DeclaredTypeAlias alias() {
+    public DeclaredTypeAlias type() {
         return value();
-    }
-
-    public DeclaredType type() {
-        return value().type();
     }
 
     public ProxyElement element() {
@@ -68,7 +66,7 @@ public final class ProxyType extends AbstractValueAlias<DeclaredTypeAlias> {
 
     @Override public String toDebugString() {
         return MoreObjects.toStringHelper(this)
-                .add("type", alias().toDebugString())
+                .add("type", type())
                 .add("element", element.toDebugString())
                 .add("directSuperTypes", directSuperTypes)
                 .toString();
@@ -91,6 +89,16 @@ public final class ProxyType extends AbstractValueAlias<DeclaredTypeAlias> {
 
         @Override protected ProxyType create(DeclaredTypeAlias typeAlias, Env env) {
             ProxyElement proxyElement = ProxyElement.cache().getOrCreate(typeAlias.element().element(), env);
+
+            ImmutableList.Builder<DeclaredTypeAlias> directSuperTypes = ImmutableList.builder();
+            for (TypeMirror typeMirror : env.types().directSupertypes(declaredType)) {
+                if (typeMirror.getKind() == TypeKind.DECLARED) {
+                    directSuperTypes.add(getOrCreate((DeclaredType) typeMirror, env));
+                }
+            }
+
+
+
             ImmutableList.Builder<ProxyType> directSuperTypes = ImmutableList.builder();
             for (DeclaredTypeAlias superType : typeAlias.directSuperTypes()) {
                 if (superType.element().kind() == ElementKind.INTERFACE) {

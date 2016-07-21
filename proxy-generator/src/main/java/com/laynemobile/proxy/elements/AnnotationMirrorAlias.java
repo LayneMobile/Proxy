@@ -20,8 +20,6 @@ import com.laynemobile.proxy.types.DeclaredTypeAlias;
 
 import java.util.Map;
 
-import javax.lang.model.element.AnnotationValue;
-
 public interface AnnotationMirrorAlias {
     /**
      * Returns the type of this annotation.
@@ -43,5 +41,5 @@ public interface AnnotationMirrorAlias {
      *
      * @return the values of this annotation's elements, or an empty map if there are none
      */
-    Map<? extends ExecutableElementAlias, ? extends AnnotationValue> getElementValues();
+    Map<? extends ExecutableElementAlias, ? extends AnnotationValueAlias> elementValues();
 }

@@ -17,6 +17,7 @@
 package com.laynemobile.proxy.types;
 
 import com.google.common.collect.ImmutableList;
+import com.laynemobile.proxy.Util;
 
 import java.util.List;
 
@@ -45,16 +46,15 @@ public final class AliasTypes {
     }
 
     public static ImmutableList<? extends TypeMirrorAlias> get(List<? extends TypeMirror> typeMirrors) {
-        ImmutableList.Builder<TypeMirrorAlias> list = ImmutableList.builder();
-        for (TypeMirror typeMirror : typeMirrors) {
-            list.add(get(typeMirror));
-        }
-        return list.build();
+        return Util.buildList(typeMirrors, new Util.Transformer<TypeMirrorAlias, TypeMirror>() {
+            @Override public TypeMirrorAlias transform(TypeMirror typeMirror) {
+                return get(typeMirror);
+            }
+        });
     }
 
     private static final class Visitor7 extends SimpleTypeVisitor7<TypeMirrorAlias, Void> {
-        private Visitor7() {
-        }
+        private Visitor7() {}
 
         private Visitor7(TypeMirrorAlias defaultValue) {
             super(defaultValue);
@@ -102,10 +102,6 @@ public final class AliasTypes {
 
         @Override public TypeMirrorAlias visitWildcard(WildcardType t, Void aVoid) {
             return super.visitWildcard(t, aVoid);
-        }
-
-        @Override public TypeMirrorAlias visitUnknown(TypeMirror t, Void aVoid) {
-            return super.visitUnknown(t, aVoid);
         }
     }
 }

@@ -18,9 +18,11 @@ package com.laynemobile.proxy;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.laynemobile.proxy.elements.AliasElements;
+import com.laynemobile.proxy.elements.TypeElementAlias;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.internal.ProxyLog;
-import com.laynemobile.proxy.model.TypeElementAlias;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -33,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -64,6 +67,26 @@ import static com.laynemobile.proxy.Constants.SourceBuilder;
 
 public final class Util {
     private static final String TAG = Util.class.getSimpleName();
+
+    public static <R, T> ImmutableList<R> buildList(List<? extends T> in, Transformer<R, T> transformer) {
+        ImmutableList.Builder<R> out = ImmutableList.builder();
+        for (T t : in) {
+            R r;
+            if (t != null && (r = transformer.transform(t)) != null) {
+                out.add(r);
+            }
+        }
+        return out.build();
+    }
+
+    public static <KR, VR, KT, VT> ImmutableMap<KR, VR> buildMap(Map<? extends KT, ? extends VT> in,
+            Transformer<KR, KT> keyTransformer, Transformer<VR, VT> valueTransformer) {
+        ImmutableMap.Builder<KR, VR> out = ImmutableMap.builder();
+        for (Map.Entry<? extends KT, ? extends VT> entry : in.entrySet()) {
+            out.put(keyTransformer.transform(entry.getKey()), valueTransformer.transform(entry.getValue()));
+        }
+        return out.build();
+    }
 
     public static String className(ClassName typeName) {
         return className(typeName.simpleNames());
@@ -114,7 +137,7 @@ public final class Util {
     public static TypeElementAlias parseAlias(Func0<Class<?>> classFunc, Env env) {
         TypeElement typeElement = parse(classFunc, env);
         if (typeElement != null) {
-            return TypeElementAlias.cache().parse(typeElement, env);
+            return AliasElements.get(typeElement);
         }
         return null;
     }
@@ -140,7 +163,7 @@ public final class Util {
         List<TypeElement> typeElements = parseList(classesFunc, env);
         if (typeElements != null) {
             for (TypeElement typeElement : typeElements) {
-                TypeElementAlias typeElementAlias = TypeElementAlias.cache().parse(typeElement, env);
+                TypeElementAlias typeElementAlias = AliasElements.get(typeElement);
                 if (typeElementAlias != null) {
                     aliasList.add(typeElementAlias);
                 }
@@ -392,6 +415,10 @@ public final class Util {
             this.rawType = ClassName.get((TypeElement) t.asElement());
             this.typeArguments = Collections.unmodifiableList(t.getTypeArguments());
         }
+    }
+
+    public interface Transformer<R, T> {
+        R transform(T t);
     }
 
     private Util() { throw new AssertionError("no instances"); }

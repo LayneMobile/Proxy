@@ -16,6 +16,7 @@
 
 package com.laynemobile.proxy.elements;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.types.AliasTypes;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
@@ -71,5 +72,21 @@ final class DefaultTypeElementAlias extends DefaultElementAlias implements TypeE
 
     @Override public ImmutableList<? extends TypeParameterElementAlias> typeParameters() {
         return typeParameters;
+    }
+
+    @Override public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DefaultTypeElementAlias)) return false;
+        if (!super.equals(o)) return false;
+        DefaultTypeElementAlias that = (DefaultTypeElementAlias) o;
+        return Objects.equal(qualifiedName, that.qualifiedName) &&
+                nestingKind == that.nestingKind &&
+                Objects.equal(superClass, that.superClass) &&
+                Objects.equal(interfaces, that.interfaces) &&
+                Objects.equal(typeParameters, that.typeParameters);
+    }
+
+    @Override public int hashCode() {
+        return Objects.hashCode(super.hashCode(), qualifiedName, nestingKind, superClass, interfaces, typeParameters);
     }
 }

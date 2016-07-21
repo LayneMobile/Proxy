@@ -20,7 +20,6 @@ import com.laynemobile.proxy.types.TypeMirrorAlias;
 
 import java.util.List;
 
-import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeKind;
 
@@ -71,7 +70,7 @@ public interface ExecutableElementAlias extends ElementAlias {
      *
      * @return the default value, or {@code null} if none
      */
-    AnnotationValue defaultValue();
+    AnnotationValueAlias defaultValue();
 
     /**
      * Returns the simple name of a constructor, method, or initializer.  For a constructor, the name {@code "<init>"}
