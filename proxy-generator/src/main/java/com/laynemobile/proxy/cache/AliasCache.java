@@ -31,11 +31,11 @@ public abstract class AliasCache<K extends SK, V extends Alias<?>, SK>
         super(cache);
     }
 
-    protected abstract K cast(SK sk) throws Exception;
+    protected abstract K cast(SK sk, Env env) throws Exception;
 
     public final V parse(SK superType, Env env) {
         try {
-            K k = cast(superType);
+            K k = cast(superType, env);
             if (k != null) {
                 return getOrCreate(k, env);
             }

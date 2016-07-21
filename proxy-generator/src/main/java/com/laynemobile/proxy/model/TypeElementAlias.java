@@ -155,7 +155,8 @@ public final class TypeElementAlias extends AbstractValueAlias<TypeElement> {
 
         private Cache() {}
 
-        @Override protected TypeElement cast(Element element) throws Exception {
+        @Override protected TypeElement cast(Element element, Env env) throws Exception {
+            element = env.types().asElement(element.asType());
             if (element.getKind() == ElementKind.CLASS || element.getKind() == ElementKind.INTERFACE) {
                 return (TypeElement) element;
             }
@@ -167,5 +168,8 @@ public final class TypeElementAlias extends AbstractValueAlias<TypeElement> {
             env.log("created typeElementAlias: %s\n\n", elementAlias.toDebugString());
             return elementAlias;
         }
+    }
+
+    public static final class Key {
     }
 }

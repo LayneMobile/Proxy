@@ -16,6 +16,6 @@
 
 package com.laynemobile.proxy.cache;
 
-public interface SuperKeyCache<SK, K extends SK, V, P> extends Cache<K, V, P> {
+public interface SuperKeyCache<SK, K extends SK, V, P> extends ParameterizedCache<K, V, P> {
     V parse(SK sk, P p);
 }

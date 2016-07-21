@@ -20,7 +20,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.annotations.GenerateProxyFunction;
-import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.cache.EnvCache;
 import com.laynemobile.proxy.cache.MultiAliasCache;
 import com.squareup.javapoet.ClassName;
@@ -303,7 +302,6 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
             classBuilder = classBuilder.superclass(TypeName.get(function.abstractProxyFunctionType))
                     .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                    .addAnnotation(Generated.class)
             // TODO: add annotation!
 //                .addAnnotation(AnnotationSpec.builder(ProxyFunctionImplementation.class)
 //                        .addMember("value", "$T.class", subclass)

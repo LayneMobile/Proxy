@@ -81,8 +81,9 @@ public final class ProxyType extends AbstractValueAlias<DeclaredTypeAlias> {
             super(DeclaredTypeAlias.cache());
         }
 
-        @Override protected DeclaredType cast(TypeMirror typeMirror) throws Exception {
-            DeclaredType declaredType = super.cast(typeMirror);
+        @Override protected DeclaredType cast(TypeMirror typeMirror, Env env) throws Exception {
+            DeclaredType declaredType = super.cast(typeMirror, env);
+            if (declaredType == null) return null;
             return declaredType.asElement().getKind() == ElementKind.INTERFACE
                     ? declaredType
                     : null;

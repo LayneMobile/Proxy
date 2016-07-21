@@ -38,8 +38,8 @@ public abstract class AliasSubtypeCache<K extends SK, V extends Alias<SV>, SK, S
 
     protected abstract V create(SV sv, Env env);
 
-    @Override protected K cast(SK sk) throws Exception {
-        return superCache.cast(sk);
+    @Override protected K cast(SK sk, Env env) throws Exception {
+        return superCache.cast(sk, env);
     }
 
     @Override protected final V create(K k, Env env) {

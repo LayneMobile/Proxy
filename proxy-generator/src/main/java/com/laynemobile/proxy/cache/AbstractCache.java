@@ -16,12 +16,14 @@
 
 package com.laynemobile.proxy.cache;
 
-import java.util.Collection;
+import com.google.common.collect.ImmutableList;
+
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 
-public abstract class AbstractCache<K, V, P> implements Cache<K, V, P> {
+public abstract class AbstractCache<K, V> implements Cache<K, V> {
+    private final ThreadLocal<Map<K, V>> calls = new ThreadLocal<>();
+
     private final Map<K, V> cache;
 
     protected AbstractCache() {
@@ -32,50 +34,105 @@ public abstract class AbstractCache<K, V, P> implements Cache<K, V, P> {
         this.cache = cache;
     }
 
-    protected abstract V create(K k, P p);
+    protected abstract V create(K k);
 
-    public static <K, V, P> AbstractCache<K, V, P> create(final Creator<K, V, P> creator) {
-        return new AbstractCache<K, V, P>() {
-            @Override protected V create(K k, P p) {
-                return creator.create(k, p);
+    // Must return instance of FutureValue<V>
+    // i.e. <FV extends V & FutureValue<V>>
+    protected V createFutureValue() {
+        return null;
+    }
+
+    public static <K, V> AbstractCache<K, V> create(final Creator<K, V> creator) {
+        return new AbstractCache<K, V>() {
+            @Override protected V create(K k) {
+                return creator.create(k);
             }
         };
     }
 
-    @Override public final V getOrCreate(K k, P p) {
-        V cached;
-        if ((cached = get(k)) == null) {
-            log(p, "creating value from key: %s", k);
-            V created = create(k, p);
-            log(p, "created value: %s", created);
+    @Override public V get(K key) {
+        final V cached = getIfPresent(key);
+        if (cached != null) {
+            log("returning cached value: %s", cached);
+            return cached;
+        }
+
+        Map<K, V> threadCalls = calls.get();
+        boolean requiresThreadLocalCleanup = false;
+        if (threadCalls == null) {
+            threadCalls = new HashMap<>();
+            calls.set(threadCalls);
+            requiresThreadLocalCleanup = true;
+        }
+
+        final V ongoingValue = threadCalls.get(key);
+        if (ongoingValue != null) {
+            return ongoingValue;
+        } else if (threadCalls.containsKey(key)) {
+            throw new IllegalStateException(
+                    "stack overflow! must return <V extends FutureValue<V>> in createFutureValue() for key: " + key);
+        }
+
+        try {
+            final V _temp = createFutureValue();
+            if (_temp != null && !(_temp instanceof FutureValue)) {
+                throw new IllegalStateException("createFutureValue() must return instance of FutureValue<V>");
+            }
+            threadCalls.put(key, _temp);
+
+            log("creating value from key: %s", key);
+            // potential recursive call to get(key) inside create
+            final V created = create(key);
+            log("created value: %s", created);
+
+            V _return;
+            String _log;
             synchronized (cache) {
-                if ((cached = get(k)) == null) {
-                    cache.put(k, created);
+                final V _cached;
+                if ((_cached = getIfPresent(key)) == null) {
+                    _log = "caching";
+                    cache.put(key, _return = created);
+                } else {
+                    _log = "returning cached";
+                    _return = _cached;
                 }
             }
-            if (cached == null) {
-                log(p, "caching value: %s", created);
-                return created;
+
+            if (_temp != null) {
+                @SuppressWarnings("unchecked")
+                final FutureValue<V> futureValue = (FutureValue<V>) _temp;
+                futureValue.setDelegate(_return);
+            }
+
+            log("%s value: %s", _log, _return);
+            return _return;
+        } finally {
+            threadCalls.remove(key);
+
+            if (requiresThreadLocalCleanup) {
+                calls.remove();
             }
         }
-        log(p, "returning cached value: %s", cached);
-        return cached;
     }
 
-    @Override public final V get(K key) {
+    protected final V getIfPresent(K key) {
         synchronized (cache) {
             return cache.get(key);
         }
     }
 
-    @Override public final Collection<V> values() {
+    @Override public final ImmutableList<V> values() {
         synchronized (cache) {
-            return new LinkedHashSet<>(cache.values());
+            return ImmutableList.copyOf(cache.values());
         }
     }
 
-    protected void log(P p, String format, Object... args) {
+    protected void log(String format, Object... args) {
         System.out.printf(format, args);
         System.out.println();
+    }
+
+    public interface FutureValue<D> {
+        void setDelegate(D delegate);
     }
 }

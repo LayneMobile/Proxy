@@ -19,6 +19,7 @@ package com.laynemobile.proxy.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.laynemobile.proxy.Util;
+import com.laynemobile.proxy.annotations.Generated;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
@@ -54,7 +55,8 @@ public abstract class AbstractGeneratedTypeElementStub implements GeneratedTypeE
     }
 
     @Override public final TypeSpec newTypeSpec() {
-        return build(TypeSpec.classBuilder(className()));
+        return build(TypeSpec.classBuilder(className())
+                .addAnnotation(Generated.class));
     }
 
     @Override public JavaFile.Builder newJavaFile() {

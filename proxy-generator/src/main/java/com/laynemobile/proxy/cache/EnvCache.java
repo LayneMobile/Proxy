@@ -20,7 +20,7 @@ import java.util.Map;
 
 import sourcerer.processor.Env;
 
-public abstract class EnvCache<K, V> extends AbstractCache<K, V, Env> {
+public abstract class EnvCache<K, V> extends AbstractParameterizedCache<K, V, Env> {
     protected EnvCache() {}
 
     protected EnvCache(Map<K, V> cache) {
@@ -39,5 +39,5 @@ public abstract class EnvCache<K, V> extends AbstractCache<K, V, Env> {
         env.log(format, args);
     }
 
-    public interface Creator<K, V> extends Cache.Creator<K, V, Env> {}
+    public interface Creator<K, V> extends ParameterizedCache.Creator<K, V, Env> {}
 }

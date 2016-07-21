@@ -104,7 +104,7 @@ public final class DeclaredTypeAlias extends AbstractValueAlias<DeclaredType> {
 
         private Cache() {}
 
-        @Override protected DeclaredType cast(TypeMirror typeMirror) throws Exception {
+        @Override protected DeclaredType cast(TypeMirror typeMirror, Env env) throws Exception {
             if (typeMirror.getKind() != TypeKind.DECLARED) {
                 return null;
             }

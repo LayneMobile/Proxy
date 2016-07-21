@@ -21,7 +21,7 @@ import com.laynemobile.proxy.internal.ProxyLog;
 import java.util.Map;
 
 public abstract class AbstractSuperKeyCache<SK, K extends SK, V, P>
-        extends AbstractCache<K, V, P>
+        extends AbstractParameterizedCache<K, V, P>
         implements SuperKeyCache<SK, K, V, P> {
 
     protected AbstractSuperKeyCache() {}

@@ -18,8 +18,8 @@ package com.laynemobile.proxy.cache;
 
 import java.util.Map;
 
-public abstract class AbstractMultiCache<K1, V1 extends Cache<K2, ? extends V2, P>, P, K2, V2>
-        extends AbstractCache<K1, V1, P>
+public abstract class AbstractMultiCache<K1, V1 extends ParameterizedCache<K2, ? extends V2, P>, P, K2, V2>
+        extends AbstractParameterizedCache<K1, V1, P>
         implements MultiCache<K1, V1, P, K2, V2> {
     protected AbstractMultiCache() {}
 

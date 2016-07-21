@@ -16,7 +16,7 @@
 
 package com.laynemobile.proxy.cache;
 
-public final class DefaultMultiCache<K1, K2, V, P> extends AbstractMultiCache<K1, Cache<K2, V, P>, P, K2, V> {
+public final class DefaultMultiCache<K1, K2, V, P> extends AbstractMultiCache<K1, ParameterizedCache<K2, V, P>, P, K2, V> {
     private final MultiCache.ValueCreator<K1, K2, V, P> creator;
 
     private DefaultMultiCache(ValueCreator<K1, K2, V, P> creator) {
@@ -27,11 +27,11 @@ public final class DefaultMultiCache<K1, K2, V, P> extends AbstractMultiCache<K1
         return new DefaultMultiCache<>(creator);
     }
 
-    @Override protected Cache<K2, V, P> create(K1 k1, P p) {
+    @Override protected ParameterizedCache<K2, V, P> create(K1 k1, P p) {
         return new ChildCache(k1);
     }
 
-    private final class ChildCache extends AbstractCache<K2, V, P> {
+    private final class ChildCache extends AbstractParameterizedCache<K2, V, P> {
         private final K1 k1;
 
         private ChildCache(K1 k1) {

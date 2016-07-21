@@ -183,12 +183,12 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
             super(TypeElementAlias.cache());
         }
 
-        @Override protected TypeElement cast(Element element) throws Exception {
+        @Override protected TypeElement cast(Element element, Env env) throws Exception {
             // Only interfaces allowed
             if (element.getKind() != ElementKind.INTERFACE) {
                 return null;
             }
-            return (TypeElement) element;
+            return super.cast(element, env);
         }
 
         @Override protected ProxyElement create(TypeElementAlias source, Env env) {

@@ -16,17 +16,12 @@
 
 package com.laynemobile.proxy.cache;
 
-public interface MultiCache<K1, V1 extends ParameterizedCache<K2, ? extends V2, P>, P, K2, V2>
-        extends ParameterizedCache<K1, V1, P> {
+import com.laynemobile.proxy.model.Alias;
 
-    V2 get(K1 k1, K2 k2);
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 
-    V2 getOrCreate(K1 k1, K2 k2, P p);
-
-    interface Creator<K1, V1 extends ParameterizedCache<K2, V2, P>, P, K2, V2>
-            extends ParameterizedCache.Creator<K1, V1, P> {}
-
-    interface ValueCreator<K1, K2, V, P> {
-        V create(K1 k1, K2 k2, P p);
-    }
+public abstract class TypeElementCache<K extends TypeElement, V extends Alias<?>>
+        extends AliasCache<K, V, Element> {
+    
 }
