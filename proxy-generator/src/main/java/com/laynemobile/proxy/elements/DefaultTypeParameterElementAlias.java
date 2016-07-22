@@ -21,38 +21,36 @@ import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.types.AliasTypes;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
 
-import java.util.List;
-
+import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.TypeParameterElement;
 
-final class DefaultTypeParameterElementAlias extends DefaultElementAlias implements TypeParameterElementAlias {
+final class DefaultTypeParameterElementAlias extends AbstractElementAlias implements TypeParameterElementAlias {
     private final ElementAlias genericElement;
     private final ImmutableList<? extends TypeMirrorAlias> bounds;
 
     private DefaultTypeParameterElementAlias(TypeParameterElement element) {
         super(element);
         this.genericElement = AliasElements.get(element.getGenericElement());
-        this.bounds = AliasTypes.get(element.getBounds());
+        this.bounds = AliasTypes.list(element.getBounds());
     }
 
     static TypeParameterElementAlias of(TypeParameterElement element) {
+        if (element instanceof TypeParameterElementAlias) {
+            return (TypeParameterElementAlias) element;
+        }
         return new DefaultTypeParameterElementAlias(element);
     }
 
-    static ImmutableList<? extends TypeParameterElementAlias> of(List<? extends TypeParameterElement> elements) {
-        ImmutableList.Builder<TypeParameterElementAlias> list = ImmutableList.builder();
-        for (TypeParameterElement element : elements) {
-            list.add(of(element));
-        }
-        return list.build();
-    }
-
-    @Override public ElementAlias genericElement() {
+    @Override public ElementAlias getGenericElement() {
         return genericElement;
     }
 
-    @Override public ImmutableList<? extends TypeMirrorAlias> bounds() {
+    @Override public ImmutableList<? extends TypeMirrorAlias> getBounds() {
         return bounds;
+    }
+
+    @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {
+        return v.visitTypeParameter(this, p);
     }
 
     @Override public boolean equals(Object o) {

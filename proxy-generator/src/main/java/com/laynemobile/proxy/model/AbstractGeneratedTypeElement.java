@@ -17,6 +17,8 @@
 package com.laynemobile.proxy.model;
 
 import com.google.common.base.MoreObjects;
+import com.laynemobile.proxy.elements.AliasElements;
+import com.laynemobile.proxy.elements.TypeElementAlias;
 
 import javax.lang.model.element.TypeElement;
 
@@ -30,7 +32,7 @@ public abstract class AbstractGeneratedTypeElement implements GeneratedTypeEleme
         TypeElement typeElement = env.elements().getTypeElement(stub.qualifiedName());
         // TODO: how do we know if typeElement is source yet?
         this.stub = stub;
-        this.element = TypeElementAlias.cache().getOrCreate(typeElement, env);
+        this.element = AliasElements.get(typeElement);
     }
 
     @Override public GeneratedTypeElementStub output(Env env) {

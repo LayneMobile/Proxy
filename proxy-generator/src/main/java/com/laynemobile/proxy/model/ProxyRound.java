@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.annotations.Generated;
+import com.laynemobile.proxy.elements.AliasElements;
+import com.laynemobile.proxy.elements.TypeElementAlias;
 import com.laynemobile.proxy.internal.ProxyLog;
 import com.squareup.javapoet.JavaFile;
 
@@ -121,10 +123,6 @@ public class ProxyRound extends Env {
             }
         }
 
-        for (TypeElementAlias typeElementAlias : TypeElementAlias.cache().values()) {
-            log("cached type element: %s", typeElementAlias);
-        }
-
         Set<ProxyElement> round = new HashSet<>();
         Set<ProxyElement> dependencies = new HashSet<>();
         ImmutableSet<ProxyElement> unprocessedElements = unprocessed(proxyElements);
@@ -151,8 +149,8 @@ public class ProxyRound extends Env {
         List<TypeElementAlias> typeElementAliases = new ArrayList<>();
         for (Element element : roundEnv.getElementsAnnotatedWith(Generated.class)) {
             log("generated element: %s", element);
-            TypeElementAlias typeElementAlias = TypeElementAlias.cache().parse(element, this);
-            if (typeElementAlias != null) {
+            if (element.getKind().isClass() || element.getKind().isInterface()) {
+                TypeElementAlias typeElementAlias = AliasElements.get((TypeElement) element);
                 typeElementAliases.add(typeElementAlias);
             }
         }
@@ -179,16 +177,6 @@ public class ProxyRound extends Env {
                 }
             }
             inputs.put(entry.getKey(), typeInputs.build());
-        }
-
-        ImmutableMap.Builder<TypeMirror, TypeElementAlias> tempBuilder = ImmutableMap.builder();
-        for (TypeElementAlias typeElementAlias : TypeElementAlias.cache().values()) {
-            TypeMirror typeMirror = typeElementAlias.element().asType();
-            tempBuilder.put(typeMirror, typeElementAlias);
-        }
-        ImmutableMap<TypeMirror, TypeElementAlias> temp = tempBuilder.build();
-        for (Map.Entry<TypeMirror, TypeElementAlias> entry : temp.entrySet()) {
-            log("cache entry: %s", entry);
         }
 
         try {

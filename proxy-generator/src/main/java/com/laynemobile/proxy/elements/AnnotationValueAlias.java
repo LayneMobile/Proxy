@@ -16,61 +16,9 @@
 
 package com.laynemobile.proxy.elements;
 
-import com.google.common.base.Objects;
+import javax.lang.model.element.AnnotationValue;
 
-public interface AnnotationValueAlias {
-    /**
-     * Returns the value.
-     *
-     * @return the value
-     */
-    Value value();
-
-    /**
-     * Returns a string representation of this value. This is returned in a form suitable for representing this value in
-     * the source code of an annotation.
-     *
-     * @return a string representation of this value
-     */
-    @Override String toString();
-
-    enum Kind {
-        Primitive,
-        Array,
-        String,
-        Annotation,
-        Enum,
-        Type,
-        Unknown
-    }
-
-    final class Value {
-        private final Kind kind;
-        private final Object value;
-
-        public Value(Kind kind, Object value) {
-            this.kind = kind;
-            this.value = value;
-        }
-
-        public Kind kind() {
-            return kind;
-        }
-
-        public Object value() {
-            return value;
-        }
-
-        @Override public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Value)) return false;
-            Value value1 = (Value) o;
-            return kind == value1.kind &&
-                    Objects.equal(value, value1.value);
-        }
-
-        @Override public int hashCode() {
-            return Objects.hashCode(kind, value);
-        }
-    }
+public interface AnnotationValueAlias extends AnnotationValue {
+    /** {@inheritDoc} */
+    @Override Object getValue();
 }

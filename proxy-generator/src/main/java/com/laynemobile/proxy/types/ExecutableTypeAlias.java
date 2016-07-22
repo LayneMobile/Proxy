@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.elements;
+package com.laynemobile.proxy.types;
 
-import com.laynemobile.proxy.types.DeclaredTypeAlias;
+import java.util.List;
 
-import java.util.Map;
+import javax.lang.model.type.ExecutableType;
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.ExecutableElement;
+public interface ExecutableTypeAlias extends TypeMirrorAlias, ExecutableType {
+    @Override List<? extends TypeMirrorAlias> getParameterTypes();
 
-public interface AnnotationMirrorAlias extends AnnotationMirror {
-    @Override DeclaredTypeAlias getAnnotationType();
+    @Override TypeMirrorAlias getReturnType();
 
-    @Override Map<? extends ExecutableElement, ? extends AnnotationValueAlias> getElementValues();
+    @Override List<? extends TypeMirrorAlias> getThrownTypes();
+
+    @Override List<? extends TypeVariableAlias> getTypeVariables();
 }

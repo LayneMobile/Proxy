@@ -20,64 +20,25 @@ import com.laynemobile.proxy.types.TypeMirrorAlias;
 
 import java.util.List;
 
-import javax.lang.model.type.NoType;
-import javax.lang.model.type.TypeKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeParameterElement;
 
-public interface ExecutableElementAlias extends ElementAlias {
-    /**
-     * Returns the formal type parameters of this executable in declaration order.
-     *
-     * @return the formal type parameters, or an empty list if there are none
-     */
-    List<? extends TypeParameterElementAlias> typeParameters();
+public interface ExecutableElementAlias extends ElementAlias, ExecutableElement {
+    /** {@inheritDoc} */
+    @Override AnnotationValueAlias getDefaultValue();
 
-    /**
-     * Returns the return type of this executable. Returns a {@link NoType} with kind {@link TypeKind#VOID VOID} if this
-     * executable is not a method, or is a method that does not return a value.
-     *
-     * @return the return type of this executable
-     */
-    TypeMirrorAlias returnType();
+    /** {@inheritDoc} */
+    @Override List<? extends VariableElementAlias> getParameters();
 
-    /**
-     * Returns the formal parameters of this executable. They are returned in declaration order.
-     *
-     * @return the formal parameters, or an empty list if there are none
-     */
-    List<? extends VariableElementAlias> parameters();
+    /** {@inheritDoc} */
+    @Override TypeMirrorAlias getReturnType();
 
-    /**
-     * Returns {@code true} if this method or constructor accepts a variable number of arguments and returns {@code
-     * false} otherwise.
-     *
-     * @return {@code true} if this method or constructor accepts a variable number of arguments and {@code false}
-     * otherwise
-     */
-    boolean isVarArgs();
+    /** {@inheritDoc} */
+    @Override List<? extends TypeMirrorAlias> getThrownTypes();
 
-    /**
-     * Returns the exceptions and other throwables listed in this method or constructor's {@code throws} clause in
-     * declaration order.
-     *
-     * @return the exceptions and other throwables listed in the {@code throws} clause, or an empty list if there are
-     * none
-     */
-    List<? extends TypeMirrorAlias> thrownTypes();
+    /** {@inheritDoc} */
+    @Override List<? extends TypeParameterElement> getTypeParameters();
 
-    /**
-     * Returns the default value if this executable is an annotation type element.  Returns {@code null} if this method
-     * is not an annotation type element, or if it is an annotation type element with no default value.
-     *
-     * @return the default value, or {@code null} if none
-     */
-    AnnotationValueAlias defaultValue();
-
-    /**
-     * Returns the simple name of a constructor, method, or initializer.  For a constructor, the name {@code "<init>"}
-     * is returned, for a static initializer, the name {@code "<clinit>"} is returned, and for an anonymous class or
-     * instance initializer, an empty name is returned.
-     *
-     * @return the simple name of a constructor, method, or initializer
-     */
-    @Override String simpleName();
+    /** {@inheritDoc} */
+    @Override boolean isVarArgs();
 }

@@ -20,30 +20,23 @@ import com.laynemobile.proxy.elements.ElementAlias;
 
 import java.util.List;
 
-public interface DeclaredTypeAlias extends TypeMirrorAlias {
-    /**
-     * Returns the element corresponding to this type.
-     *
-     * @return the element corresponding to this type
-     */
-    ElementAlias asElement();
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeVisitor;
 
-    /**
-     * Returns the type of the innermost enclosing instance or a {@code NoType} of kind {@code NONE} if there is no
-     * enclosing instance.  Only types corresponding to inner classes have an enclosing instance.
-     *
-     * @return a type mirror for the enclosing type
-     *
-     * @jls 8.1.3 Inner Classes and Enclosing Instances
-     * @jls 15.9.2 Determining Enclosing Instances
-     */
-    TypeMirrorAlias enclosingType();
+public interface DeclaredTypeAlias extends TypeMirrorAlias, DeclaredType {
+    /** {@inheritDoc} */
+    @Override TypeKind getKind();
 
-    /**
-     * Returns the actual type arguments of this type. For a type nested within a parameterized type (such as {@code
-     * Outer<String>.Inner<Number>}), only the type arguments of the innermost type are included.
-     *
-     * @return the actual type arguments of this type, or an empty list if none
-     */
-    List<? extends TypeMirrorAlias> typeArguments();
+    /** {@inheritDoc} */
+    @Override ElementAlias asElement();
+
+    /** {@inheritDoc} */
+    @Override TypeMirrorAlias getEnclosingType();
+
+    /** {@inheritDoc} */
+    @Override List<? extends TypeMirrorAlias> getTypeArguments();
+
+    /** {@inheritDoc} */
+    @Override <R, P> R accept(TypeVisitor<R, P> v, P p);
 }

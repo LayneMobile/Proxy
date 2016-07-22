@@ -16,21 +16,23 @@
 
 package com.laynemobile.proxy.elements;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.cache.AbstractCache;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -39,19 +41,40 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.SimpleElementVisitor7;
 
 public final class AliasElements {
-//    private static final Cache CACHE = new Cache();
+    private static final Cache CACHE = new Cache();
 
     private AliasElements() {}
 
     public static ElementAlias get(Element element) {
-        if (element == null) {
-            return null;
-        }
-        return element.accept(new Visitor7(), null);
+        return getInternal(element);
     }
 
-    public static TypeElementAlias get(TypeElement typeElement) {
-        return DefaultTypeElementAlias.of(typeElement);
+    public static NameAlias get(Name name) {
+        return DefaultNameAlias.of(name);
+    }
+
+    public static PackageElementAlias get(PackageElement element) {
+        return getInternal(element);
+    }
+
+    public static TypeElementAlias get(TypeElement element) {
+        return getInternal(element);
+    }
+
+    public static ExecutableElementAlias get(ExecutableElement element) {
+        return getInternal(element);
+    }
+
+    public static TypeParameterElementAlias get(TypeParameterElement element) {
+        return getInternal(element);
+    }
+
+    public static VariableElementAlias get(VariableElement element) {
+        return getInternal(element);
+    }
+
+    public static ImmutableList<? extends ElementAlias> elements(List<? extends Element> elements) {
+        return buildList(elements);
     }
 
     public static AnnotationMirrorAlias get(AnnotationMirror annotationMirror) {
@@ -60,24 +83,48 @@ public final class AliasElements {
 
     public static ImmutableList<? extends AnnotationMirrorAlias> annotationMirrors(
             List<? extends AnnotationMirror> annotationMirrors) {
-        return Util.buildList(annotationMirrors, new Util.Transformer<AnnotationMirrorAlias, AnnotationMirror>() {
-            @Override public AnnotationMirrorAlias transform(AnnotationMirror annotationMirror) {
-                return get(annotationMirror);
+        return DefaultAnnotationMirrorAlias.of(annotationMirrors);
+    }
+
+    public static ImmutableList<? extends TypeParameterElementAlias> typeParameters(
+            List<? extends TypeParameterElement> typeParameters) {
+        return buildList(typeParameters);
+    }
+
+    public static ImmutableList<? extends VariableElementAlias> parameters(List<? extends VariableElement> parameters) {
+        return buildList(parameters);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <K extends Element, V extends ElementAlias> V getInternal(K k) {
+        if (k instanceof ElementAlias) {
+            return (V) k;
+        } else if (k == null) {
+            return null;
+        }
+        return (V) CACHE.get(k);
+    }
+
+    private static <K extends Element, V extends ElementAlias> ImmutableList<? extends V> buildList(
+            List<? extends K> in) {
+        return Util.buildList(in, new Util.Transformer<V, K>() {
+            @Override public V transform(K k) {
+                return getInternal(k);
             }
         });
     }
 
-//    private static final class Cache extends AbstractCache<Element, ElementAlias> {
-//        private Cache() {}
-//
-//        @Override protected ForwardingAlias createFutureValue() {
-//            return new ForwardingAlias();
-//        }
-//
-//        @Override protected ElementAlias create(Element element) {
-//            return element.accept(new Visitor7(), null);
-//        }
-//    }
+    private static final class Cache extends AbstractCache<Element, ElementAlias> {
+        private Cache() {}
+
+        @Override protected ForwardingAlias createFutureValue() {
+            return new ForwardingAlias();
+        }
+
+        @Override protected ElementAlias create(Element element) {
+            return element.accept(new Visitor7(), null);
+        }
+    }
 
     private static final class Visitor7 extends SimpleElementVisitor7<ElementAlias, Void> {
         private Visitor7() {}
@@ -87,7 +134,10 @@ public final class AliasElements {
         }
 
         @Override protected ElementAlias defaultAction(Element e, Void aVoid) {
-            return DefaultElementAlias.of(e);
+            if (e instanceof ElementAlias) {
+                return (ElementAlias) e;
+            }
+            return AbstractElementAlias.unknown(e);
         }
 
         @Override public ElementAlias visitType(TypeElement e, Void aVoid) {
@@ -117,6 +167,7 @@ public final class AliasElements {
             TypeParameterElementAlias,
             ExecutableElementAlias,
             VariableElementAlias,
+            PackageElementAlias,
             AbstractCache.FutureValue<ElementAlias> {
         private ElementAlias delegate;
 
@@ -130,92 +181,106 @@ public final class AliasElements {
 
         // basic element
 
-        @Override public ElementKind kind() {
-            return ensure().kind();
+        @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {
+            return ensure().accept(v, p);
         }
 
-        @Override public String simpleName() {
-            return ensure().simpleName();
+        @Override public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
+            return ensure().getAnnotation(annotationType);
+        }
+
+        @Override public ElementKind getKind() {
+            return ensure().getKind();
+        }
+
+        @Override public Set<Modifier> getModifiers() {
+            return ensure().getModifiers();
+        }
+
+        @Override public List<? extends AnnotationMirrorAlias> getAnnotationMirrors() {
+            return ensure().getAnnotationMirrors();
+        }
+
+        @Override public List<? extends ElementAlias> getEnclosedElements() {
+            return ensure().getEnclosedElements();
+        }
+
+        @Override public ElementAlias getEnclosingElement() {
+            return ensure().getEnclosingElement();
+        }
+
+        @Override public NameAlias getSimpleName() {
+            return ensure().getSimpleName();
         }
 
         @Override public TypeMirrorAlias asType() {
             return ensure().asType();
         }
 
-        @Override public ElementAlias enclosingElement() {
-            return ensure().enclosingElement();
-        }
+        // package element
 
-        @Override public List<? extends AnnotationMirrorAlias> annotationMirrors() {
-            return ensure().annotationMirrors();
-        }
-
-        @Override public List<? extends ElementAlias> enclosedElements() {
-            return ensure().enclosedElements();
-        }
-
-        @Override public Set<Modifier> modifiers() {
-            return ensure().modifiers();
+        @Override public boolean isUnnamed() {
+            return packageElement().isUnnamed();
         }
 
         // type element
 
-        @Override public List<? extends TypeMirrorAlias> interfaces() {
-            return typeElement().interfaces();
+        @Override public List<? extends TypeMirrorAlias> getInterfaces() {
+            return typeElement().getInterfaces();
         }
 
-        @Override public NestingKind nestingKind() {
-            return typeElement().nestingKind();
+        @Override public NestingKind getNestingKind() {
+            return typeElement().getNestingKind();
         }
 
-        @Override public String qualifiedName() {
-            return typeElement().qualifiedName();
+        @Override public NameAlias getQualifiedName() {
+            return typeElement().getQualifiedName();
         }
 
-        @Override public TypeMirrorAlias superClass() {
-            return typeElement().superClass();
+        @Override public TypeMirrorAlias getSuperclass() {
+            return typeElement().getSuperclass();
         }
 
-        @Override public List<? extends TypeParameterElementAlias> typeParameters() {
-            return typeElement().typeParameters();
+        @Override public List<? extends TypeParameterElementAlias> getTypeParameters() {
+            return typeElement().getTypeParameters();
         }
 
         // type parameter element
 
-        @Override public List<? extends TypeMirrorAlias> bounds() {
-            return typeParameterElement().bounds();
+        @Override public List<? extends TypeMirrorAlias> getBounds() {
+            return typeParameterElement().getBounds();
         }
 
-        @Override public ElementAlias genericElement() {
-            return typeParameterElement().genericElement();
+        @Override public ElementAlias getGenericElement() {
+            return typeParameterElement().getGenericElement();
         }
 
         // executable element
 
-        @Override public AnnotationValueAlias defaultValue() {
-            return executableElement().defaultValue();
+        @Override public List<? extends TypeMirrorAlias> getThrownTypes() {
+            return executableElement().getThrownTypes();
         }
 
-        @Override public TypeMirrorAlias returnType() {
-            return executableElement().returnType();
+        @Override public AnnotationValueAlias getDefaultValue() {
+            return executableElement().getDefaultValue();
         }
 
-        @Override public List<? extends VariableElementAlias> parameters() {
-            return executableElement().parameters();
+        @Override public List<? extends VariableElementAlias> getParameters() {
+            return executableElement().getParameters();
+        }
+
+        @Override public TypeMirrorAlias getReturnType() {
+            return executableElement().getReturnType();
         }
 
         @Override public boolean isVarArgs() {
             return executableElement().isVarArgs();
         }
 
-        @Override public List<? extends TypeMirrorAlias> thrownTypes() {
-            return executableElement().thrownTypes();
-        }
-
         // variable element
 
-        @Override public Object constantValue() {
-            return variableElement().constantValue();
+        @Override public Object getConstantValue() {
+            return variableElement().getConstantValue();
         }
 
         // equals & hash
@@ -234,9 +299,7 @@ public final class AliasElements {
         }
 
         @Override public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("delegate", delegate)
-                    .toString();
+            return delegate.toString();
         }
 
         private ElementAlias ensure() {
@@ -254,6 +317,10 @@ public final class AliasElements {
             } catch (ClassCastException e) {
                 throw new UnsupportedOperationException(message, e);
             }
+        }
+
+        private PackageElementAlias packageElement() {
+            return cast("not a PackageEementAlias");
         }
 
         private TypeElementAlias typeElement() {

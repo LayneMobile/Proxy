@@ -21,50 +21,61 @@ import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.types.AliasTypes;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
 
+import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeParameterElement;
 
-final class DefaultExecutableElementAlias extends DefaultElementAlias implements ExecutableElementAlias {
+final class DefaultExecutableElementAlias extends AbstractElementAlias implements ExecutableElementAlias {
     private final AnnotationValueAlias defaultValue;
     private final ImmutableList<? extends TypeParameterElementAlias> typeParameters;
     private final TypeMirrorAlias returnType;
     private final ImmutableList<? extends VariableElementAlias> parameters;
     private final ImmutableList<? extends TypeMirrorAlias> thrownTypes;
+    private final boolean varArgs;
 
     private DefaultExecutableElementAlias(ExecutableElement element) {
         super(element);
         this.defaultValue = DefaultAnnotationValueAlias.of(element.getDefaultValue());
-        this.typeParameters = DefaultTypeParameterElementAlias.of(element.getTypeParameters());
+        this.typeParameters = AliasElements.typeParameters(element.getTypeParameters());
         this.returnType = AliasTypes.get(element.getReturnType());
-        this.parameters = DefaultVariableElementAlias.of(element.getParameters());
-        this.thrownTypes = AliasTypes.get(element.getThrownTypes());
+        this.parameters = AliasElements.parameters(element.getParameters());
+        this.thrownTypes = AliasTypes.list(element.getThrownTypes());
+        this.varArgs = element.isVarArgs();
     }
 
-    static DefaultExecutableElementAlias of(ExecutableElement element) {
+    static ExecutableElementAlias of(ExecutableElement element) {
+        if (element instanceof ExecutableElementAlias) {
+            return (ExecutableElementAlias) element;
+        }
         return new DefaultExecutableElementAlias(element);
     }
 
-    @Override public AnnotationValueAlias defaultValue() {
+    @Override public AnnotationValueAlias getDefaultValue() {
         return defaultValue;
     }
 
-    @Override public ImmutableList<? extends TypeParameterElementAlias> typeParameters() {
-        return typeParameters;
-    }
-
-    @Override public TypeMirrorAlias returnType() {
-        return returnType;
-    }
-
-    @Override public ImmutableList<? extends VariableElementAlias> parameters() {
+    @Override public ImmutableList<? extends VariableElementAlias> getParameters() {
         return parameters;
     }
 
-    @Override public boolean isVarArgs() {
-        return false;
+    @Override public TypeMirrorAlias getReturnType() {
+        return returnType;
     }
 
-    @Override public ImmutableList<? extends TypeMirrorAlias> thrownTypes() {
+    @Override public ImmutableList<? extends TypeMirrorAlias> getThrownTypes() {
         return thrownTypes;
+    }
+
+    @Override public ImmutableList<? extends TypeParameterElement> getTypeParameters() {
+        return typeParameters;
+    }
+
+    @Override public boolean isVarArgs() {
+        return varArgs;
+    }
+
+    @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {
+        return v.visitExecutable(this, p);
     }
 
     @Override public boolean equals(Object o) {
@@ -80,6 +91,7 @@ final class DefaultExecutableElementAlias extends DefaultElementAlias implements
     }
 
     @Override public int hashCode() {
-        return Objects.hashCode(super.hashCode(), defaultValue, typeParameters, returnType, parameters, thrownTypes);
+        return Objects.hashCode(super.hashCode(), defaultValue, typeParameters, returnType, parameters,
+                thrownTypes);
     }
 }

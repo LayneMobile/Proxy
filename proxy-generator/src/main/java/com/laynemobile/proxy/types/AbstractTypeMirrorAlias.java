@@ -20,21 +20,26 @@ import com.google.common.base.Objects;
 
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVisitor;
 
-class DefaultTypeMirrorAlias implements TypeMirrorAlias {
+abstract class AbstractTypeMirrorAlias implements TypeMirrorAlias {
     private final TypeKind kind;
     private final String toString;
 
-    DefaultTypeMirrorAlias(TypeMirror typeMirror) {
+    AbstractTypeMirrorAlias(TypeMirror typeMirror) {
         this.kind = typeMirror.getKind();
         this.toString = typeMirror.toString();
     }
 
-    static DefaultTypeMirrorAlias of(TypeMirror typeMirror) {
-        return new DefaultTypeMirrorAlias(typeMirror);
+    static AbstractTypeMirrorAlias unknown(TypeMirror typeMirror) {
+        return new AbstractTypeMirrorAlias(typeMirror) {
+            @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
+                return v.visitUnknown(this, p);
+            }
+        };
     }
 
-    @Override public TypeKind kind() {
+    @Override public final TypeKind getKind() {
         return kind;
     }
 
@@ -44,8 +49,8 @@ class DefaultTypeMirrorAlias implements TypeMirrorAlias {
 
     @Override public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof DefaultTypeMirrorAlias)) return false;
-        DefaultTypeMirrorAlias that = (DefaultTypeMirrorAlias) o;
+        if (!(o instanceof AbstractTypeMirrorAlias)) return false;
+        AbstractTypeMirrorAlias that = (AbstractTypeMirrorAlias) o;
         return kind == that.kind &&
                 Objects.equal(toString, that.toString);
     }

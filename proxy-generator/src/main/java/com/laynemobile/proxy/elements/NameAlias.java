@@ -16,15 +16,15 @@
 
 package com.laynemobile.proxy.elements;
 
-import com.laynemobile.proxy.types.DeclaredTypeAlias;
+import javax.lang.model.element.Name;
 
-import java.util.Map;
+public interface NameAlias extends Name {
+    /** {@inheritDoc} */
+    @Override boolean equals(Object obj);
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.ExecutableElement;
+    /** {@inheritDoc} */
+    @Override int hashCode();
 
-public interface AnnotationMirrorAlias extends AnnotationMirror {
-    @Override DeclaredTypeAlias getAnnotationType();
-
-    @Override Map<? extends ExecutableElement, ? extends AnnotationValueAlias> getElementValues();
+    /** {@inheritDoc} */
+    @Override boolean contentEquals(CharSequence cs);
 }

@@ -18,19 +18,23 @@ package com.laynemobile.proxy.elements;
 
 import com.google.common.base.Objects;
 
+import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.PackageElement;
 
-final class DefaultPackageElementAlias extends DefaultElementAlias implements PackageElementAlias {
+final class DefaultPackageElementAlias extends AbstractElementAlias implements PackageElementAlias {
     private final boolean unnamed;
-    private final String qualifiedName;
+    private final NameAlias qualifiedName;
 
     private DefaultPackageElementAlias(PackageElement element) {
         super(element);
         this.unnamed = element.isUnnamed();
-        this.qualifiedName = element.getQualifiedName().toString();
+        this.qualifiedName = DefaultNameAlias.of(element.getQualifiedName());
     }
 
     static PackageElementAlias of(PackageElement element) {
+        if (element instanceof PackageElementAlias) {
+            return (PackageElementAlias) element;
+        }
         return new DefaultPackageElementAlias(element);
     }
 
@@ -38,8 +42,12 @@ final class DefaultPackageElementAlias extends DefaultElementAlias implements Pa
         return unnamed;
     }
 
-    @Override public String qualifiedName() {
+    @Override public NameAlias getQualifiedName() {
         return qualifiedName;
+    }
+
+    @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {
+        return v.visitPackage(this, p);
     }
 
     @Override public boolean equals(Object o) {

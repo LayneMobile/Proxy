@@ -17,14 +17,11 @@
 package com.laynemobile.proxy.elements;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-import com.laynemobile.proxy.Util;
 
-import java.util.List;
-
+import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.VariableElement;
 
-final class DefaultVariableElementAlias extends DefaultElementAlias implements VariableElementAlias {
+final class DefaultVariableElementAlias extends AbstractElementAlias implements VariableElementAlias {
     private final Object constantValue;
 
     private DefaultVariableElementAlias(VariableElement element) {
@@ -33,19 +30,18 @@ final class DefaultVariableElementAlias extends DefaultElementAlias implements V
     }
 
     static VariableElementAlias of(VariableElement element) {
+        if (element instanceof VariableElementAlias) {
+            return (VariableElementAlias) element;
+        }
         return new DefaultVariableElementAlias(element);
     }
 
-    static ImmutableList<? extends VariableElementAlias> of(List<? extends VariableElement> elements) {
-        return Util.buildList(elements, new Util.Transformer<VariableElementAlias, VariableElement>() {
-            @Override public VariableElementAlias transform(VariableElement element) {
-                return of(element);
-            }
-        });
+    @Override public Object getConstantValue() {
+        return constantValue;
     }
 
-    @Override public Object constantValue() {
-        return constantValue;
+    @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {
+        return v.visitVariable(this, p);
     }
 
     @Override public boolean equals(Object o) {

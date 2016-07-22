@@ -22,27 +22,11 @@ import java.util.List;
 
 import javax.lang.model.element.TypeParameterElement;
 
-public interface TypeParameterElementAlias extends ElementAlias {
-    /**
-     * Returns the generic class, interface, method, or constructor that is parameterized by this type parameter.
-     *
-     * @return the generic class, interface, method, or constructor that is parameterized by this type parameter
-     */
-    ElementAlias genericElement();
+/** {@inheritDoc} */
+public interface TypeParameterElementAlias extends ElementAlias, TypeParameterElement {
+    /** {@inheritDoc} */
+    @Override ElementAlias getGenericElement();
 
-    /**
-     * Returns the bounds of this type parameter. These are the types given by the {@code extends} clause used to
-     * declare this type parameter. If no explicit {@code extends} clause was used, then {@code java.lang.Object} is
-     * considered to be the sole bound.
-     *
-     * @return the bounds of this type parameter, or an empty list if there are none
-     */
-    List<? extends TypeMirrorAlias> bounds();
-
-    /**
-     * Returns the {@linkplain TypeParameterElement#getGenericElement generic element} of this type parameter.
-     *
-     * @return the generic element of this type parameter
-     */
-    @Override ElementAlias enclosingElement();
+    /** {@inheritDoc} */
+    @Override List<? extends TypeMirrorAlias> getBounds();
 }

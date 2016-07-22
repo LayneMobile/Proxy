@@ -37,27 +37,34 @@ final class DefaultAnnotationMirrorAlias implements AnnotationMirrorAlias {
 
     private DefaultAnnotationMirrorAlias(AnnotationMirror annotationMirror) {
         this.annotationType = AliasTypes.get(annotationMirror.getAnnotationType());
-        this.elementValues = Util.buildMap(annotationMirror.getElementValues(), new KeyTransformer(),
-                new ValueTransformer());
+        this.elementValues = map(annotationMirror.getElementValues());
     }
 
     static AnnotationMirrorAlias of(AnnotationMirror annotationMirror) {
+        if (annotationMirror instanceof AnnotationMirrorAlias) {
+            return (AnnotationMirrorAlias) annotationMirror;
+        }
         return new DefaultAnnotationMirrorAlias(annotationMirror);
     }
 
     static ImmutableList<? extends AnnotationMirrorAlias> of(List<? extends AnnotationMirror> annotationMirrors) {
-        ImmutableList.Builder<AnnotationMirrorAlias> list = ImmutableList.builder();
-        for (AnnotationMirror annotationMirror : annotationMirrors) {
-            list.add(of(annotationMirror));
-        }
-        return list.build();
+        return Util.buildList(annotationMirrors, new Util.Transformer<AnnotationMirrorAlias, AnnotationMirror>() {
+            @Override public AnnotationMirrorAlias transform(AnnotationMirror annotationMirror) {
+                return of(annotationMirror);
+            }
+        });
     }
 
-    @Override public DeclaredTypeAlias annotationType() {
+    static ImmutableMap<? extends ExecutableElementAlias, ? extends AnnotationValueAlias> map(
+            Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues) {
+        return Util.buildMap(elementValues, new KeyTransformer(), new ValueTransformer());
+    }
+
+    @Override public DeclaredTypeAlias getAnnotationType() {
         return annotationType;
     }
 
-    @Override public Map<? extends ExecutableElementAlias, ? extends AnnotationValueAlias> elementValues() {
+    @Override public ImmutableMap<? extends ExecutableElement, ? extends AnnotationValueAlias> getElementValues() {
         return elementValues;
     }
 
@@ -82,7 +89,7 @@ final class DefaultAnnotationMirrorAlias implements AnnotationMirrorAlias {
 
     private static final class KeyTransformer implements Util.Transformer<ExecutableElementAlias, ExecutableElement> {
         @Override public ExecutableElementAlias transform(ExecutableElement element) {
-            return DefaultExecutableElementAlias.of(element);
+            return AliasElements.get(element);
         }
     }
 

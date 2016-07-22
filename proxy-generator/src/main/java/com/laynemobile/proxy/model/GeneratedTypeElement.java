@@ -16,6 +16,8 @@
 
 package com.laynemobile.proxy.model;
 
+import com.laynemobile.proxy.elements.TypeElementAlias;
+
 import sourcerer.processor.Env;
 
 public interface GeneratedTypeElement extends ValueAlias<TypeElementAlias> {

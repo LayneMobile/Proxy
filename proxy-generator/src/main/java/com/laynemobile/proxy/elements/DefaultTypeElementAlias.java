@@ -21,13 +21,12 @@ import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.types.AliasTypes;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
 
-import java.util.List;
-
+import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.TypeElement;
 
-final class DefaultTypeElementAlias extends DefaultElementAlias implements TypeElementAlias {
-    private final String qualifiedName;
+final class DefaultTypeElementAlias extends AbstractElementAlias implements TypeElementAlias {
+    private final NameAlias qualifiedName;
     private final NestingKind nestingKind;
     private final TypeMirrorAlias superClass;
     private final ImmutableList<? extends TypeMirrorAlias> interfaces;
@@ -35,43 +34,42 @@ final class DefaultTypeElementAlias extends DefaultElementAlias implements TypeE
 
     private DefaultTypeElementAlias(TypeElement element) {
         super(element);
-        this.qualifiedName = element.getQualifiedName().toString();
+        this.qualifiedName = DefaultNameAlias.of(element.getQualifiedName());
         this.nestingKind = element.getNestingKind();
         this.superClass = AliasTypes.get(element.getSuperclass());
-        this.interfaces = AliasTypes.get(element.getInterfaces());
-        this.typeParameters = DefaultTypeParameterElementAlias.of(element.getTypeParameters());
+        this.interfaces = AliasTypes.list(element.getInterfaces());
+        this.typeParameters = AliasElements.typeParameters(element.getTypeParameters());
     }
 
     static TypeElementAlias of(TypeElement element) {
+        if (element instanceof TypeElementAlias) {
+            return (TypeElementAlias) element;
+        }
         return new DefaultTypeElementAlias(element);
     }
 
-    static ImmutableList<? extends TypeElementAlias> of(List<? extends TypeElement> typeElements) {
-        ImmutableList.Builder<TypeElementAlias> list = ImmutableList.builder();
-        for (TypeElement typeElement : typeElements) {
-            list.add(of(typeElement));
-        }
-        return list.build();
-    }
-
-    @Override public String qualifiedName() {
+    @Override public NameAlias getQualifiedName() {
         return qualifiedName;
     }
 
-    @Override public NestingKind nestingKind() {
+    @Override public NestingKind getNestingKind() {
         return nestingKind;
     }
 
-    @Override public TypeMirrorAlias superClass() {
+    @Override public TypeMirrorAlias getSuperclass() {
         return superClass;
     }
 
-    @Override public ImmutableList<? extends TypeMirrorAlias> interfaces() {
+    @Override public ImmutableList<? extends TypeMirrorAlias> getInterfaces() {
         return interfaces;
     }
 
-    @Override public ImmutableList<? extends TypeParameterElementAlias> typeParameters() {
+    @Override public ImmutableList<? extends TypeParameterElementAlias> getTypeParameters() {
         return typeParameters;
+    }
+
+    @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {
+        return v.visitType(this, p);
     }
 
     @Override public boolean equals(Object o) {

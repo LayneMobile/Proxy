@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.cache.AliasCache;
-import com.laynemobile.proxy.cache.AliasSubtypeCache;
+import com.laynemobile.proxy.elements.AliasElements;
 import com.laynemobile.proxy.elements.AnnotationMirrorAlias;
 import com.laynemobile.proxy.elements.ElementAlias;
 import com.laynemobile.proxy.elements.TypeElementAlias;
@@ -38,7 +38,6 @@ import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeKind;
 
 import sourcerer.processor.Env;
 
@@ -53,7 +52,8 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
     private final ImmutableSet<ProxyElement> directDependencies;
     private final ImmutableList<ProxyFunctionElement> functions;
 
-    private ProxyElement(TypeElementAlias source, boolean parent, ClassName className, List<TypeElementAlias> dependsOn,
+    private ProxyElement(TypeElementAlias source, boolean parent, ClassName className,
+            List<TypeElementAlias> dependsOn,
             TypeElementAlias replaces, TypeElementAlias extendsFrom, Set<ProxyElement> directDependencies, Env env) {
         super(source);
         this.parent = parent;
@@ -65,7 +65,7 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         this.functions = ProxyFunctionElement.parse(source, env);
     }
 
-    public static AliasCache<TypeElement, ? extends ProxyElement, Element> cache() {
+    public static AliasCache<TypeElementAlias, ? extends ProxyElement, Element> cache() {
         return Cache.INSTANCE;
     }
 
@@ -124,8 +124,8 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
             return 1;
         }
         System.out.printf("'%s' equals-compareName '%s'\n", className(), o.className());
-        return element.qualifiedName()
-                .compareTo(o.element().qualifiedName());
+        return element.getQualifiedName().toString()
+                .compareTo(o.element().getQualifiedName().toString());
     }
 
     @Override public boolean equals(Object o) {
@@ -180,32 +180,28 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         return false;
     }
 
-    private static final class Cache extends AliasSubtypeCache<TypeElement, ProxyElement, ElementAlias, TypeElementAlias> {
+    private static final class Cache extends AliasCache<TypeElementAlias, ProxyElement, Element> {
         private static final Cache INSTANCE = new Cache();
 
-        private Cache() {
-            super(TypeElementAlias.cache());
-        }
+        private Cache() {}
 
-        @Override protected TypeElement cast(Element element, Env env) throws Exception {
+        @Override protected TypeElementAlias cast(Element element, Env env) throws Exception {
             // Only interfaces allowed
             if (element.getKind() != ElementKind.INTERFACE) {
                 return null;
             }
-            return super.cast(element, env);
+            return AliasElements.get((TypeElement) element);
         }
 
         @Override protected ProxyElement create(TypeElementAlias source, Env env) {
-
-            for (AnnotationMirrorAlias ama : source.annotationMirrors()) {
-                DeclaredTypeAlias type = ama.annotationType();
-                type.
+            TypeElement te;
+            for (AnnotationMirrorAlias ama : source.getAnnotationMirrors()) {
+                log(env, "annotation mirror: %s", ama);
+                DeclaredTypeAlias type = ama.getAnnotationType();
+                // TODO:
             }
 
-            final GenerateProxyBuilder annotation = new GenerateProxyBuilder();//source.getAnnotation(GenerateProxyBuilder.class);
-
-
-
+            final GenerateProxyBuilder annotation = source.getAnnotation(GenerateProxyBuilder.class);
             final boolean parent = annotation != null && annotation.parent();
             final List<TypeElementAlias> dependsOn = Util.parseAliasList(new Func0<Class<?>[]>() {
                 @Override public Class<?>[] call() {
@@ -236,19 +232,19 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
                     dependencies.add(dependency);
                 }
             }
-            TypeMirrorAlias superType = source.superClass();
+            TypeMirrorAlias superType = source.getSuperclass();
             if (superType != null) {
                 if ((dependency = dependency(source, superType, env)) != null) {
                     dependencies.add(dependency);
                 }
             }
-            for (TypeMirrorAlias typeAlias : source.interfaces()) {
+            for (TypeMirrorAlias typeAlias : source.getInterfaces()) {
                 if ((dependency = dependency(source, typeAlias, env)) != null) {
                     dependencies.add(dependency);
                 }
             }
 
-            ClassName className = ClassName.bestGuess(source.qualifiedName());
+            ClassName className = ClassName.bestGuess(source.getQualifiedName().toString());
             ProxyElement proxyElement
                     = new ProxyElement(source, parent, className, dependsOn, replaces, extendsFrom,
                     dependencies.build(), env);
@@ -257,7 +253,12 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         }
 
         private ProxyElement dependency(TypeElementAlias source, TypeMirrorAlias typeAlias, Env env) {
-            if (typeAlias != null && typeAlias.kind() == TypeKind.DECLARED && !source.equals(typeAlias)) {
+            return dependency(source, (TypeElement) env.types().asElement(typeAlias), env);
+        }
+
+        private ProxyElement dependency(TypeElementAlias source, TypeElement typeElement, Env env) {
+            TypeElementAlias typeAlias = AliasElements.get(typeElement);
+            if (typeAlias != null && !source.equals(typeAlias)) {
                 ElementAlias elementAlias = ((DeclaredTypeAlias) typeAlias).asElement();
                 return parse(elementAlias, env);
             }

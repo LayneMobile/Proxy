@@ -16,22 +16,26 @@
 
 package com.laynemobile.proxy.types;
 
-import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeVisitor;
 
-final class DefaultDeclaredTypeAlias extends AbstractDeclaredTypeAlias {
-    private DefaultDeclaredTypeAlias(DeclaredType declaredType) {
-        super(declaredType);
+final class DefaultPrimitiveTypeAlias extends AbstractTypeMirrorAlias implements PrimitiveTypeAlias {
+    private DefaultPrimitiveTypeAlias(PrimitiveType type) {
+        super(type);
     }
 
-    static DeclaredTypeAlias of(DeclaredType declaredType) {
-        if (declaredType instanceof DeclaredTypeAlias) {
-            return (DeclaredTypeAlias) declaredType;
+    static PrimitiveTypeAlias of(PrimitiveType primitiveType) {
+        if (primitiveType instanceof PrimitiveTypeAlias) {
+            return (PrimitiveTypeAlias) primitiveType;
         }
-        return new DefaultDeclaredTypeAlias(declaredType);
+        return new DefaultPrimitiveTypeAlias(primitiveType);
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-        return v.visitDeclared(this, p);
+        return v.visitPrimitive(this, p);
+    }
+
+    @Override public boolean equals(Object o) {
+        return o instanceof DefaultPrimitiveTypeAlias && super.equals(o);
     }
 }

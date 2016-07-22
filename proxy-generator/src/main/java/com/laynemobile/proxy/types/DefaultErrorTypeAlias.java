@@ -16,22 +16,26 @@
 
 package com.laynemobile.proxy.types;
 
-import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ErrorType;
 import javax.lang.model.type.TypeVisitor;
 
-final class DefaultDeclaredTypeAlias extends AbstractDeclaredTypeAlias {
-    private DefaultDeclaredTypeAlias(DeclaredType declaredType) {
+final class DefaultErrorTypeAlias extends AbstractDeclaredTypeAlias implements ErrorTypeAlias {
+    private DefaultErrorTypeAlias(ErrorType declaredType) {
         super(declaredType);
     }
 
-    static DeclaredTypeAlias of(DeclaredType declaredType) {
+    static ErrorTypeAlias of(ErrorType declaredType) {
         if (declaredType instanceof DeclaredTypeAlias) {
-            return (DeclaredTypeAlias) declaredType;
+            return (ErrorTypeAlias) declaredType;
         }
-        return new DefaultDeclaredTypeAlias(declaredType);
+        return new DefaultErrorTypeAlias(declaredType);
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-        return v.visitDeclared(this, p);
+        return v.visitError(this, p);
+    }
+
+    @Override public boolean equals(Object o) {
+        return o instanceof DefaultErrorTypeAlias && super.equals(o);
     }
 }

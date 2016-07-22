@@ -19,7 +19,8 @@ package com.laynemobile.proxy.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.cache.AliasCache;
-import com.laynemobile.proxy.cache.AliasSubtypeCache;
+import com.laynemobile.proxy.elements.TypeElementAlias;
+import com.laynemobile.proxy.types.AliasTypes;
 import com.laynemobile.proxy.types.DeclaredTypeAlias;
 
 import java.util.List;
@@ -41,7 +42,7 @@ public final class ProxyType extends AbstractValueAlias<DeclaredTypeAlias> {
         this.directSuperTypes = ImmutableList.copyOf(directSuperTypes);
     }
 
-    public static AliasCache<DeclaredType, ? extends ProxyType, TypeMirror> cache() {
+    public static AliasCache<DeclaredTypeAlias, ? extends ProxyType, TypeMirror> cache() {
         return Cache.INSTANCE;
     }
 
@@ -72,40 +73,32 @@ public final class ProxyType extends AbstractValueAlias<DeclaredTypeAlias> {
                 .toString();
     }
 
-    private static final class Cache extends AliasSubtypeCache<DeclaredType, ProxyType, TypeMirror, DeclaredTypeAlias> {
+    private static final class Cache extends AliasCache<DeclaredTypeAlias, ProxyType, TypeMirror> {
         private static final Cache INSTANCE = new Cache();
 
-        private Cache() {
-            super(DeclaredTypeAlias.cache());
-        }
+        private Cache() {}
 
-        @Override protected DeclaredType cast(TypeMirror typeMirror, Env env) throws Exception {
-            DeclaredType declaredType = super.cast(typeMirror, env);
-            if (declaredType == null) return null;
+        @Override protected DeclaredTypeAlias cast(TypeMirror typeMirror, Env env) throws Exception {
+            if (typeMirror.getKind() != TypeKind.DECLARED) {
+                return null;
+            }
+            DeclaredTypeAlias declaredType = AliasTypes.get((DeclaredType) typeMirror);
             return declaredType.asElement().getKind() == ElementKind.INTERFACE
                     ? declaredType
                     : null;
         }
 
-        @Override protected ProxyType create(DeclaredTypeAlias typeAlias, Env env) {
-            ProxyElement proxyElement = ProxyElement.cache().getOrCreate(typeAlias.element().element(), env);
-
-            ImmutableList.Builder<DeclaredTypeAlias> directSuperTypes = ImmutableList.builder();
-            for (TypeMirror typeMirror : env.types().directSupertypes(declaredType)) {
-                if (typeMirror.getKind() == TypeKind.DECLARED) {
-                    directSuperTypes.add(getOrCreate((DeclaredType) typeMirror, env));
-                }
-            }
-
-
+        @Override protected ProxyType create(DeclaredTypeAlias declaredType, Env env) {
+            ProxyElement proxyElement = ProxyElement.cache()
+                    .getOrCreate((TypeElementAlias) declaredType.asElement(), env);
 
             ImmutableList.Builder<ProxyType> directSuperTypes = ImmutableList.builder();
-            for (DeclaredTypeAlias superType : typeAlias.directSuperTypes()) {
-                if (superType.element().kind() == ElementKind.INTERFACE) {
-                    directSuperTypes.add(getOrCreate(superType.type(), env));
+            for (TypeMirror typeMirror : env.types().directSupertypes(declaredType)) {
+                if (typeMirror.getKind() == TypeKind.DECLARED) {
+                    directSuperTypes.add(getOrCreate(AliasTypes.get((DeclaredType) typeMirror), env));
                 }
             }
-            return new ProxyType(typeAlias, proxyElement, directSuperTypes.build());
+            return new ProxyType(declaredType, proxyElement, directSuperTypes.build());
         }
     }
 }

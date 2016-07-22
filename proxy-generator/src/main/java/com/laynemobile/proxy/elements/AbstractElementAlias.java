@@ -22,15 +22,17 @@ import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.types.AliasTypes;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
 
-import java.util.List;
+import java.lang.annotation.Annotation;
+import java.util.Set;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.Modifier;
 
-class DefaultElementAlias implements ElementAlias {
+abstract class AbstractElementAlias implements ElementAlias {
     private final ElementKind kind;
-    private final String simpleName;
+    private final NameAlias simpleName;
     private final TypeMirrorAlias type;
     private final ElementAlias enclosingElement;
     private final ImmutableList<? extends AnnotationMirrorAlias> annotationMirrors;
@@ -38,61 +40,62 @@ class DefaultElementAlias implements ElementAlias {
     private final ImmutableSet<Modifier> modifiers;
     private final String toString;
 
-    DefaultElementAlias(Element element) {
+    AbstractElementAlias(Element element) {
         this.kind = element.getKind();
-        this.simpleName = element.getSimpleName().toString();
+        this.simpleName = DefaultNameAlias.of(element.getSimpleName());
         this.type = AliasTypes.get(element.asType());
-        this.enclosingElement = of(element);
+        this.enclosingElement = AliasElements.get(element);
         this.annotationMirrors = DefaultAnnotationMirrorAlias.of(element.getAnnotationMirrors());
-        this.enclosedElements = list(element.getEnclosedElements());
+        this.enclosedElements = AliasElements.elements(element.getEnclosedElements());
         this.modifiers = ImmutableSet.copyOf(element.getModifiers());
         this.toString = element.toString();
     }
 
-    static ElementAlias of(Element element) {
-        return new DefaultElementAlias(element);
+    static ElementAlias unknown(Element element) {
+        return new AbstractElementAlias(element) {
+            @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {
+                return v.visitUnknown(this, p);
+            }
+        };
     }
 
-    static ImmutableList<? extends ElementAlias> list(List<? extends Element> elements) {
-        ImmutableList.Builder<ElementAlias> list = ImmutableList.builder();
-        for (Element element : elements) {
-            list.add(of(element));
-        }
-        return list.build();
-    }
-
-    @Override public final ElementKind kind() {
-        return kind;
-    }
-
-    @Override public final List<? extends AnnotationMirrorAlias> annotationMirrors() {
-        return annotationMirrors;
-    }
-
-    @Override public final String simpleName() {
-        return simpleName;
-    }
-
-    @Override public final TypeMirrorAlias asType() {
+    @Override public TypeMirrorAlias asType() {
         return type;
     }
 
-    @Override public final ElementAlias enclosingElement() {
+    @Override public NameAlias getSimpleName() {
+        return simpleName;
+    }
+
+    @Override public ImmutableList<? extends AnnotationMirrorAlias> getAnnotationMirrors() {
+        return annotationMirrors;
+    }
+
+    @Override public ElementAlias getEnclosingElement() {
         return enclosingElement;
     }
 
-    @Override public final ImmutableList<? extends ElementAlias> enclosedElements() {
+    @Override public ImmutableList<? extends ElementAlias> getEnclosedElements() {
         return enclosedElements;
     }
 
-    @Override public final ImmutableSet<Modifier> modifiers() {
+    @Override public ElementKind getKind() {
+        return kind;
+    }
+
+    @Override public Set<Modifier> getModifiers() {
         return modifiers;
+    }
+
+    @Override public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
+        // TODO:!!!
+        return null;
     }
 
     @Override public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof DefaultElementAlias)) return false;
-        DefaultElementAlias that = (DefaultElementAlias) o;
+        if (!(o instanceof AbstractElementAlias)) return false;
+        AbstractElementAlias that = (AbstractElementAlias) o;
         return kind == that.kind &&
                 Objects.equal(simpleName, that.simpleName) &&
                 Objects.equal(type, that.type) &&

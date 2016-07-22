@@ -20,29 +20,30 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.laynemobile.proxy.cache.EnvCache;
 import com.laynemobile.proxy.cache.MultiAliasCache;
+import com.laynemobile.proxy.elements.ElementAlias;
+import com.laynemobile.proxy.elements.ExecutableElementAlias;
+import com.laynemobile.proxy.elements.TypeElementAlias;
+import com.laynemobile.proxy.elements.VariableElementAlias;
+import com.laynemobile.proxy.types.TypeMirrorAlias;
 
-import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 import sourcerer.processor.Env;
 
-public final class MethodElement extends AbstractValueAlias<ExecutableElement> {
-    private static MultiAliasCache<TypeElement, ExecutableElement, MethodElement> CACHE
+public final class MethodElement extends AbstractValueAlias<ExecutableElementAlias> {
+    private static MultiAliasCache<TypeElementAlias, ExecutableElementAlias, MethodElement> CACHE
             = MultiAliasCache.create(new Creator());
 
-    private final TypeElement typeElement;
-    private final TypeMirror returnType;
-    private final ImmutableList<? extends VariableElement> params;
-    private final ImmutableList<TypeMirror> paramTypes;
+    private final TypeElementAlias typeElement;
+    private final TypeMirrorAlias returnType;
+    private final ImmutableList<? extends VariableElementAlias> params;
+    private final ImmutableList<TypeMirrorAlias> paramTypes;
 
-    private MethodElement(TypeElement typeElement, ExecutableElement element, Env env) {
+    private MethodElement(TypeElementAlias typeElement, ExecutableElementAlias element, Env env) {
         super(element);
-        ImmutableList.Builder<TypeMirror> paramTypes = ImmutableList.builder();
-        for (VariableElement param : element.getParameters()) {
+        ImmutableList.Builder<TypeMirrorAlias> paramTypes = ImmutableList.builder();
+        for (VariableElementAlias param : element.getParameters()) {
             env.log("param: %s", param);
             ElementKind paramKind = param.getKind();
             env.log("param kind: %s", paramKind);
@@ -57,18 +58,18 @@ public final class MethodElement extends AbstractValueAlias<ExecutableElement> {
         this.paramTypes = paramTypes.build();
     }
 
-    public static MultiAliasCache<TypeElement, ExecutableElement, ? extends MethodElement> cache() {
+    public static MultiAliasCache<TypeElementAlias, ExecutableElementAlias, ? extends MethodElement> cache() {
         return CACHE;
     }
 
-    public static ImmutableList<MethodElement> parse(TypeElement typeElement, Env env) {
-        EnvCache<ExecutableElement, MethodElement> cache = CACHE.getOrCreate(typeElement, env);
+    public static ImmutableList<MethodElement> parse(TypeElementAlias typeElement, Env env) {
+        EnvCache<ExecutableElementAlias, MethodElement> cache = CACHE.getOrCreate(typeElement, env);
         ImmutableList.Builder<MethodElement> elements = ImmutableList.builder();
-        for (Element element : typeElement.getEnclosedElements()) {
+        for (ElementAlias element : typeElement.getEnclosedElements()) {
             if (element.getKind() != ElementKind.METHOD) {
                 continue;
             }
-            ExecutableElement methodElement = (ExecutableElement) element;
+            ExecutableElementAlias methodElement = (ExecutableElementAlias) element;
             env.log(methodElement, "processing method element: %s", methodElement);
             elements.add(cache.getOrCreate(methodElement, env));
         }
@@ -79,23 +80,23 @@ public final class MethodElement extends AbstractValueAlias<ExecutableElement> {
         return env.elements().overrides(element(), overridden.element(), typeElement());
     }
 
-    public final TypeElement typeElement() {
+    public final TypeElementAlias typeElement() {
         return typeElement;
     }
 
-    public final ExecutableElement element() {
+    public final ExecutableElementAlias element() {
         return value();
     }
 
-    public TypeMirror returnType() {
+    public TypeMirrorAlias returnType() {
         return returnType;
     }
 
-    public ImmutableList<? extends VariableElement> params() {
+    public ImmutableList<? extends VariableElementAlias> params() {
         return params;
     }
 
-    public ImmutableList<TypeMirror> paramTypes() {
+    public ImmutableList<TypeMirrorAlias> paramTypes() {
         return paramTypes;
     }
 
@@ -124,8 +125,10 @@ public final class MethodElement extends AbstractValueAlias<ExecutableElement> {
                 .toString();
     }
 
-    private static final class Creator implements MultiAliasCache.ValueCreator<TypeElement, ExecutableElement, MethodElement> {
-        @Override public MethodElement create(TypeElement typeElement, ExecutableElement element, Env env) {
+    private static final class Creator
+            implements MultiAliasCache.ValueCreator<TypeElementAlias, ExecutableElementAlias, MethodElement> {
+
+        @Override public MethodElement create(TypeElementAlias typeElement, ExecutableElementAlias element, Env env) {
             MethodElement methodElement = new MethodElement(typeElement, element, env);
             env.log("created method element: %s\n\n", methodElement.toDebugString());
             return methodElement;

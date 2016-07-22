@@ -16,22 +16,26 @@
 
 package com.laynemobile.proxy.types;
 
-import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeVisitor;
 
-final class DefaultDeclaredTypeAlias extends AbstractDeclaredTypeAlias {
-    private DefaultDeclaredTypeAlias(DeclaredType declaredType) {
-        super(declaredType);
+final class DefaultNoTypeAlias extends AbstractTypeMirrorAlias implements NoTypeAlias {
+    private DefaultNoTypeAlias(NoType typeMirror) {
+        super(typeMirror);
     }
 
-    static DeclaredTypeAlias of(DeclaredType declaredType) {
-        if (declaredType instanceof DeclaredTypeAlias) {
-            return (DeclaredTypeAlias) declaredType;
+    static NoTypeAlias of(NoType noType) {
+        if (noType instanceof NoTypeAlias) {
+            return (NoTypeAlias) noType;
         }
-        return new DefaultDeclaredTypeAlias(declaredType);
+        return new DefaultNoTypeAlias(noType);
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-        return v.visitDeclared(this, p);
+        return v.visitNoType(this, p);
+    }
+
+    @Override public boolean equals(Object o) {
+        return o instanceof DefaultNoTypeAlias && super.equals(o);
     }
 }

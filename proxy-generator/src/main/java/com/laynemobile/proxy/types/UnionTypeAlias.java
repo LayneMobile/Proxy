@@ -18,11 +18,9 @@ package com.laynemobile.proxy.types;
 
 import java.util.List;
 
-public interface UnionTypeAlias extends TypeMirrorAlias {
-    /**
-     * Return the alternatives comprising this union type.
-     *
-     * @return the alternatives comprising this union type.
-     */
-    List<? extends TypeMirrorAlias> alternatives();
+import javax.lang.model.type.UnionType;
+
+public interface UnionTypeAlias extends TypeMirrorAlias, UnionType {
+    /** {@inheritDoc} */
+    @Override List<? extends TypeMirrorAlias> getAlternatives();
 }

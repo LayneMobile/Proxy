@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.elements;
+package com.laynemobile.proxy.types;
 
-import com.laynemobile.proxy.types.DeclaredTypeAlias;
+import javax.lang.model.type.NoType;
 
-import java.util.Map;
-
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.ExecutableElement;
-
-public interface AnnotationMirrorAlias extends AnnotationMirror {
-    @Override DeclaredTypeAlias getAnnotationType();
-
-    @Override Map<? extends ExecutableElement, ? extends AnnotationValueAlias> getElementValues();
-}
+public interface NoTypeAlias extends TypeMirrorAlias, NoType {}
