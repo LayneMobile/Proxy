@@ -19,4 +19,4 @@ package com.laynemobile.proxy.elements;
 import javax.lang.model.element.VariableElement;
 
 /** {@inheritDoc} */
-public interface VariableElementAlias extends ElementAlias, VariableElement {}
+public interface VariableElementAlias extends TypedElementAlias<VariableElement>, VariableElement {}

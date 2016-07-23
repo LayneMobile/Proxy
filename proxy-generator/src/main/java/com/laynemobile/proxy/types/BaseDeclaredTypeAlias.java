@@ -18,12 +18,25 @@ package com.laynemobile.proxy.types;
 
 import com.laynemobile.proxy.elements.ElementAlias;
 
-import javax.lang.model.type.TypeVariable;
+import java.util.List;
 
-public interface TypeVariableAlias extends TypedTypeMirrorAlias<TypeVariable>, TypeVariable {
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeVisitor;
+
+public interface BaseDeclaredTypeAlias<T extends DeclaredType> extends TypedTypeMirrorAlias<T>, DeclaredType {
+    /** {@inheritDoc} */
+    @Override TypeKind getKind();
+
+    /** {@inheritDoc} */
     @Override ElementAlias asElement();
 
-    @Override TypeMirrorAlias getLowerBound();
+    /** {@inheritDoc} */
+    @Override TypeMirrorAlias getEnclosingType();
 
-    @Override TypeMirrorAlias getUpperBound();
+    /** {@inheritDoc} */
+    @Override List<? extends TypeMirrorAlias> getTypeArguments();
+
+    /** {@inheritDoc} */
+    @Override <R, P> R accept(TypeVisitor<R, P> v, P p);
 }

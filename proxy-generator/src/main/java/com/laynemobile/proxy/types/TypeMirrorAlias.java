@@ -21,6 +21,8 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVisitor;
 
 public interface TypeMirrorAlias extends TypeMirror {
+    TypeMirror actual();
+
     /** {@inheritDoc} */
     @Override TypeKind getKind();
 

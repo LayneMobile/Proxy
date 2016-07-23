@@ -18,4 +18,4 @@ package com.laynemobile.proxy.types;
 
 import javax.lang.model.type.PrimitiveType;
 
-public interface PrimitiveTypeAlias extends TypeMirrorAlias, PrimitiveType {}
+public interface PrimitiveTypeAlias extends TypedTypeMirrorAlias<PrimitiveType>, PrimitiveType {}

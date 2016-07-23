@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.laynemobile.proxy.Util.runtime;
+
 public abstract class AbstractCache<K, V> implements Cache<K, V> {
     private final ThreadLocal<Map<K, V>> calls = new ThreadLocal<>();
 
@@ -67,6 +69,7 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 
         final V ongoingValue = threadCalls.get(key);
         if (ongoingValue != null) {
+            log("returning future value for key: %s", key);
             return ongoingValue;
         } else if (threadCalls.containsKey(key)) {
             throw new IllegalStateException(
@@ -82,7 +85,12 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 
             log("creating value from key: %s", key);
             // potential recursive call to get(key) inside create
-            final V created = create(key);
+            final V created;
+            try {
+                created = create(key);
+            } catch (Exception e) {
+                throw runtime(e, "error creating for key: %s, keyType: %s", key, key.getClass());
+            }
             log("created value: %s", created);
 
             V _return;
@@ -116,6 +124,7 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
     }
 
     protected final V getIfPresent(K key) {
+        log("getting value for key: %s", key);
         synchronized (cache) {
             return cache.get(key);
         }
@@ -128,6 +137,7 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
     }
 
     protected void log(String format, Object... args) {
+        System.out.printf("%s - ", getClass());
         System.out.printf(format, args);
         System.out.println();
     }

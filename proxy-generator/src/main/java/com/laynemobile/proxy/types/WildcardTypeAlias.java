@@ -18,7 +18,7 @@ package com.laynemobile.proxy.types;
 
 import javax.lang.model.type.WildcardType;
 
-public interface WildcardTypeAlias extends TypeMirrorAlias, WildcardType {
+public interface WildcardTypeAlias extends TypedTypeMirrorAlias<WildcardType>, WildcardType {
     @Override TypeMirrorAlias getExtendsBound();
 
     @Override TypeMirrorAlias getSuperBound();

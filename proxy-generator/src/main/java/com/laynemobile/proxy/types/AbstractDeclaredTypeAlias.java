@@ -23,12 +23,13 @@ import com.laynemobile.proxy.elements.ElementAlias;
 
 import javax.lang.model.type.DeclaredType;
 
-abstract class AbstractDeclaredTypeAlias extends AbstractTypeMirrorAlias implements DeclaredTypeAlias {
+abstract class AbstractDeclaredTypeAlias<T extends DeclaredType> extends AbstractTypeMirrorAlias<T>
+        implements BaseDeclaredTypeAlias<T> {
     private final ElementAlias element;
     private final TypeMirrorAlias enclosingType;
     private final ImmutableList<? extends TypeMirrorAlias> typeArguments;
 
-    AbstractDeclaredTypeAlias(DeclaredType declaredType) {
+    AbstractDeclaredTypeAlias(T declaredType) {
         super(declaredType);
         this.element = AliasElements.get(declaredType.asElement());
         this.enclosingType = AliasTypes.get(declaredType.getEnclosingType());
@@ -53,11 +54,10 @@ abstract class AbstractDeclaredTypeAlias extends AbstractTypeMirrorAlias impleme
         if (!super.equals(o)) return false;
         AbstractDeclaredTypeAlias that = (AbstractDeclaredTypeAlias) o;
         return Objects.equal(element, that.element) &&
-                Objects.equal(enclosingType, that.enclosingType) &&
                 Objects.equal(typeArguments, that.typeArguments);
     }
 
     @Override public int hashCode() {
-        return Objects.hashCode(super.hashCode(), element, enclosingType, typeArguments);
+        return Objects.hashCode(super.hashCode(), element, typeArguments);
     }
 }

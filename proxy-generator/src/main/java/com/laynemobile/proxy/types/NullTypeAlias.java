@@ -18,4 +18,4 @@ package com.laynemobile.proxy.types;
 
 import javax.lang.model.type.NullType;
 
-public interface NullTypeAlias extends TypeMirrorAlias, NullType {}
+public interface NullTypeAlias extends TypedTypeMirrorAlias<NullType>, NullType {}

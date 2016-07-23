@@ -24,7 +24,7 @@ import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.TypeElement;
 
 /** {@inheritDoc} */
-public interface TypeElementAlias extends ElementAlias, TypeElement {
+public interface TypeElementAlias extends TypedElementAlias<TypeElement>, TypeElement {
     /** {@inheritDoc} */
     @Override List<? extends TypeMirrorAlias> getInterfaces();
 

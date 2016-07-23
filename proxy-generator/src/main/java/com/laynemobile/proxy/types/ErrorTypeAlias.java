@@ -18,4 +18,4 @@ package com.laynemobile.proxy.types;
 
 import javax.lang.model.type.ErrorType;
 
-public interface ErrorTypeAlias extends DeclaredTypeAlias, ErrorType {}
+public interface ErrorTypeAlias extends BaseDeclaredTypeAlias<ErrorType>, ErrorType {}

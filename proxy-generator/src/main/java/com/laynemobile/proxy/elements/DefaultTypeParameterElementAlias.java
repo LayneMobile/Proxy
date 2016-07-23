@@ -24,7 +24,7 @@ import com.laynemobile.proxy.types.TypeMirrorAlias;
 import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.TypeParameterElement;
 
-final class DefaultTypeParameterElementAlias extends AbstractElementAlias implements TypeParameterElementAlias {
+final class DefaultTypeParameterElementAlias extends AbstractElementAlias<TypeParameterElement> implements TypeParameterElementAlias {
     private final ElementAlias genericElement;
     private final ImmutableList<? extends TypeMirrorAlias> bounds;
 
@@ -50,7 +50,7 @@ final class DefaultTypeParameterElementAlias extends AbstractElementAlias implem
     }
 
     @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {
-        return v.visitTypeParameter(this, p);
+        return v.visitTypeParameter(actual(), p);
     }
 
     @Override public boolean equals(Object o) {

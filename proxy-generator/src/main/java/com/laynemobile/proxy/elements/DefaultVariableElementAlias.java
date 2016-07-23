@@ -21,7 +21,7 @@ import com.google.common.base.Objects;
 import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.VariableElement;
 
-final class DefaultVariableElementAlias extends AbstractElementAlias implements VariableElementAlias {
+final class DefaultVariableElementAlias extends AbstractElementAlias<VariableElement> implements VariableElementAlias {
     private final Object constantValue;
 
     private DefaultVariableElementAlias(VariableElement element) {
@@ -41,7 +41,7 @@ final class DefaultVariableElementAlias extends AbstractElementAlias implements 
     }
 
     @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {
-        return v.visitVariable(this, p);
+        return v.visitVariable(actual(), p);
     }
 
     @Override public boolean equals(Object o) {

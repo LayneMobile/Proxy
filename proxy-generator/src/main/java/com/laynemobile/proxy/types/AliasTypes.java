@@ -95,8 +95,13 @@ public final class AliasTypes {
         }
 
         @Override protected TypeMirrorAlias create(TypeMirror typeMirror) {
+            log("visiting %s - %s", typeMirror.getKind(), typeMirror.getClass());
             return typeMirror.accept(new Visitor7(), null);
         }
+
+//        @Override protected void log(String format, Object... args) {
+//            // do nothing
+//        }
     }
 
     private static final class Visitor7 extends SimpleTypeVisitor7<TypeMirrorAlias, Void> {
@@ -155,22 +160,34 @@ public final class AliasTypes {
     }
 
     private static final class ForwardingAlias
-            implements TypeMirrorAlias,
-            DeclaredTypeAlias,
-            PrimitiveTypeAlias,
-            TypeVariableAlias,
-            WildcardTypeAlias,
-            UnionTypeAlias,
-            ExecutableTypeAlias,
-            AbstractCache.FutureValue<TypeMirrorAlias> {
-        private TypeMirrorAlias delegate;
+            implements TypedTypeMirrorAlias<TypeMirror>,
+            ArrayType,
+            ErrorType,
+            NoType,
+            NullType,
+            DeclaredType,
+            PrimitiveType,
+            TypeVariable,
+            WildcardType,
+            UnionType,
+            ExecutableType,
+            AbstractCache.FutureValue<TypedTypeMirrorAlias<?>> {
+        private TypedTypeMirrorAlias<?> delegate;
 
         private ForwardingAlias() {}
 
-        @Override public void setDelegate(TypeMirrorAlias delegate) {
-            if (this.delegate != null) {
+        @Override public void setDelegate(TypedTypeMirrorAlias<?> delegate) {
+            if (this.delegate == null) {
                 this.delegate = delegate;
             }
+        }
+
+        @Override public TypeMirror actual() {
+            return ensure().actual();
+        }
+
+        @Override public String toDebugString() {
+            return ensure().toDebugString();
         }
 
         // Basic typemirror
@@ -181,6 +198,12 @@ public final class AliasTypes {
 
         @Override public TypeKind getKind() {
             return ensure().getKind();
+        }
+
+        // Array type
+
+        @Override public TypeMirror getComponentType() {
+            return arrayType().getComponentType();
         }
 
         // declared type
@@ -260,8 +283,8 @@ public final class AliasTypes {
             return delegate.toString();
         }
 
-        private TypeMirrorAlias ensure() {
-            TypeMirrorAlias d = delegate;
+        private TypedTypeMirrorAlias<?> ensure() {
+            TypedTypeMirrorAlias<?> d = delegate;
             if (d == null) {
                 throw new NullPointerException("delegate is null");
             }
@@ -275,6 +298,10 @@ public final class AliasTypes {
             } catch (ClassCastException e) {
                 throw new UnsupportedOperationException(message, e);
             }
+        }
+
+        private ArrayTypeAlias arrayType() {
+            return cast("not an ArrayTypeAlias");
         }
 
         private DeclaredTypeAlias declaredType() {

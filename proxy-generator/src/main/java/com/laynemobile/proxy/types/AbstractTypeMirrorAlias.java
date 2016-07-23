@@ -22,21 +22,31 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVisitor;
 
-abstract class AbstractTypeMirrorAlias implements TypeMirrorAlias {
+abstract class AbstractTypeMirrorAlias<T extends TypeMirror> implements TypedTypeMirrorAlias<T> {
+    private final T typeMirror;
     private final TypeKind kind;
     private final String toString;
 
-    AbstractTypeMirrorAlias(TypeMirror typeMirror) {
+    AbstractTypeMirrorAlias(T typeMirror) {
+        this.typeMirror = typeMirror;
         this.kind = typeMirror.getKind();
         this.toString = typeMirror.toString();
     }
 
-    static AbstractTypeMirrorAlias unknown(TypeMirror typeMirror) {
-        return new AbstractTypeMirrorAlias(typeMirror) {
+    static TypeMirrorAlias unknown(TypeMirror typeMirror) {
+        return new AbstractTypeMirrorAlias<TypeMirror>(typeMirror) {
             @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
                 return v.visitUnknown(this, p);
             }
         };
+    }
+
+    @Override public T actual() {
+        return typeMirror;
+    }
+
+    @Override public String toDebugString() {
+        return toString();
     }
 
     @Override public final TypeKind getKind() {

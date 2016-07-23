@@ -23,7 +23,7 @@ import java.util.List;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeParameterElement;
 
-public interface ExecutableElementAlias extends ElementAlias, ExecutableElement {
+public interface ExecutableElementAlias extends TypedElementAlias<ExecutableElement>, ExecutableElement {
     /** {@inheritDoc} */
     @Override AnnotationValueAlias getDefaultValue();
 

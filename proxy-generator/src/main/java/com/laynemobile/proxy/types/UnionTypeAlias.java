@@ -20,7 +20,7 @@ import java.util.List;
 
 import javax.lang.model.type.UnionType;
 
-public interface UnionTypeAlias extends TypeMirrorAlias, UnionType {
+public interface UnionTypeAlias extends TypedTypeMirrorAlias<UnionType>, UnionType {
     /** {@inheritDoc} */
     @Override List<? extends TypeMirrorAlias> getAlternatives();
 }

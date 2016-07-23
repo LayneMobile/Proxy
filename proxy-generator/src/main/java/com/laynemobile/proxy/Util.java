@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,6 +68,23 @@ import static com.laynemobile.proxy.Constants.SourceBuilder;
 
 public final class Util {
     private static final String TAG = Util.class.getSimpleName();
+
+    public static RuntimeException runtime(TypeMirror typeMirror, Throwable e) {
+        return runtime(e, "error for typeMirror: %s", typeMirror);
+    }
+
+    public static RuntimeException runtime(Element element, Throwable e) {
+        return runtime(e, "error for element: %s", element);
+    }
+
+    public static RuntimeException runtime(Object o, Throwable e) {
+        return runtime(e, "error for object: %s", o);
+    }
+
+    public static RuntimeException runtime(Throwable e, String format, Object... args) {
+        String msg = String.format(Locale.US, format, args);
+        return new RuntimeException(msg, e);
+    }
 
     public static <R, T> ImmutableList<R> buildList(List<? extends T> in, Transformer<R, T> transformer) {
         ImmutableList.Builder<R> out = ImmutableList.builder();

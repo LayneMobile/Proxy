@@ -23,5 +23,5 @@ import javax.lang.model.element.TypeElement;
 
 public abstract class TypeElementCache<K extends TypeElement, V extends Alias<?>>
         extends AliasCache<K, V, Element> {
-    
+
 }

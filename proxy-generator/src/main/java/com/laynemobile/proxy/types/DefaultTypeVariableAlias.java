@@ -23,7 +23,7 @@ import com.laynemobile.proxy.elements.ElementAlias;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.TypeVisitor;
 
-final class DefaultTypeVariableAlias extends AbstractTypeMirrorAlias implements TypeVariableAlias {
+final class DefaultTypeVariableAlias extends AbstractTypeMirrorAlias<TypeVariable> implements TypeVariableAlias {
     private final ElementAlias element;
     private final TypeMirrorAlias lowerBound;
     private final TypeMirrorAlias upperBound;
@@ -55,7 +55,7 @@ final class DefaultTypeVariableAlias extends AbstractTypeMirrorAlias implements 
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-        return v.visitTypeVariable(this, p);
+        return v.visitTypeVariable(actual(), p);
     }
 
     @Override public boolean equals(Object o) {

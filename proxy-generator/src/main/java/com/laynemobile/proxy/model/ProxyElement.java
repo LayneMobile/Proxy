@@ -25,7 +25,6 @@ import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.cache.AliasCache;
 import com.laynemobile.proxy.elements.AliasElements;
 import com.laynemobile.proxy.elements.AnnotationMirrorAlias;
-import com.laynemobile.proxy.elements.ElementAlias;
 import com.laynemobile.proxy.elements.TypeElementAlias;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.types.DeclaredTypeAlias;
@@ -186,6 +185,7 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         private Cache() {}
 
         @Override protected TypeElementAlias cast(Element element, Env env) throws Exception {
+            log(env, "casting element: %s", element);
             // Only interfaces allowed
             if (element.getKind() != ElementKind.INTERFACE) {
                 return null;
@@ -253,14 +253,19 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         }
 
         private ProxyElement dependency(TypeElementAlias source, TypeMirrorAlias typeAlias, Env env) {
-            return dependency(source, (TypeElement) env.types().asElement(typeAlias), env);
+            return dependency(source, env.types().asElement(typeAlias.actual()), env);
         }
 
-        private ProxyElement dependency(TypeElementAlias source, TypeElement typeElement, Env env) {
-            TypeElementAlias typeAlias = AliasElements.get(typeElement);
+        private ProxyElement dependency(TypeElementAlias source, Element element, Env env) {
+            if (element instanceof TypeElement) {
+                return dependency(source, AliasElements.get((TypeElement) element), env);
+            }
+            return null;
+        }
+
+        private ProxyElement dependency(TypeElementAlias source, TypeElementAlias typeAlias, Env env) {
             if (typeAlias != null && !source.equals(typeAlias)) {
-                ElementAlias elementAlias = ((DeclaredTypeAlias) typeAlias).asElement();
-                return parse(elementAlias, env);
+                return parse(typeAlias.actual(), env);
             }
             return null;
         }

@@ -18,6 +18,6 @@ package com.laynemobile.proxy.elements;
 
 import javax.lang.model.element.PackageElement;
 
-public interface PackageElementAlias extends ElementAlias, PackageElement {
+public interface PackageElementAlias extends TypedElementAlias<PackageElement>, PackageElement {
     @Override NameAlias getQualifiedName();
 }

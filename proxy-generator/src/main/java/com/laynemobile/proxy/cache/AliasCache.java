@@ -16,12 +16,13 @@
 
 package com.laynemobile.proxy.cache;
 
-import com.laynemobile.proxy.internal.ProxyLog;
 import com.laynemobile.proxy.model.Alias;
 
 import java.util.Map;
 
 import sourcerer.processor.Env;
+
+import static com.laynemobile.proxy.Util.runtime;
 
 public abstract class AliasCache<K extends SK, V extends Alias<?>, SK>
         extends EnvCache<K, V> {
@@ -40,7 +41,7 @@ public abstract class AliasCache<K extends SK, V extends Alias<?>, SK>
                 return getOrCreate(k, env);
             }
         } catch (Exception e) {
-            env.log("error %s", ProxyLog.getStackTraceString(e));
+            throw runtime(e, "error parsing for key: %s, keytype: %s", superType, superType.getClass());
         }
         return null;
     }

@@ -16,6 +16,7 @@
 
 package com.laynemobile.proxy.elements;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -30,7 +31,8 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.Modifier;
 
-abstract class AbstractElementAlias implements ElementAlias {
+abstract class AbstractElementAlias<E extends Element> implements TypedElementAlias<E> {
+    private final E element;
     private final ElementKind kind;
     private final NameAlias simpleName;
     private final TypeMirrorAlias type;
@@ -40,7 +42,7 @@ abstract class AbstractElementAlias implements ElementAlias {
     private final ImmutableSet<Modifier> modifiers;
     private final String toString;
 
-    AbstractElementAlias(Element element) {
+    AbstractElementAlias(E element) {
         this.kind = element.getKind();
         this.simpleName = DefaultNameAlias.of(element.getSimpleName());
         this.type = AliasTypes.get(element.asType());
@@ -49,14 +51,24 @@ abstract class AbstractElementAlias implements ElementAlias {
         this.enclosedElements = AliasElements.elements(element.getEnclosedElements());
         this.modifiers = ImmutableSet.copyOf(element.getModifiers());
         this.toString = element.toString();
+        this.element = element;
     }
 
     static ElementAlias unknown(Element element) {
-        return new AbstractElementAlias(element) {
+        final class UnknownElementAlias extends AbstractElementAlias<Element> {
+            private UnknownElementAlias(Element element) {
+                super(element);
+            }
+
             @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {
                 return v.visitUnknown(this, p);
             }
-        };
+        }
+        return new UnknownElementAlias(element);
+    }
+
+    @Override public final E actual() {
+        return element;
     }
 
     @Override public TypeMirrorAlias asType() {
@@ -89,7 +101,7 @@ abstract class AbstractElementAlias implements ElementAlias {
 
     @Override public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
         // TODO:!!!
-        return null;
+        return element.getAnnotation(annotationType);
     }
 
     @Override public boolean equals(Object o) {
@@ -98,19 +110,30 @@ abstract class AbstractElementAlias implements ElementAlias {
         AbstractElementAlias that = (AbstractElementAlias) o;
         return kind == that.kind &&
                 Objects.equal(simpleName, that.simpleName) &&
-                Objects.equal(type, that.type) &&
-                Objects.equal(enclosingElement, that.enclosingElement) &&
                 Objects.equal(annotationMirrors, that.annotationMirrors) &&
                 Objects.equal(enclosedElements, that.enclosedElements) &&
                 Objects.equal(modifiers, that.modifiers);
     }
 
     @Override public int hashCode() {
-        return Objects.hashCode(kind, simpleName, type, enclosingElement, annotationMirrors, enclosedElements,
-                modifiers);
+        return Objects.hashCode(kind, simpleName, annotationMirrors, enclosedElements, modifiers);
     }
 
     @Override public final String toString() {
         return toString;
+    }
+
+    @Override public String toDebugString() {
+        return MoreObjects.toStringHelper(this)
+                .add("annotationMirrors", annotationMirrors)
+                .add("element", element)
+                .add("kind", kind)
+                .add("simpleName", simpleName)
+                .add("type", type)
+                .add("enclosingElement", enclosingElement)
+                .add("enclosedElements", enclosedElements)
+                .add("modifiers", modifiers)
+                .add("toString", toString)
+                .toString();
     }
 }

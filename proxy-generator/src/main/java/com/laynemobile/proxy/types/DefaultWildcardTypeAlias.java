@@ -21,7 +21,7 @@ import com.google.common.base.Objects;
 import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.type.WildcardType;
 
-final class DefaultWildcardTypeAlias extends AbstractTypeMirrorAlias implements WildcardTypeAlias {
+final class DefaultWildcardTypeAlias extends AbstractTypeMirrorAlias<WildcardType> implements WildcardTypeAlias {
     private final TypeMirrorAlias superBound;
     private final TypeMirrorAlias extendsBound;
 
@@ -47,7 +47,7 @@ final class DefaultWildcardTypeAlias extends AbstractTypeMirrorAlias implements 
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-        return v.visitWildcard(this, p);
+        return v.visitWildcard(actual(), p);
     }
 
     @Override public boolean equals(Object o) {

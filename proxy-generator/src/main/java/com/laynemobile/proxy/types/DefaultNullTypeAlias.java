@@ -19,7 +19,7 @@ package com.laynemobile.proxy.types;
 import javax.lang.model.type.NullType;
 import javax.lang.model.type.TypeVisitor;
 
-final class DefaultNullTypeAlias extends AbstractTypeMirrorAlias implements NullTypeAlias {
+final class DefaultNullTypeAlias extends AbstractTypeMirrorAlias<NullType> implements NullTypeAlias {
     private DefaultNullTypeAlias(NullType typeMirror) {
         super(typeMirror);
     }
@@ -32,7 +32,7 @@ final class DefaultNullTypeAlias extends AbstractTypeMirrorAlias implements Null
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-        return v.visitNull(this, p);
+        return v.visitNull(actual(), p);
     }
 
     @Override public boolean equals(Object o) {

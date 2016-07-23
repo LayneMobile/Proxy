@@ -21,7 +21,7 @@ import com.google.common.base.Objects;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeVisitor;
 
-final class DefaultArrayTypeAlias extends AbstractTypeMirrorAlias implements ArrayTypeAlias {
+final class DefaultArrayTypeAlias extends AbstractTypeMirrorAlias<ArrayType> implements ArrayTypeAlias {
     private final TypeMirrorAlias componentType;
 
     private DefaultArrayTypeAlias(ArrayType typeMirror) {
@@ -37,7 +37,7 @@ final class DefaultArrayTypeAlias extends AbstractTypeMirrorAlias implements Arr
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-        return v.visitArray(this, p);
+        return v.visitArray(actual(), p);
     }
 
     @Override public TypeMirrorAlias getComponentType() {

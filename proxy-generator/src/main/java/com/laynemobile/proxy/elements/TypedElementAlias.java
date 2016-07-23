@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.types;
+package com.laynemobile.proxy.elements;
 
-import javax.lang.model.type.ArrayType;
+import com.laynemobile.proxy.model.Alias;
 
-public interface ArrayTypeAlias extends TypedTypeMirrorAlias<ArrayType>, ArrayType {
-    @Override TypeMirrorAlias getComponentType();
+import javax.lang.model.element.Element;
+
+public interface TypedElementAlias<E extends Element> extends ElementAlias, Alias<E> {
+    E actual();
 }

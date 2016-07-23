@@ -18,4 +18,4 @@ package com.laynemobile.proxy.types;
 
 import javax.lang.model.type.NoType;
 
-public interface NoTypeAlias extends TypeMirrorAlias, NoType {}
+public interface NoTypeAlias extends TypedTypeMirrorAlias<NoType>, NoType {}

@@ -19,7 +19,7 @@ package com.laynemobile.proxy.types;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeVisitor;
 
-final class DefaultPrimitiveTypeAlias extends AbstractTypeMirrorAlias implements PrimitiveTypeAlias {
+final class DefaultPrimitiveTypeAlias extends AbstractTypeMirrorAlias<PrimitiveType> implements PrimitiveTypeAlias {
     private DefaultPrimitiveTypeAlias(PrimitiveType type) {
         super(type);
     }
@@ -32,7 +32,7 @@ final class DefaultPrimitiveTypeAlias extends AbstractTypeMirrorAlias implements
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-        return v.visitPrimitive(this, p);
+        return v.visitPrimitive(actual(), p);
     }
 
     @Override public boolean equals(Object o) {

@@ -24,13 +24,13 @@ import com.laynemobile.proxy.annotations.GenerateProxyFunction;
 import com.laynemobile.proxy.cache.EnvCache;
 import com.laynemobile.proxy.cache.MultiAliasCache;
 import com.laynemobile.proxy.elements.AliasElements;
-import com.laynemobile.proxy.elements.EnvElements;
 import com.laynemobile.proxy.elements.ExecutableElementAlias;
 import com.laynemobile.proxy.elements.TypeElementAlias;
 import com.laynemobile.proxy.elements.TypeParameterElementAlias;
 import com.laynemobile.proxy.types.AliasTypes;
 import com.laynemobile.proxy.types.DeclaredTypeAlias;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
+import com.laynemobile.proxy.types.TypeVariableAlias;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
@@ -47,11 +47,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import sourcerer.processor.Env;
@@ -67,7 +69,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
     private final DeclaredTypeAlias functionType;
     private final TypeElementAlias abstractProxyFunctionElement;
     private final DeclaredTypeAlias abstractProxyFunctionType;
-    private final ImmutableList<TypeMirrorAlias> boxedParamTypes;
+    private final ImmutableList<TypeMirror> boxedParamTypes;
     private final AtomicReference<FunctionParentOutputStub> output = new AtomicReference<>();
 
     private ProxyFunctionElement(MethodElement source, ProxyFunctionElement overrides, Env env) {
@@ -107,34 +109,36 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
 
         env.log("params length: %d", length);
         env.log("params: %s", params);
-        ImmutableList.Builder<TypeMirrorAlias> boxedParamTypes = ImmutableList.builder();
+        ImmutableList.Builder<TypeMirror> boxedParamTypes = ImmutableList.builder();
         for (int i = 0; i < length; i++) {
-            TypeMirrorAlias boxedType = boxedType(params.get(i), env);
+            TypeMirror boxedType = boxedType(params.get(i), env);
             paramTypes[i] = boxedType;
             boxedParamTypes.add(boxedType);
         }
         env.log("paramTypes: %s", Arrays.toString(paramTypes));
 
-        EnvElements elementUtils = EnvElements.with(env);
+        Elements elementUtils = env.elements();
         Types typeUtils = env.types();
         String packageName = "com.laynemobile.proxy.functions.";
-        TypeElementAlias functionElement = elementUtils.getTypeElement(packageName + functionClass + num);
+        TypeElementAlias functionElement = AliasElements.get(
+                elementUtils.getTypeElement(packageName + functionClass + num));
         env.log("function element: %s", functionElement);
-        DeclaredTypeAlias functionType = AliasTypes.get(typeUtils.getDeclaredType(functionElement, paramTypes));
+        DeclaredTypeAlias functionType = AliasTypes.get(
+                typeUtils.getDeclaredType(functionElement.actual(), paramTypes));
         env.log("function type: %s", functionType);
 
-        TypeElementAlias abstractProxyFunctionElement
+        TypeElement abstractProxyFunctionElement
                 = elementUtils.getTypeElement(packageName + "AbstractProxyFunction");
         DeclaredTypeAlias abstractProxyFunctionType
-                = AliasTypes.get(typeUtils.getDeclaredType(abstractProxyFunctionElement, functionType));
+                = AliasTypes.get(typeUtils.getDeclaredType(abstractProxyFunctionElement, functionType.actual()));
         env.log("AbstractProxyFunction type: %s", abstractProxyFunctionType);
         env.log("AbstractProxyFunction type typeArguments: %s", abstractProxyFunctionType.getTypeArguments());
 
         this.name = name;
         this.overrides = overrides;
-        this.functionElement = functionElement;
+        this.functionElement = AliasElements.get(functionElement);
         this.functionType = functionType;
-        this.abstractProxyFunctionElement = abstractProxyFunctionElement;
+        this.abstractProxyFunctionElement = AliasElements.get(abstractProxyFunctionElement);
         this.abstractProxyFunctionType = abstractProxyFunctionType;
         this.boxedParamTypes = boxedParamTypes.build();
     }
@@ -148,13 +152,13 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         return builder.build();
     }
 
-    private static TypeMirrorAlias boxedType(TypeMirrorAlias typeMirror, Env env) {
+    private static TypeMirror boxedType(TypeMirrorAlias typeMirror, Env env) {
         Types typeUtils = env.types();
         if (typeMirror.getKind().isPrimitive()) {
-            return AliasElements.get(typeUtils.boxedClass((PrimitiveType) typeMirror))
+            return typeUtils.boxedClass((PrimitiveType) typeMirror.actual())
                     .asType();
         }
-        return typeMirror;
+        return typeMirror.actual();
     }
 
     public MethodElement alias() {
@@ -232,7 +236,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
 
     private static final class Creator implements MultiAliasCache.ValueCreator<TypeElementAlias, MethodElement, ProxyFunctionElement> {
         @Override public ProxyFunctionElement create(TypeElementAlias typeElement, MethodElement element, Env env) {
-            ProxyFunctionElement overrides = overrides((DeclaredTypeAlias) typeElement.getSuperclass(), element, env);
+            ProxyFunctionElement overrides = overrides(typeElement.getSuperclass(), element, env);
             if (overrides == null) {
                 for (TypeMirrorAlias typeAlias : typeElement.getInterfaces()) {
                     if ((overrides = overrides((DeclaredTypeAlias) typeAlias, element, env)) != null) {
@@ -243,6 +247,13 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
             ProxyFunctionElement proxyFunctionElement = new ProxyFunctionElement(element, overrides, env);
             env.log("created proxy function element: %s\n\n", proxyFunctionElement.toDebugString());
             return proxyFunctionElement;
+        }
+
+        private ProxyFunctionElement overrides(TypeMirrorAlias typeAlias, MethodElement element, Env env) {
+            if (typeAlias instanceof DeclaredTypeAlias) {
+                return overrides((DeclaredTypeAlias) typeAlias, element, env);
+            }
+            return null;
         }
 
         private ProxyFunctionElement overrides(DeclaredTypeAlias typeAlias, MethodElement element, Env env) {
@@ -315,19 +326,20 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
 //                        .build())
             ;
 
-            List<TypeVariable> typeVariables = Util.buildList(parent.element().getTypeParameters(),
-                    new Util.Transformer<TypeVariable, TypeParameterElementAlias>() {
-                        @Override public TypeVariable transform(TypeParameterElementAlias typeParameterElementAlias) {
+            List<TypeVariableAlias> typeVariables = Util.buildList(parent.element().getTypeParameters(),
+                    new Util.Transformer<TypeVariableAlias, TypeParameterElementAlias>() {
+                        @Override
+                        public TypeVariableAlias transform(TypeParameterElementAlias typeParameterElementAlias) {
                             TypeMirrorAlias type = typeParameterElementAlias.asType();
                             if (type.getKind() == TypeKind.TYPEVAR) {
-                                return AliasTypes.get((TypeVariable) type);
+                                return AliasTypes.get((TypeVariable) type.actual());
                             }
                             return null;
                         }
                     });
 
-            for (TypeVariable typeVariable : typeVariables) {
-                classBuilder.addTypeVariable(TypeVariableName.get(typeVariable));
+            for (TypeVariableAlias typeVariable : typeVariables) {
+                classBuilder.addTypeVariable(TypeVariableName.get(typeVariable.actual()));
             }
 
             String name = function.name;

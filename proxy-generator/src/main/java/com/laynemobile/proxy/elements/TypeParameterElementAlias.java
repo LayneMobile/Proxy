@@ -23,7 +23,7 @@ import java.util.List;
 import javax.lang.model.element.TypeParameterElement;
 
 /** {@inheritDoc} */
-public interface TypeParameterElementAlias extends ElementAlias, TypeParameterElement {
+public interface TypeParameterElementAlias extends TypedElementAlias<TypeParameterElement>, TypeParameterElement {
     /** {@inheritDoc} */
     @Override ElementAlias getGenericElement();
 

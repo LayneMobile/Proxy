@@ -19,7 +19,7 @@ package com.laynemobile.proxy.types;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeVisitor;
 
-final class DefaultNoTypeAlias extends AbstractTypeMirrorAlias implements NoTypeAlias {
+final class DefaultNoTypeAlias extends AbstractTypeMirrorAlias<NoType> implements NoTypeAlias {
     private DefaultNoTypeAlias(NoType typeMirror) {
         super(typeMirror);
     }
@@ -32,7 +32,7 @@ final class DefaultNoTypeAlias extends AbstractTypeMirrorAlias implements NoType
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-        return v.visitNoType(this, p);
+        return v.visitNoType(actual(), p);
     }
 
     @Override public boolean equals(Object o) {

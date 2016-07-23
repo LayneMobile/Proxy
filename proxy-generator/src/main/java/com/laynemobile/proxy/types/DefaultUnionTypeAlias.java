@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableList;
 import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.type.UnionType;
 
-final class DefaultUnionTypeAlias extends AbstractTypeMirrorAlias implements UnionTypeAlias {
+final class DefaultUnionTypeAlias extends AbstractTypeMirrorAlias<UnionType> implements UnionTypeAlias {
     private final ImmutableList<? extends TypeMirrorAlias> alternatives;
 
     private DefaultUnionTypeAlias(UnionType typeMirror) {
@@ -38,7 +38,7 @@ final class DefaultUnionTypeAlias extends AbstractTypeMirrorAlias implements Uni
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-        return v.visitUnion(this, p);
+        return v.visitUnion(actual(), p);
     }
 
     @Override public ImmutableList<? extends TypeMirrorAlias> getAlternatives() {

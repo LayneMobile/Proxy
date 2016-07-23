@@ -20,7 +20,7 @@ import java.util.List;
 
 import javax.lang.model.type.ExecutableType;
 
-public interface ExecutableTypeAlias extends TypeMirrorAlias, ExecutableType {
+public interface ExecutableTypeAlias extends TypedTypeMirrorAlias<ExecutableType>, ExecutableType {
     @Override List<? extends TypeMirrorAlias> getParameterTypes();
 
     @Override TypeMirrorAlias getReturnType();

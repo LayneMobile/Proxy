@@ -77,7 +77,8 @@ public final class MethodElement extends AbstractValueAlias<ExecutableElementAli
     }
 
     public boolean overrides(MethodElement overridden, Env env) {
-        return env.elements().overrides(element(), overridden.element(), typeElement());
+        return env.elements()
+                .overrides(element().actual(), overridden.element().actual(), typeElement().actual());
     }
 
     public final TypeElementAlias typeElement() {

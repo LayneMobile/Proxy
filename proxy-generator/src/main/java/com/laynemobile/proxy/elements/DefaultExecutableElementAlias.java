@@ -25,7 +25,7 @@ import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeParameterElement;
 
-final class DefaultExecutableElementAlias extends AbstractElementAlias implements ExecutableElementAlias {
+final class DefaultExecutableElementAlias extends AbstractElementAlias<ExecutableElement> implements ExecutableElementAlias {
     private final AnnotationValueAlias defaultValue;
     private final ImmutableList<? extends TypeParameterElementAlias> typeParameters;
     private final TypeMirrorAlias returnType;
@@ -75,7 +75,7 @@ final class DefaultExecutableElementAlias extends AbstractElementAlias implement
     }
 
     @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {
-        return v.visitExecutable(this, p);
+        return v.visitExecutable(actual(), p);
     }
 
     @Override public boolean equals(Object o) {

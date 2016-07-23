@@ -16,8 +16,10 @@
 
 package com.laynemobile.proxy.types;
 
-import javax.lang.model.type.ArrayType;
+import com.laynemobile.proxy.model.Alias;
 
-public interface ArrayTypeAlias extends TypedTypeMirrorAlias<ArrayType>, ArrayType {
-    @Override TypeMirrorAlias getComponentType();
+import javax.lang.model.type.TypeMirror;
+
+public interface TypedTypeMirrorAlias<T extends TypeMirror> extends TypeMirrorAlias, Alias<T> {
+    @Override T actual();
 }

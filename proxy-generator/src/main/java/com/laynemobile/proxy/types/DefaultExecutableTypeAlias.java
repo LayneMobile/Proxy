@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeVisitor;
 
-final class DefaultExecutableTypeAlias extends AbstractTypeMirrorAlias implements ExecutableTypeAlias {
+final class DefaultExecutableTypeAlias extends AbstractTypeMirrorAlias<ExecutableType> implements ExecutableTypeAlias {
     private final ImmutableList<? extends TypeMirrorAlias> parameterTypes;
     private final TypeMirrorAlias returnType;
     private final ImmutableList<? extends TypeMirrorAlias> thrownTypes;
@@ -59,6 +59,6 @@ final class DefaultExecutableTypeAlias extends AbstractTypeMirrorAlias implement
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-        return v.visitExecutable(this, p);
+        return v.visitExecutable(actual(), p);
     }
 }

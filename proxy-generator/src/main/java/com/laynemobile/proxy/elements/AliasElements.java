@@ -122,8 +122,13 @@ public final class AliasElements {
         }
 
         @Override protected ElementAlias create(Element element) {
+            log("visiting %s - %s", element.getKind(), element.getSimpleName());
             return element.accept(new Visitor7(), null);
         }
+
+//        @Override protected void log(String format, Object... args) {
+//            // do nothing
+//        }
     }
 
     private static final class Visitor7 extends SimpleElementVisitor7<ElementAlias, Void> {
@@ -163,20 +168,29 @@ public final class AliasElements {
 
     private static final class ForwardingAlias
             implements ElementAlias,
-            TypeElementAlias,
-            TypeParameterElementAlias,
-            ExecutableElementAlias,
-            VariableElementAlias,
-            PackageElementAlias,
-            AbstractCache.FutureValue<ElementAlias> {
-        private ElementAlias delegate;
+            TypedElementAlias<Element>,
+            TypeElement,
+            TypeParameterElement,
+            ExecutableElement,
+            VariableElement,
+            PackageElement,
+            AbstractCache.FutureValue<TypedElementAlias<?>> {
+        private TypedElementAlias<?> delegate;
 
         private ForwardingAlias() {}
 
-        @Override public void setDelegate(ElementAlias delegate) {
-            if (this.delegate != null) {
+        @Override public void setDelegate(TypedElementAlias<?> delegate) {
+            if (this.delegate == null) {
                 this.delegate = delegate;
             }
+        }
+
+        @Override public Element actual() {
+            return ensure().actual();
+        }
+
+        @Override public String toDebugString() {
+            return ensure().toDebugString();
         }
 
         // basic element
@@ -302,8 +316,8 @@ public final class AliasElements {
             return delegate.toString();
         }
 
-        private ElementAlias ensure() {
-            ElementAlias d = delegate;
+        private TypedElementAlias<?> ensure() {
+            TypedElementAlias<?> d = delegate;
             if (d == null) {
                 throw new NullPointerException("delegate is null");
             }

@@ -36,11 +36,15 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
+import javax.tools.Diagnostic;
 
 import sourcerer.processor.Env;
 
@@ -52,6 +56,26 @@ public class ProxyRound extends Env {
     private final ImmutableMap<ProxyElement, ImmutableList<GeneratedTypeElement>> inputs;
     private final ImmutableMap<ProxyElement, ImmutableList<GeneratedTypeElementStub>> outputStubs;
     private final ImmutableMap<TypeMirror, TypeElementAlias> temp;
+
+    private final Messager messager = new Messager() {
+        @Override public void printMessage(Diagnostic.Kind kind, CharSequence msg) {
+            System.out.printf("%s: %s\n", kind, msg);
+        }
+
+        @Override public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e) {
+            System.out.printf("%s: e='%s' - %s\n", kind, e, msg);
+        }
+
+        @Override public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e, AnnotationMirror a) {
+            System.out.printf("%s: e='%s', a='%s' - %s\n", kind, e, a, msg);
+        }
+
+        @Override
+        public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e, AnnotationMirror a,
+                AnnotationValue v) {
+            System.out.printf("%s: e='%s', a='%s', v='%s' - %s\n", kind, e, a, v, msg);
+        }
+    };
 
     private ProxyRound(Env env) {
         super(env);
@@ -85,6 +109,10 @@ public class ProxyRound extends Env {
                 .build();
         this.outputStubs = outputStubs;
         this.temp = ImmutableMap.copyOf(temp);
+    }
+
+    @Override public Messager messager() {
+        return messager;
     }
 
     public static ProxyRound begin(Env env) {
