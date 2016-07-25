@@ -32,6 +32,7 @@ import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -87,6 +88,9 @@ public final class Util {
     }
 
     public static <R, T> ImmutableList<R> buildList(List<? extends T> in, Transformer<R, T> transformer) {
+        if (in == null || in.isEmpty()) {
+            return ImmutableList.of();
+        }
         ImmutableList.Builder<R> out = ImmutableList.builder();
         for (T t : in) {
             R r;
@@ -95,6 +99,10 @@ public final class Util {
             }
         }
         return out.build();
+    }
+
+    public static <R, T> ImmutableList<R> buildList(T[] in, Transformer<R, T> transformer) {
+        return buildList(in == null ? null : Arrays.asList(in), transformer);
     }
 
     public static <KR, VR, KT, VT> ImmutableMap<KR, VR> buildMap(Map<? extends KT, ? extends VT> in,
@@ -142,6 +150,14 @@ public final class Util {
         return qualifiedName(typeName(packageName, className));
     }
 
+    public static TypeElement parse(TypeMirror typeMirror, Types typeUtils) {
+        return (TypeElement) typeUtils.asElement(typeMirror);
+    }
+
+    public static TypeElement parse(Class<?> clazz, Elements elementUtils) {
+        return elementUtils.getTypeElement(clazz.getCanonicalName());
+    }
+
     public static TypeElement parse(Func0<Class<?>> classFunc, Env env) {
         final Types typeUtils = env.types();
         final Elements elementUtils = env.elements();
@@ -152,50 +168,35 @@ public final class Util {
         }
     }
 
-    public static TypeElementAlias parseAlias(Func0<Class<?>> classFunc, Env env) {
-        TypeElement typeElement = parse(classFunc, env);
-        if (typeElement != null) {
-            return AliasElements.get(typeElement);
+    public static ImmutableList<TypeElement> parseList(Func0<Class<?>[]> classesFunc, Env env) {
+        try {
+            final Elements elementUtils = env.elements();
+            return buildList(classesFunc.call(), new Transformer<TypeElement, Class<?>>() {
+                @Override public TypeElement transform(Class<?> clazz) {
+                    return parse(clazz, elementUtils);
+                }
+            });
+        } catch (MirroredTypesException e) {
+            final Types typeUtils = env.types();
+            return buildList(e.getTypeMirrors(), new Transformer<TypeElement, TypeMirror>() {
+                @Override public TypeElement transform(TypeMirror typeMirror) {
+                    return parse(typeMirror, typeUtils);
+                }
+            });
         }
-        return null;
     }
 
-    public static ImmutableList<TypeElement> parseList(Func0<Class<?>[]> classesFunc, Env env) {
-        final Types typeUtils = env.types();
-        final Elements elementUtils = env.elements();
-        ImmutableList.Builder<TypeElement> typeElements = ImmutableList.builder();
-        try {
-            for (Class<?> clazz : classesFunc.call()) {
-                typeElements.add(parse(clazz, elementUtils));
-            }
-        } catch (MirroredTypesException e) {
-            for (TypeMirror typeMirror : e.getTypeMirrors()) {
-                typeElements.add(parse(typeMirror, typeUtils));
-            }
-        }
-        return typeElements.build();
+    public static TypeElementAlias parseAlias(Func0<Class<?>> classFunc, Env env) {
+        TypeElement typeElement = parse(classFunc, env);
+        return typeElement == null ? null : AliasElements.get(typeElement);
     }
 
     public static ImmutableList<TypeElementAlias> parseAliasList(Func0<Class<?>[]> classesFunc, Env env) {
-        ImmutableList.Builder<TypeElementAlias> aliasList = ImmutableList.builder();
-        List<TypeElement> typeElements = parseList(classesFunc, env);
-        if (typeElements != null) {
-            for (TypeElement typeElement : typeElements) {
-                TypeElementAlias typeElementAlias = AliasElements.get(typeElement);
-                if (typeElementAlias != null) {
-                    aliasList.add(typeElementAlias);
-                }
+        return buildList(parseList(classesFunc, env), new Transformer<TypeElementAlias, TypeElement>() {
+            @Override public TypeElementAlias transform(TypeElement typeElement) {
+                return AliasElements.get(typeElement);
             }
-        }
-        return aliasList.build();
-    }
-
-    public static TypeElement parse(TypeMirror typeMirror, Types typeUtils) {
-        return (TypeElement) typeUtils.asElement(typeMirror);
-    }
-
-    public static TypeElement parse(Class<?> clazz, Elements elementUtils) {
-        return elementUtils.getTypeElement(clazz.getCanonicalName());
+        });
     }
 
     static void copyTypeParams(ExecutableElement method, MethodSpec.Builder spec) {

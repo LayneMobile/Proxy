@@ -59,61 +59,15 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
             return cached;
         }
 
+        final boolean requiresThreadLocalCleanup;
         Map<K, V> threadCalls = calls.get();
-        boolean requiresThreadLocalCleanup = false;
-        if (threadCalls == null) {
+        if (requiresThreadLocalCleanup = (threadCalls == null)) {
             threadCalls = new HashMap<>();
             calls.set(threadCalls);
-            requiresThreadLocalCleanup = true;
-        }
-
-        final V ongoingValue = threadCalls.get(key);
-        if (ongoingValue != null) {
-            log("returning future value for key: %s", key);
-            return ongoingValue;
-        } else if (threadCalls.containsKey(key)) {
-            throw new IllegalStateException(
-                    "stack overflow! must return <V extends FutureValue<V>> in createFutureValue() for key: " + key);
         }
 
         try {
-            final V _temp = createFutureValue();
-            if (_temp != null && !(_temp instanceof FutureValue)) {
-                throw new IllegalStateException("createFutureValue() must return instance of FutureValue<V>");
-            }
-            threadCalls.put(key, _temp);
-
-            log("creating value from key: %s", key);
-            // potential recursive call to get(key) inside create
-            final V created;
-            try {
-                created = create(key);
-            } catch (Exception e) {
-                throw runtime(e, "error creating for key: %s, keyType: %s", key, key.getClass());
-            }
-            log("created value: %s", created);
-
-            V _return;
-            String _log;
-            synchronized (cache) {
-                final V _cached;
-                if ((_cached = getIfPresent(key)) == null) {
-                    _log = "caching";
-                    cache.put(key, _return = created);
-                } else {
-                    _log = "returning cached";
-                    _return = _cached;
-                }
-            }
-
-            if (_temp != null) {
-                @SuppressWarnings("unchecked")
-                final FutureValue<V> futureValue = (FutureValue<V>) _temp;
-                futureValue.setDelegate(_return);
-            }
-
-            log("%s value: %s", _log, _return);
-            return _return;
+            return getInternal(key, threadCalls);
         } finally {
             threadCalls.remove(key);
 
@@ -140,6 +94,55 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
         System.out.printf("%s - ", getClass());
         System.out.printf(format, args);
         System.out.println();
+    }
+
+    private V getInternal(K key, Map<K, V> threadCalls) {
+        final V ongoingValue = threadCalls.get(key);
+        if (ongoingValue != null) {
+            log("returning future value for key: %s", key);
+            return ongoingValue;
+        } else if (threadCalls.containsKey(key)) {
+            throw new IllegalStateException(
+                    "stack overflow! must return <V extends FutureValue<V>> in createFutureValue() for key: " + key);
+        }
+
+        final V _temp = createFutureValue();
+        if (_temp != null && !(_temp instanceof FutureValue)) {
+            throw new IllegalStateException("createFutureValue() must return instance of FutureValue<V>");
+        }
+        threadCalls.put(key, _temp);
+
+        log("creating value from key: %s", key);
+        // potential recursive call to get(key) inside create
+        final V created;
+        try {
+            created = create(key);
+        } catch (Exception e) {
+            throw runtime(e, "error creating for key: %s, keyType: %s", key, key.getClass());
+        }
+        log("created value: %s", created);
+
+        V _return;
+        String _log;
+        synchronized (cache) {
+            final V _cached;
+            if ((_cached = getIfPresent(key)) == null) {
+                _log = "caching";
+                cache.put(key, _return = created);
+            } else {
+                _log = "returning cached";
+                _return = _cached;
+            }
+        }
+
+        if (_temp != null) {
+            @SuppressWarnings("unchecked")
+            final FutureValue<V> futureValue = (FutureValue<V>) _temp;
+            futureValue.setDelegate(_return);
+        }
+
+        log("%s value: %s", _log, _return);
+        return _return;
     }
 
     public interface FutureValue<D> {

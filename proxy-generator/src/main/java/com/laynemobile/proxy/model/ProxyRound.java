@@ -151,6 +151,10 @@ public class ProxyRound extends Env {
             }
         }
 
+//        for (TypeElementAlias typeElementAlias : TypeElementAlias.cache().values()) {
+//            log("cached type element: %s", typeElementAlias);
+//        }
+
         Set<ProxyElement> round = new HashSet<>();
         Set<ProxyElement> dependencies = new HashSet<>();
         ImmutableSet<ProxyElement> unprocessedElements = unprocessed(proxyElements);

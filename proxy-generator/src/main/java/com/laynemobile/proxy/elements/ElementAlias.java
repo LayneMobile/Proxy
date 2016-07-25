@@ -23,6 +23,8 @@ import java.util.List;
 import javax.lang.model.element.Element;
 
 public interface ElementAlias extends Element {
+    Element actual();
+
     /** {@inheritDoc} */
     @Override TypeMirrorAlias asType();
 

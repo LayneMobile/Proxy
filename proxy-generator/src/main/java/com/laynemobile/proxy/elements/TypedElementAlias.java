@@ -21,5 +21,5 @@ import com.laynemobile.proxy.model.Alias;
 import javax.lang.model.element.Element;
 
 public interface TypedElementAlias<E extends Element> extends ElementAlias, Alias<E> {
-    E actual();
+    @Override E actual();
 }

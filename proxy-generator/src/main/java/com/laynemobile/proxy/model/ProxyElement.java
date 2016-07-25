@@ -257,7 +257,8 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         }
 
         private ProxyElement dependency(TypeElementAlias source, Element element, Env env) {
-            if (element instanceof TypeElement) {
+            if (element == null) return null;
+            if (element.getKind().isClass() || element.getKind().isInterface()) {
                 return dependency(source, AliasElements.get((TypeElement) element), env);
             }
             return null;
