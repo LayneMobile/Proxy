@@ -156,26 +156,23 @@ public class ProxyRound extends Env {
 //        }
 
         Set<ProxyElement> round = new HashSet<>();
-        Set<ProxyElement> dependencies = new HashSet<>();
+        Set<ProxyType> dependencies = new HashSet<>();
         ImmutableSet<ProxyElement> unprocessedElements = unprocessed(proxyElements);
         for (ProxyElement unprocessed : unprocessedElements) {
-            for (ProxyElement dependency : unprocessed.allDependencies()) {
-                if (!processedElements.contains(dependency)) {
+            for (ProxyType dependency : unprocessed.allDependencies()) {
+                if (!processedElements.contains(dependency.element())) {
                     dependencies.add(dependency);
                 }
             }
         }
+        OUTER:
         for (ProxyElement unprocessed : unprocessedElements) {
-            boolean hasDependency = false;
-            for (ProxyElement dependency : unprocessed.allDependencies()) {
+            for (ProxyType dependency : unprocessed.allDependencies()) {
                 if (dependencies.contains(dependency)) {
-                    hasDependency = true;
-                    break;
+                    continue OUTER;
                 }
             }
-            if (!hasDependency) {
-                round.add(unprocessed);
-            }
+            round.add(unprocessed);
         }
 
         List<TypeElementAlias> typeElementAliases = new ArrayList<>();
@@ -245,19 +242,14 @@ public class ProxyRound extends Env {
         ImmutableMap.Builder<ProxyElement, ImmutableList<GeneratedTypeElementStub>> outputStubs
                 = ImmutableMap.builder();
         for (ProxyElement output : round) {
-            List<GeneratedTypeElement> dependencies = new ArrayList<>();
-
-            ImmutableList.Builder<GeneratedTypeElementStub> functionOutputs
-                    = ImmutableList.builder();
-            for (ProxyFunctionElement functionElement : output.functions()) {
-                GeneratedTypeElementStub outputStub = functionElement.output();
+            ImmutableList<GeneratedTypeElementStub> functionOutputs = output.outputs(inputs, this);
+            for (GeneratedTypeElementStub outputStub : functionOutputs) {
                 JavaFile abstractProxyFunctionClass = outputStub.newJavaFile()
                         .build();
                 log("writing %s -> \n%s", outputStub.qualifiedName(), abstractProxyFunctionClass.toString());
                 abstractProxyFunctionClass.writeTo(filer);
-                functionOutputs.add(outputStub);
             }
-            outputStubs.put(output, functionOutputs.build());
+            outputStubs.put(output, functionOutputs);
         }
         return outputStubs.build();
     }

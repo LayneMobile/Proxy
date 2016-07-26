@@ -18,6 +18,8 @@ package com.laynemobile.proxy.model;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.laynemobile.proxy.Util;
+import com.laynemobile.proxy.Util.Transformer;
 import com.laynemobile.proxy.cache.EnvCache;
 import com.laynemobile.proxy.cache.MultiAliasCache;
 import com.laynemobile.proxy.elements.ElementAlias;
@@ -40,40 +42,40 @@ public final class MethodElement extends AbstractValueAlias<ExecutableElementAli
     private final ImmutableList<? extends VariableElementAlias> params;
     private final ImmutableList<TypeMirrorAlias> paramTypes;
 
-    private MethodElement(TypeElementAlias typeElement, ExecutableElementAlias element, Env env) {
+    private MethodElement(TypeElementAlias typeElement, ExecutableElementAlias element, final Env env) {
         super(element);
-        ImmutableList.Builder<TypeMirrorAlias> paramTypes = ImmutableList.builder();
-        for (VariableElementAlias param : element.getParameters()) {
-            env.log("param: %s", param);
-            ElementKind paramKind = param.getKind();
-            env.log("param kind: %s", paramKind);
-            TypeMirror paramType = param.asType();
-            env.log("param type: %s", paramType);
-            paramTypes.add(param.asType());
-        }
-
         this.typeElement = typeElement;
         this.returnType = element.getReturnType();
         this.params = ImmutableList.copyOf(element.getParameters());
-        this.paramTypes = paramTypes.build();
+        this.paramTypes
+                = Util.buildList(element.getParameters(), new Transformer<TypeMirrorAlias, VariableElementAlias>() {
+            @Override public TypeMirrorAlias transform(VariableElementAlias param) {
+                env.log("param: %s", param);
+                ElementKind paramKind = param.getKind();
+                env.log("param kind: %s", paramKind);
+                TypeMirror paramType = param.asType();
+                env.log("param type: %s", paramType);
+                return param.asType();
+            }
+        });
     }
 
     public static MultiAliasCache<TypeElementAlias, ExecutableElementAlias, ? extends MethodElement> cache() {
         return CACHE;
     }
 
-    public static ImmutableList<MethodElement> parse(TypeElementAlias typeElement, Env env) {
-        EnvCache<ExecutableElementAlias, MethodElement> cache = CACHE.getOrCreate(typeElement, env);
-        ImmutableList.Builder<MethodElement> elements = ImmutableList.builder();
-        for (ElementAlias element : typeElement.getEnclosedElements()) {
-            if (element.getKind() != ElementKind.METHOD) {
-                continue;
+    public static ImmutableList<MethodElement> parse(TypeElementAlias typeElement, final Env env) {
+        final EnvCache<ExecutableElementAlias, MethodElement> cache = CACHE.getOrCreate(typeElement, env);
+        return Util.buildList(typeElement.getEnclosedElements(), new Transformer<MethodElement, ElementAlias>() {
+            @Override public MethodElement transform(ElementAlias element) {
+                if (element.getKind() != ElementKind.METHOD) {
+                    return null;
+                }
+                ExecutableElementAlias methodElement = (ExecutableElementAlias) element;
+                env.log(methodElement, "processing method element: %s", methodElement);
+                return cache.getOrCreate(methodElement, env);
             }
-            ExecutableElementAlias methodElement = (ExecutableElementAlias) element;
-            env.log(methodElement, "processing method element: %s", methodElement);
-            elements.add(cache.getOrCreate(methodElement, env));
-        }
-        return elements.build();
+        });
     }
 
     public boolean overrides(MethodElement overridden, Env env) {

@@ -17,12 +17,16 @@
 package com.laynemobile.proxy;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.elements.AliasElements;
 import com.laynemobile.proxy.elements.TypeElementAlias;
+import com.laynemobile.proxy.elements.TypeParameterElementAlias;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.internal.ProxyLog;
+import com.laynemobile.proxy.types.TypeMirrorAlias;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -33,6 +37,7 @@ import com.squareup.javapoet.WildcardTypeName;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -51,6 +56,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.MirroredTypesException;
+import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -70,6 +76,36 @@ import static com.laynemobile.proxy.Constants.SourceBuilder;
 public final class Util {
     private static final String TAG = Util.class.getSimpleName();
 
+    public static TypeMirror[] typeParameterArray(List<? extends TypeParameterElementAlias> typeParameters,
+            final Env env, ArrayCreator<TypeMirror> arrayCreator) {
+        return toArray(typeParameters(typeParameters, env), arrayCreator);
+    }
+
+    public static ImmutableList<? extends TypeMirror> typeParameters(
+            List<? extends TypeParameterElementAlias> typeParameters, final Env env) {
+        return buildList(typeParameters, new Transformer<TypeMirror, TypeParameterElementAlias>() {
+            @Override public TypeMirror transform(TypeParameterElementAlias typeParameter) {
+                return boxedType(typeParameter.asType(), env);
+            }
+        });
+    }
+
+    public static <T> T[] toArray(List<? extends T> list, ArrayCreator<T> arrayCreator) {
+        if (list == null || list.isEmpty()) {
+            return arrayCreator.newArray(0);
+        }
+        return list.toArray(arrayCreator.newArray(list.size()));
+    }
+
+    public static TypeMirror boxedType(TypeMirrorAlias typeMirror, Env env) {
+        Types typeUtils = env.types();
+        if (typeMirror.getKind().isPrimitive()) {
+            return typeUtils.boxedClass((PrimitiveType) typeMirror.actual())
+                    .asType();
+        }
+        return typeMirror.actual();
+    }
+
     public static RuntimeException runtime(TypeMirror typeMirror, Throwable e) {
         return runtime(e, "error for typeMirror: %s", typeMirror);
     }
@@ -87,22 +123,63 @@ public final class Util {
         return new RuntimeException(msg, e);
     }
 
-    public static <R, T> ImmutableList<R> buildList(List<? extends T> in, Transformer<R, T> transformer) {
+    public static <R, T> ImmutableList<R> buildList(Collection<? extends T> in, Transformer<R, T> transformer) {
         if (in == null || in.isEmpty()) {
             return ImmutableList.of();
         }
-        ImmutableList.Builder<R> out = ImmutableList.builder();
+        return build(ImmutableList.<R>builder(), in, transformer);
+    }
+
+    public static <R, T> ImmutableList<R> buildList(Collection<? extends T> in, Collector<R, T> collector) {
+        if (in == null || in.isEmpty()) {
+            return ImmutableList.of();
+        }
+        return build(ImmutableList.<R>builder(), in, collector);
+    }
+
+    public static <R, T> ImmutableSet<R> buildSet(Collection<? extends T> in, Transformer<R, T> transformer) {
+        if (in == null || in.isEmpty()) {
+            return ImmutableSet.of();
+        }
+        return build(ImmutableSet.<R>builder(), in, transformer);
+    }
+
+    public static <R, T> ImmutableSet<R> buildSet(Collection<? extends T> in, Collector<R, T> collector) {
+        if (in == null || in.isEmpty()) {
+            return ImmutableSet.of();
+        }
+        return build(ImmutableSet.<R>builder(), in, collector);
+    }
+
+    public static <R, T> ImmutableList<R> buildList(T[] in, Transformer<R, T> transformer) {
+        return buildList(in == null ? null : Arrays.asList(in), transformer);
+    }
+
+    public static <R, T> ImmutableSet<R> buildSet(T[] in, Transformer<R, T> transformer) {
+        return buildSet(in == null ? null : Arrays.asList(in), transformer);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <R, T, C extends ImmutableCollection<R>> C build(ImmutableCollection.Builder<R> out,
+            Collection<? extends T> in, Transformer<R, T> transformer) {
         for (T t : in) {
             R r;
             if (t != null && (r = transformer.transform(t)) != null) {
                 out.add(r);
             }
         }
-        return out.build();
+        return (C) out.build();
     }
 
-    public static <R, T> ImmutableList<R> buildList(T[] in, Transformer<R, T> transformer) {
-        return buildList(in == null ? null : Arrays.asList(in), transformer);
+    @SuppressWarnings("unchecked")
+    private static <R, T, C extends ImmutableCollection<R>> C build(ImmutableCollection.Builder<R> out,
+            Collection<? extends T> in, Collector<R, T> collector) {
+        for (T t : in) {
+            if (t != null) {
+                collector.collect(t, out);
+            }
+        }
+        return (C) out.build();
     }
 
     public static <KR, VR, KT, VT> ImmutableMap<KR, VR> buildMap(Map<? extends KT, ? extends VT> in,
@@ -438,6 +515,14 @@ public final class Util {
 
     public interface Transformer<R, T> {
         R transform(T t);
+    }
+
+    public interface Collector<R, T> {
+        void collect(T t, ImmutableCollection.Builder<R> out);
+    }
+
+    public interface ArrayCreator<T> {
+        T[] newArray(int size);
     }
 
     private Util() { throw new AssertionError("no instances"); }

@@ -25,7 +25,6 @@ import com.laynemobile.proxy.types.DeclaredTypeAlias;
 
 import java.util.List;
 
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -82,10 +81,7 @@ public final class ProxyType extends AbstractValueAlias<DeclaredTypeAlias> {
             if (typeMirror.getKind() != TypeKind.DECLARED) {
                 return null;
             }
-            DeclaredTypeAlias declaredType = AliasTypes.get((DeclaredType) typeMirror);
-            return declaredType.asElement().getKind() == ElementKind.INTERFACE
-                    ? declaredType
-                    : null;
+            return AliasTypes.get((DeclaredType) typeMirror);
         }
 
         @Override protected ProxyType create(DeclaredTypeAlias declaredType, Env env) {
@@ -93,7 +89,7 @@ public final class ProxyType extends AbstractValueAlias<DeclaredTypeAlias> {
                     .getOrCreate((TypeElementAlias) declaredType.asElement(), env);
 
             ImmutableList.Builder<ProxyType> directSuperTypes = ImmutableList.builder();
-            for (TypeMirror typeMirror : env.types().directSupertypes(declaredType)) {
+            for (TypeMirror typeMirror : env.types().directSupertypes(declaredType.actual())) {
                 if (typeMirror.getKind() == TypeKind.DECLARED) {
                     directSuperTypes.add(getOrCreate(AliasTypes.get((DeclaredType) typeMirror), env));
                 }

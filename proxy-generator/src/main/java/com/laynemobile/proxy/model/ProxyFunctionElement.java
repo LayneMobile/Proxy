@@ -19,6 +19,7 @@ package com.laynemobile.proxy.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.annotations.GenerateProxyFunction;
 import com.laynemobile.proxy.cache.EnvCache;
@@ -42,6 +43,7 @@ import com.squareup.javapoet.TypeVariableName;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.processing.Filer;
@@ -64,7 +66,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
     private static final String ABSTRACT_PREFIX = "Abstract";
 
     private final String name;
-    private final ProxyFunctionElement overrides;
+    private final ImmutableSet<ProxyFunctionElement> overrides;
     private final TypeElementAlias functionElement;
     private final DeclaredTypeAlias functionType;
     private final TypeElementAlias abstractProxyFunctionElement;
@@ -72,7 +74,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
     private final ImmutableList<TypeMirror> boxedParamTypes;
     private final AtomicReference<FunctionParentOutputStub> output = new AtomicReference<>();
 
-    private ProxyFunctionElement(MethodElement source, ProxyFunctionElement overrides, Env env) {
+    private ProxyFunctionElement(MethodElement source, Set<? extends ProxyFunctionElement> overrides, Env env) {
         super(source);
         ExecutableElement element = source.element();
         GenerateProxyFunction function = element.getAnnotation(GenerateProxyFunction.class);
@@ -135,7 +137,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         env.log("AbstractProxyFunction type typeArguments: %s", abstractProxyFunctionType.getTypeArguments());
 
         this.name = name;
-        this.overrides = overrides;
+        this.overrides = ImmutableSet.copyOf(overrides);
         this.functionElement = AliasElements.get(functionElement);
         this.functionType = functionType;
         this.abstractProxyFunctionElement = AliasElements.get(abstractProxyFunctionElement);
@@ -161,6 +163,15 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         return typeMirror.actual();
     }
 
+    ProxyElement parent() {
+        TypeElementAlias typeElement = typeElement();
+        ProxyElement parent = ProxyElement.cache().get(typeElement);
+        if (parent == null) {
+            throw new IllegalStateException(typeElement + " parent must be in cache");
+        }
+        return parent;
+    }
+
     public MethodElement alias() {
         return value();
     }
@@ -173,7 +184,11 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         return value().element();
     }
 
-    @Override public GeneratedTypeElementStub output() {
+    public ImmutableSet<ProxyFunctionElement> overrides() {
+        return overrides;
+    }
+
+    @Override public FunctionParentOutputStub output() {
         FunctionParentOutputStub o;
         AtomicReference<FunctionParentOutputStub> ref = output;
         if ((o = ref.get()) == null) {
@@ -236,21 +251,23 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
 
     private static final class Creator implements MultiAliasCache.ValueCreator<TypeElementAlias, MethodElement, ProxyFunctionElement> {
         @Override public ProxyFunctionElement create(TypeElementAlias typeElement, MethodElement element, Env env) {
-            ProxyFunctionElement overrides = overrides(typeElement.getSuperclass(), element, env);
-            if (overrides == null) {
-                for (TypeMirrorAlias typeAlias : typeElement.getInterfaces()) {
-                    if ((overrides = overrides((DeclaredTypeAlias) typeAlias, element, env)) != null) {
-                        break;
-                    }
+            ImmutableSet.Builder<ProxyFunctionElement> overrides = ImmutableSet.builder();
+            ProxyFunctionElement _overrides = overrides(typeElement.getSuperclass(), element, env);
+            if (_overrides != null) {
+                overrides.add(_overrides);
+            }
+            for (TypeMirrorAlias typeAlias : typeElement.getInterfaces()) {
+                if ((_overrides = overrides((DeclaredTypeAlias) typeAlias, element, env)) != null) {
+                    overrides.add(_overrides);
                 }
             }
-            ProxyFunctionElement proxyFunctionElement = new ProxyFunctionElement(element, overrides, env);
+            ProxyFunctionElement proxyFunctionElement = new ProxyFunctionElement(element, overrides.build(), env);
             env.log("created proxy function element: %s\n\n", proxyFunctionElement.toDebugString());
             return proxyFunctionElement;
         }
 
         private ProxyFunctionElement overrides(TypeMirrorAlias typeAlias, MethodElement element, Env env) {
-            if (typeAlias instanceof DeclaredTypeAlias) {
+            if (typeAlias != null && typeAlias.getKind() == TypeKind.DECLARED) {
                 return overrides((DeclaredTypeAlias) typeAlias, element, env);
             }
             return null;
@@ -270,11 +287,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
     }
 
     private FunctionParentOutputStub newOutput() {
-        TypeElementAlias typeElement = typeElement();
-        ProxyElement parent = ProxyElement.cache().get(typeElement);
-        if (parent == null) {
-            throw new IllegalStateException(typeElement + " parent must be in cache");
-        }
+        ProxyElement parent = parent();
         ExecutableElement element = ProxyFunctionElement.this.element();
         String parammys = "";
         for (TypeMirror paramType : boxedParamTypes) {
@@ -292,16 +305,17 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
             }
         }
 
-        String baseClassName = typeElement.getSimpleName() + "_" + element.getSimpleName() + parammys;
+        String baseClassName = parent.element().getSimpleName() + "_" + element.getSimpleName() + parammys;
         return new FunctionParentOutputStub(parent, this, baseClassName);
     }
 
-    private static final class FunctionParentOutputStub extends AbstractGeneratedTypeElementStub {
+    static final class FunctionParentOutputStub extends AbstractGeneratedTypeElementStub {
         private final ProxyElement parent;
         private final ProxyFunctionElement function;
         private final ExecutableElement element;
         private final String basePackageName;
         private final String baseClassName;
+        private final TypeMirror superClass;
 
         private FunctionParentOutputStub(ProxyElement parent, ProxyFunctionElement function, String baseClassName) {
             this(parent, function, parent.packageName(), baseClassName);
@@ -315,10 +329,25 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
             this.element = function.element();
             this.basePackageName = basePackageName;
             this.baseClassName = baseClassName;
+            this.superClass = function.abstractProxyFunctionType;
+        }
+
+        private FunctionParentOutputStub(FunctionParentOutputStub source, TypeMirror superClass) {
+            super(source.packageName(), source.className());
+            this.parent = source.parent;
+            this.function = source.function;
+            this.element = source.element;
+            this.basePackageName = source.basePackageName;
+            this.baseClassName = source.baseClassName;
+            this.superClass = superClass;
+        }
+
+        FunctionParentOutputStub withSuperClass(TypeMirror superClass) {
+            return new FunctionParentOutputStub(this, superClass);
         }
 
         @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
-            classBuilder = classBuilder.superclass(TypeName.get(function.abstractProxyFunctionType))
+            classBuilder = classBuilder.superclass(TypeName.get(superClass))
                     .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
             // TODO: add annotation!
 //                .addAnnotation(AnnotationSpec.builder(ProxyFunctionImplementation.class)
