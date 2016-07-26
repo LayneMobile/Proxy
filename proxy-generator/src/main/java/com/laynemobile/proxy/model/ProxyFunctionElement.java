@@ -418,22 +418,53 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         }
 
         @Override public GeneratedTypeElementStub output(Env env) {
-            return new FunctionSubclassOutputStub(this);
+            return new FunctionSubclassOutputStub(this, env);
         }
     }
 
     private static final class FunctionSubclassOutputStub extends AbstractGeneratedTypeElementStub {
         private final FunctionParentOutput parentOutput;
+        private final TypeMirror superClass;
 
-        private FunctionSubclassOutputStub(FunctionParentOutput parentOutput) {
+        private FunctionSubclassOutputStub(FunctionParentOutput parentOutput, Env env) {
             super(parentOutput.stub.basePackageName + ".templates", parentOutput.stub.baseClassName);
             this.parentOutput = parentOutput;
+            this.superClass = parentOutput.value().asType().actual();
         }
 
         @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
-            return classBuilder
-                    // TODO:
-                    .build();
+            classBuilder = classBuilder.superclass(TypeName.get(superClass))
+                    .addModifiers(Modifier.PUBLIC);
+
+            FunctionParentOutputStub stub = parentOutput.stub;
+
+            List<TypeVariableAlias> typeVariables = Util.buildList(stub.parent.element().getTypeParameters(),
+                    new Util.Transformer<TypeVariableAlias, TypeParameterElementAlias>() {
+                        @Override
+                        public TypeVariableAlias transform(TypeParameterElementAlias typeParameterElementAlias) {
+                            TypeMirrorAlias type = typeParameterElementAlias.asType();
+                            if (type.getKind() == TypeKind.TYPEVAR) {
+                                return AliasTypes.get((TypeVariable) type.actual());
+                            }
+                            return null;
+                        }
+                    });
+
+            for (TypeVariableAlias typeVariable : typeVariables) {
+                classBuilder.addTypeVariable(TypeVariableName.get(typeVariable.actual()));
+            }
+
+            ProxyFunctionElement function = stub.function;
+            String name = function.name;
+
+            // Constructor
+            classBuilder.addMethod(MethodSpec.constructorBuilder()
+                    .addModifiers(Modifier.PROTECTED)
+                    .addParameter(TypeName.get(function.functionType), name)
+                    .addStatement("super($L)", name)
+                    .build());
+
+            return classBuilder.build();
         }
 
         @Override public GeneratedTypeElement generatedOutput(Env env) {

@@ -21,14 +21,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
-import com.laynemobile.proxy.annotations.Generated;
-import com.laynemobile.proxy.elements.AliasElements;
 import com.laynemobile.proxy.elements.TypeElementAlias;
 import com.laynemobile.proxy.internal.ProxyLog;
+import com.laynemobile.proxy.internal.Util;
 import com.squareup.javapoet.JavaFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -93,6 +91,20 @@ public class ProxyRound extends Env {
             ImmutableMap<ProxyElement, ImmutableList<GeneratedTypeElementStub>> outputStubs,
             Map<TypeMirror, TypeElementAlias> temp) {
         super(previousRound);
+        ImmutableMap.Builder<ProxyElement, ImmutableList<GeneratedTypeElement>> allInputs
+                = ImmutableMap.builder();
+        inputs = new HashMap<>(inputs);
+        for (Map.Entry<ProxyElement, ? extends List<GeneratedTypeElement>> entry : previousRound.inputs.entrySet()) {
+            ProxyElement key = entry.getKey();
+            List<GeneratedTypeElement> value = inputs.remove(key);
+            allInputs.put(key, ImmutableList.<GeneratedTypeElement>builder()
+                    .addAll(value)
+                    .addAll(entry.getValue())
+                    .build());
+        }
+        for (Map.Entry<ProxyElement, ImmutableList<GeneratedTypeElement>> entry : inputs.entrySet()) {
+            allInputs.put(entry.getKey(), entry.getValue());
+        }
         this.round = previousRound.round + 1;
         this.previousRound = previousRound;
         this.proxyElements = ImmutableSet.<ProxyElement>builder()
@@ -103,10 +115,7 @@ public class ProxyRound extends Env {
                 .addAll(previousRound.processedElements)
                 .addAll(outputStubs.keySet())
                 .build();
-        this.inputs = ImmutableMap.<ProxyElement, ImmutableList<GeneratedTypeElement>>builder()
-                .putAll(previousRound.inputs)
-                .putAll(inputs)
-                .build();
+        this.inputs = allInputs.build();
         this.outputStubs = outputStubs;
         this.temp = ImmutableMap.copyOf(temp);
     }
@@ -175,14 +184,14 @@ public class ProxyRound extends Env {
             round.add(unprocessed);
         }
 
-        List<TypeElementAlias> typeElementAliases = new ArrayList<>();
-        for (Element element : roundEnv.getElementsAnnotatedWith(Generated.class)) {
-            log("generated element: %s", element);
-            if (element.getKind().isClass() || element.getKind().isInterface()) {
-                TypeElementAlias typeElementAlias = AliasElements.get((TypeElement) element);
-                typeElementAliases.add(typeElementAlias);
-            }
-        }
+//        List<TypeElementAlias> typeElementAliases = new ArrayList<>();
+//        for (Element element : roundEnv.getElementsAnnotatedWith(Generated.class)) {
+//            log("generated element: %s", element);
+//            if (element.getKind().isClass() || element.getKind().isInterface()) {
+//                TypeElementAlias typeElementAlias = AliasElements.get((TypeElement) element);
+//                typeElementAliases.add(typeElementAlias);
+//            }
+//        }
 
         Map<ProxyElement, ImmutableList<GeneratedTypeElement>> inputs = new HashMap<>();
         for (Map.Entry<ProxyElement, ImmutableList<GeneratedTypeElementStub>> entry : outputStubs.entrySet()) {
@@ -195,15 +204,6 @@ public class ProxyRound extends Env {
                 GeneratedTypeElement typeInput = outputStub.generatedOutput(this);
                 log("input: %s", typeInput);
                 typeInputs.add(typeInput);
-
-                GeneratedTypeElementStub inout = typeInput.output(this);
-                try {
-                    inout.newJavaFile()
-                            .build()
-                            .writeTo(filer());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
             inputs.put(entry.getKey(), typeInputs.build());
         }
@@ -239,8 +239,21 @@ public class ProxyRound extends Env {
             Map<ProxyElement, ? extends List<GeneratedTypeElement>> inputs, Set<ProxyElement> round)
             throws IOException {
         Filer filer = filer();
-        ImmutableMap.Builder<ProxyElement, ImmutableList<GeneratedTypeElementStub>> outputStubs
-                = ImmutableMap.builder();
+        Map<ProxyElement, ImmutableList<GeneratedTypeElementStub>> outputStubs = new HashMap<>();
+        for (Map.Entry<ProxyElement, ? extends List<GeneratedTypeElement>> inputEntry : inputs.entrySet()) {
+            ImmutableList.Builder<GeneratedTypeElementStub> inOutputs = ImmutableList.builder();
+            for (GeneratedTypeElement typeInput : inputEntry.getValue()) {
+                if (typeInput.hasOutput()) {
+                    GeneratedTypeElementStub inout = typeInput.output(this);
+                    JavaFile javaFile = inout.newJavaFile()
+                            .build();
+                    log("writing %s -> \n%s", inout.qualifiedName(), javaFile.toString());
+                    javaFile.writeTo(filer());
+                    inOutputs.add(inout);
+                }
+            }
+            outputStubs.put(inputEntry.getKey(), inOutputs.build());
+        }
         for (ProxyElement output : round) {
             ImmutableList<GeneratedTypeElementStub> functionOutputs = output.outputs(inputs, this);
             for (GeneratedTypeElementStub outputStub : functionOutputs) {
@@ -249,9 +262,13 @@ public class ProxyRound extends Env {
                 log("writing %s -> \n%s", outputStub.qualifiedName(), abstractProxyFunctionClass.toString());
                 abstractProxyFunctionClass.writeTo(filer);
             }
-            outputStubs.put(output, functionOutputs);
+            List<GeneratedTypeElementStub> curr = Util.nullSafe(outputStubs.get(output));
+            outputStubs.put(output, ImmutableList.<GeneratedTypeElementStub>builder()
+                    .addAll(functionOutputs)
+                    .addAll(curr)
+                    .build());
         }
-        return outputStubs.build();
+        return ImmutableMap.copyOf(outputStubs);
     }
 
     @Override public String toString() {

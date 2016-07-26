@@ -35,6 +35,7 @@ import com.squareup.javapoet.ClassName;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -305,28 +306,32 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
                 }
             }, env);
 
+            // Add type mirror dependencies first, and filter out like elements with less information
+            Set<TypeElementAlias> elementDependencies = new HashSet<>();
             ImmutableSet.Builder<ProxyType> dependencies = ImmutableSet.builder();
             ProxyType dependency;
             TypeMirrorAlias superType = source.getSuperclass();
             if (superType != null) {
                 if ((dependency = dependency(source, superType, env)) != null) {
+                    elementDependencies.add(dependency.element().value());
                     dependencies.add(dependency);
                 }
             }
             for (TypeMirrorAlias typeAlias : source.getInterfaces()) {
                 if ((dependency = dependency(source, typeAlias, env)) != null) {
+                    elementDependencies.add(dependency.element().value());
                     dependencies.add(dependency);
                 }
             }
 
-            if ((dependency = dependency(source, replaces, env)) != null) {
+            if ((dependency = dependency(source, elementDependencies, replaces, env)) != null) {
                 dependencies.add(dependency);
             }
-            if ((dependency = dependency(source, extendsFrom, env)) != null) {
+            if ((dependency = dependency(source, elementDependencies, extendsFrom, env)) != null) {
                 dependencies.add(dependency);
             }
             for (TypeElementAlias alias : dependsOn) {
-                if ((dependency = dependency(source, alias, env)) != null) {
+                if ((dependency = dependency(source, elementDependencies, alias, env)) != null) {
                     dependencies.add(dependency);
                 }
             }
@@ -353,10 +358,17 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
             return null;
         }
 
-        private ProxyType dependency(TypeElementAlias source, Element element, Env env) {
-            if (element == null) return null;
+        private ProxyType dependency(TypeElementAlias source, Set<TypeElementAlias> dependencies, Element element,
+                Env env) {
             if (element.getKind().isClass() || element.getKind().isInterface()) {
-                return dependency(source, AliasElements.get((TypeElement) element).asType(), env);
+                TypeElementAlias typeElement = AliasElements.get((TypeElement) element);
+                if (!dependencies.contains(typeElement)) {
+                    ProxyType dependency = dependency(source, typeElement.asType(), env);
+                    if (dependency != null) {
+                        dependencies.add(typeElement);
+                    }
+                    return dependency;
+                }
             }
             return null;
         }
