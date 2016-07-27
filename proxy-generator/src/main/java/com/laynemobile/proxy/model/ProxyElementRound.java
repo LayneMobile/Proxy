@@ -16,25 +16,10 @@
 
 package com.laynemobile.proxy.model;
 
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.TypeSpec;
+public class ProxyElementRound {
+    private final ProxyElement proxyElement;
 
-import javax.lang.model.element.TypeElement;
-
-import sourcerer.processor.Env;
-
-public interface GeneratedTypeElementStub {
-    String packageName();
-
-    String className();
-
-    String qualifiedName();
-
-    TypeSpec newTypeSpec();
-
-    JavaFile.Builder newJavaFile();
-
-    TypeElement element(Env env);
-
-    GeneratedTypeElement generatedOutput(Env env);
+    private ProxyElementRound(ProxyElement proxyElement) {
+        this.proxyElement = proxyElement;
+    }
 }

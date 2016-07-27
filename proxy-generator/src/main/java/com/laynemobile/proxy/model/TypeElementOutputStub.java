@@ -16,14 +16,10 @@
 
 package com.laynemobile.proxy.model;
 
-import com.laynemobile.proxy.elements.TypeElementAlias;
+import java.io.IOException;
 
 import sourcerer.processor.Env;
 
-public interface GeneratedTypeElement extends ValueAlias<TypeElementAlias> {
-    GeneratedTypeElementStub input();
-
-    boolean hasOutput();
-
-    GeneratedTypeElementStub output(Env env);
+public interface TypeElementOutputStub extends TypeElementStub {
+    TypeElementOutput writeTo(Env env) throws IOException;
 }

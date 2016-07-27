@@ -16,6 +16,20 @@
 
 package com.laynemobile.proxy.model;
 
-public interface TypeElementGenerator {
-    TypeElementOutputStub outputStub();
+import com.squareup.javapoet.TypeSpec;
+
+import javax.lang.model.element.TypeElement;
+
+import sourcerer.processor.Env;
+
+public interface TypeElementOutput {
+    TypeElementOutputStub source();
+
+    TypeSpec typeSpec();
+
+    TypeElement element(Env env);
+
+    boolean hasOutput();
+
+    TypeElementOutputStub outputStub(Env env);
 }

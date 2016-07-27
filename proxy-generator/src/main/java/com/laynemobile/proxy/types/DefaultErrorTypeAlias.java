@@ -16,10 +16,15 @@
 
 package com.laynemobile.proxy.types;
 
+import com.laynemobile.proxy.elements.AliasElements;
+import com.laynemobile.proxy.elements.ElementAlias;
+
+import java.util.List;
+
 import javax.lang.model.type.ErrorType;
 import javax.lang.model.type.TypeVisitor;
 
-final class DefaultErrorTypeAlias extends AbstractDeclaredTypeAlias<ErrorType> implements ErrorTypeAlias {
+final class DefaultErrorTypeAlias extends AbstractTypeMirrorAlias<ErrorType> implements ErrorTypeAlias {
     private DefaultErrorTypeAlias(ErrorType declaredType) {
         super(declaredType);
     }
@@ -29,6 +34,18 @@ final class DefaultErrorTypeAlias extends AbstractDeclaredTypeAlias<ErrorType> i
             return (ErrorTypeAlias) declaredType;
         }
         return new DefaultErrorTypeAlias(declaredType);
+    }
+
+    @Override public ElementAlias asElement() {
+        return AliasElements.get(actual().asElement());
+    }
+
+    @Override public TypeMirrorAlias getEnclosingType() {
+        return AliasTypes.get(actual().getEnclosingType());
+    }
+
+    @Override public List<? extends TypeMirrorAlias> getTypeArguments() {
+        return AliasTypes.list(actual().getTypeArguments());
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {

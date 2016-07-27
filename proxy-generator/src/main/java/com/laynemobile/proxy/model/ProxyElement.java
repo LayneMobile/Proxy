@@ -61,8 +61,7 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
     private final ImmutableList<ProxyFunctionElement> functions;
     private final ImmutableSet<ProxyType> paramDependencies;
 
-    private ProxyElement(TypeElementAlias source, boolean parent, ClassName className,
-            List<TypeElementAlias> dependsOn,
+    private ProxyElement(TypeElementAlias source, boolean parent, ClassName className, List<TypeElementAlias> dependsOn,
             TypeElementAlias replaces, TypeElementAlias extendsFrom, Set<ProxyType> directDependencies, Env env) {
         super(source);
         ImmutableList<ProxyFunctionElement> functions = ProxyFunctionElement.parse(source, env);
@@ -139,15 +138,18 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         }
     };
 
-    public ImmutableList<GeneratedTypeElementStub> outputs(
-            final Map<ProxyElement, ? extends List<GeneratedTypeElement>> inputs, final Env env) {
-        return Util.buildList(functions(), new Util.Transformer<GeneratedTypeElementStub, ProxyFunctionElement>() {
-            @Override public GeneratedTypeElementStub transform(ProxyFunctionElement functionElement) {
-                final FunctionParentOutputStub outputStub = functionElement.output();
+    public ImmutableList<TypeElementOutputStub> outputs(
+            final Map<ProxyElement, ? extends Set<TypeElementOutput>> inputs, final Env env) {
+        return Util.buildList(functions(), new Util.Transformer<TypeElementOutputStub, ProxyFunctionElement>() {
+            @Override public TypeElementOutputStub transform(ProxyFunctionElement functionElement) {
+                final FunctionParentOutputStub outputStub = functionElement.outputStub();
                 for (ProxyFunctionElement override : functionElement.overrides()) {
                     ProxyElement overrideParentElement = override.parent();
-                    List<GeneratedTypeElement> generated = inputs.get(overrideParentElement);
-                    if (generated != null && !generated.isEmpty()) {
+                    Set<TypeElementOutput> set = inputs.get(overrideParentElement);
+                    if (set == null) {
+                        continue;
+                    }
+                    for (TypeElementOutput generated : set) {
                         env.log("say man");
                         env.log("%s -- writing override '%s' from '%s' -- %s", toDebugString(),
                                 outputStub.qualifiedName(), override, generated);
@@ -166,8 +168,12 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
 
                         TypeMirror[] typeParams = Util.toArray(overrideParentType.type().actual().getTypeArguments(),
                                 TYPE_MIRROR_ARRAY_CREATOR);
-                        final TypeElement superElement = generated.get(0).value().actual();
-                        env.log("super proxy element type parameters: %s", Arrays.toString(typeParams));
+                        final TypeElement superElement = generated.element(env);
+                        env.log("super proxy element '%s', type parameters: '%s'", superElement,
+                                Arrays.toString(typeParams));
+                        if (superElement == null) {
+                            continue;
+                        }
                         DeclaredType superType = env.types()
                                 .getDeclaredType(superElement, typeParams);
                         return outputStub.withSuperClass(superType);

@@ -39,6 +39,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -123,6 +125,14 @@ public final class Util {
         return new RuntimeException(msg, e);
     }
 
+    public static <R, T> ImmutableList<R> buildList(Iterable<? extends T> in, Collector<R, T> collector) {
+        return build(ImmutableList.<R>builder(), in, collector);
+    }
+
+    public static <R, T> ImmutableList<R> buildList(Iterable<? extends T> in, Transformer<R, T> transformer) {
+        return build(ImmutableList.<R>builder(), in, transformer);
+    }
+
     public static <R, T> ImmutableList<R> buildList(Collection<? extends T> in, Transformer<R, T> transformer) {
         if (in == null || in.isEmpty()) {
             return ImmutableList.of();
@@ -161,7 +171,7 @@ public final class Util {
 
     @SuppressWarnings("unchecked")
     private static <R, T, C extends ImmutableCollection<R>> C build(ImmutableCollection.Builder<R> out,
-            Collection<? extends T> in, Transformer<R, T> transformer) {
+            Iterable<? extends T> in, Transformer<R, T> transformer) {
         for (T t : in) {
             R r;
             if (t != null && (r = transformer.transform(t)) != null) {
@@ -173,7 +183,7 @@ public final class Util {
 
     @SuppressWarnings("unchecked")
     private static <R, T, C extends ImmutableCollection<R>> C build(ImmutableCollection.Builder<R> out,
-            Collection<? extends T> in, Collector<R, T> collector) {
+            Iterable<? extends T> in, Collector<R, T> collector) {
         for (T t : in) {
             if (t != null) {
                 collector.collect(t, out);
@@ -187,6 +197,30 @@ public final class Util {
         ImmutableMap.Builder<KR, VR> out = ImmutableMap.builder();
         for (Map.Entry<? extends KT, ? extends VT> entry : in.entrySet()) {
             out.put(keyTransformer.transform(entry.getKey()), valueTransformer.transform(entry.getValue()));
+        }
+        return out.build();
+    }
+
+    public static <K, V> ImmutableMap<K, ImmutableSet<V>> combine(ImmutableMap<K, ImmutableSet<V>> one,
+            Map<K, ImmutableSet<V>> two) {
+        two = new HashMap<>(two);
+        ImmutableMap.Builder<K, ImmutableSet<V>> out = ImmutableMap.builder();
+        for (Map.Entry<K, ImmutableSet<V>> entry : one.entrySet()) {
+            K key = entry.getKey();
+            Set<V> val = new HashSet<>(entry.getValue());
+            ImmutableSet<V> twoVal = two.remove(key);
+            if (twoVal != null) {
+                val.addAll(twoVal);
+            }
+            if (!val.isEmpty()) {
+                out.put(key, ImmutableSet.copyOf(val));
+            }
+        }
+        for (Map.Entry<K, ImmutableSet<V>> entry : two.entrySet()) {
+            ImmutableSet<V> val = entry.getValue();
+            if (!val.isEmpty()) {
+                out.put(entry.getKey(), val);
+            }
         }
         return out.build();
     }

@@ -19,28 +19,23 @@ package com.laynemobile.proxy.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.laynemobile.proxy.Util;
-import com.laynemobile.proxy.annotations.Generated;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.TypeSpec;
 
 import javax.lang.model.element.TypeElement;
 
 import sourcerer.processor.Env;
 
-public abstract class AbstractGeneratedTypeElementStub implements GeneratedTypeElementStub {
+public abstract class AbstractTypeElementStub implements TypeElementStub {
     private final String packageName;
     private final String className;
     private final String qualifiedName;
 
-    protected AbstractGeneratedTypeElementStub(String packageName, String className) {
+    protected AbstractTypeElementStub(String packageName, String className) {
         ClassName typeName = Util.typeName(packageName, className);
         this.packageName = packageName;
         this.className = className;
         this.qualifiedName = Util.qualifiedName(typeName);
     }
-
-    protected abstract TypeSpec build(TypeSpec.Builder classBuilder);
 
     @Override public final String packageName() {
         return packageName;
@@ -54,31 +49,14 @@ public abstract class AbstractGeneratedTypeElementStub implements GeneratedTypeE
         return qualifiedName;
     }
 
-    @Override public final TypeSpec newTypeSpec() {
-        return build(TypeSpec.classBuilder(className())
-                .addAnnotation(Generated.class));
-    }
-
-    @Override public JavaFile.Builder newJavaFile() {
-        return JavaFile.builder(packageName(), newTypeSpec());
-    }
-
     @Override public TypeElement element(Env env) {
         return env.elements().getTypeElement(qualifiedName);
     }
 
-    @Override public GeneratedTypeElement generatedOutput(Env env) {
-        return new AbstractGeneratedTypeElement(this, env) {
-            @Override public boolean hasOutput() {
-                return false;
-            }
-        };
-    }
-
     @Override public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AbstractGeneratedTypeElementStub)) return false;
-        AbstractGeneratedTypeElementStub that = (AbstractGeneratedTypeElementStub) o;
+        if (!(o instanceof AbstractTypeElementStub)) return false;
+        AbstractTypeElementStub that = (AbstractTypeElementStub) o;
         return Objects.equal(qualifiedName, that.qualifiedName);
     }
 

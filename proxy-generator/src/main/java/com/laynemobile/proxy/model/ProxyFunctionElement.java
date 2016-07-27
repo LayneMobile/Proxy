@@ -34,7 +34,6 @@ import com.laynemobile.proxy.types.TypeMirrorAlias;
 import com.laynemobile.proxy.types.TypeVariableAlias;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
@@ -46,7 +45,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.processing.Filer;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -188,7 +186,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         return overrides;
     }
 
-    @Override public FunctionParentOutputStub output() {
+    @Override public FunctionParentOutputStub outputStub() {
         FunctionParentOutputStub o;
         AtomicReference<FunctionParentOutputStub> ref = output;
         if ((o = ref.get()) == null) {
@@ -198,18 +196,16 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         return o;
     }
 
-    public void writeTo(Filer filer, Env env) throws IOException {
+    public void writeTo(Env env) throws IOException {
         TypeElementAlias typeElement = typeElement();
         ProxyElement parent = ProxyElement.cache().get(typeElement);
         if (parent == null) {
             throw new IllegalStateException(typeElement + " parent must be in cache");
         }
-        GeneratedTypeElementStub output = output();
-//        TypeSpec abstractType = output.newTypeSpec();
+        TypeElementOutputStub output = outputStub();
+//        TypeSpec abstractType = outputStub.newTypeSpec();
 //        String generated = parent.packageName() + ".generated";
-        JavaFile abstractTypeFile = output.newJavaFile()
-                .build();
-        abstractTypeFile.writeTo(filer);
+        output.writeTo(env);
 //
 //        String templates = parent.packageName() + ".templates.temp";
 //        String className = abstractType.name.substring(ABSTRACT_PREFIX.length());
@@ -309,7 +305,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         return new FunctionParentOutputStub(parent, this, baseClassName);
     }
 
-    static final class FunctionParentOutputStub extends AbstractGeneratedTypeElementStub {
+    static final class FunctionParentOutputStub extends AbstractTypeElementOutputStub {
         private final ProxyElement parent;
         private final ProxyFunctionElement function;
         private final ExecutableElement element;
@@ -400,43 +396,44 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
             return classBuilder.build();
         }
 
-        @Override public GeneratedTypeElement generatedOutput(Env env) {
-            return new FunctionParentOutput(this, env);
+        @Override public TypeElementOutput writeTo(Env env) throws IOException {
+            TypeElementOutput output = super.writeTo(env);
+            return new FunctionParentOutput(this, output.typeSpec());
         }
     }
 
-    private static class FunctionParentOutput extends AbstractGeneratedTypeElement {
-        private final FunctionParentOutputStub stub;
+    private static class FunctionParentOutput extends AbstractTypeElementOutput {
+        private final FunctionParentOutputStub source;
 
-        private FunctionParentOutput(FunctionParentOutputStub stub, Env env) {
-            super(stub, env);
-            this.stub = stub;
+        private FunctionParentOutput(FunctionParentOutputStub source, TypeSpec typeSpec) {
+            super(source, typeSpec);
+            this.source = source;
         }
 
         @Override public boolean hasOutput() {
             return true;
         }
 
-        @Override public GeneratedTypeElementStub output(Env env) {
+        @Override public TypeElementOutputStub outputStub(Env env) {
             return new FunctionSubclassOutputStub(this, env);
         }
     }
 
-    private static final class FunctionSubclassOutputStub extends AbstractGeneratedTypeElementStub {
+    private static final class FunctionSubclassOutputStub extends AbstractTypeElementOutputStub {
         private final FunctionParentOutput parentOutput;
         private final TypeMirror superClass;
 
         private FunctionSubclassOutputStub(FunctionParentOutput parentOutput, Env env) {
-            super(parentOutput.stub.basePackageName + ".templates", parentOutput.stub.baseClassName);
+            super(parentOutput.source.basePackageName + ".templates", parentOutput.source.baseClassName);
             this.parentOutput = parentOutput;
-            this.superClass = parentOutput.value().asType().actual();
+            this.superClass = parentOutput.element(env).asType();
         }
 
         @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
             classBuilder = classBuilder.superclass(TypeName.get(superClass))
                     .addModifiers(Modifier.PUBLIC);
 
-            FunctionParentOutputStub stub = parentOutput.stub;
+            FunctionParentOutputStub stub = parentOutput.source;
 
             List<TypeVariableAlias> typeVariables = Util.buildList(stub.parent.element().getTypeParameters(),
                     new Util.Transformer<TypeVariableAlias, TypeParameterElementAlias>() {
@@ -465,11 +462,6 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
                     .build());
 
             return classBuilder.build();
-        }
-
-        @Override public GeneratedTypeElement generatedOutput(Env env) {
-            // TODO:
-            return super.generatedOutput(env);
         }
     }
 }
