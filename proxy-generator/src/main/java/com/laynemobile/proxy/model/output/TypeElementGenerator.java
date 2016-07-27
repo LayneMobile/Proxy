@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.model;
+package com.laynemobile.proxy.model.output;
 
-import java.io.IOException;
+import com.laynemobile.proxy.model.output.TypeElementOutputStub;
 
-import sourcerer.processor.Env;
-
-public interface TypeElementOutputStub extends TypeElementStub {
-    TypeElementOutput writeTo(Env env) throws IOException;
+public interface TypeElementGenerator {
+    TypeElementOutputStub outputStub();
 }

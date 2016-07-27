@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.model;
+package com.laynemobile.proxy.model.output;
 
 import com.squareup.javapoet.TypeSpec;
 

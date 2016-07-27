@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.model;
+package com.laynemobile.proxy.model.output;
 
 import com.laynemobile.proxy.annotations.Generated;
 import com.squareup.javapoet.JavaFile;

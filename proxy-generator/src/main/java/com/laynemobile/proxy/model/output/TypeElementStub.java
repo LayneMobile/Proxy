@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.model;
+package com.laynemobile.proxy.model.output;
 
-public interface TypeElementGenerator {
-    TypeElementOutputStub outputStub();
+import javax.lang.model.element.TypeElement;
+
+import sourcerer.processor.Env;
+
+public interface TypeElementStub {
+    String packageName();
+
+    String className();
+
+    String qualifiedName();
+
+    TypeElement element(Env env);
 }

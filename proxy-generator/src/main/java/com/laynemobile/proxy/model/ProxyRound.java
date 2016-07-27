@@ -24,6 +24,8 @@ import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util.Collector;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.internal.Util;
+import com.laynemobile.proxy.model.output.TypeElementOutput;
+import com.laynemobile.proxy.model.output.TypeElementOutputStub;
 
 import java.io.IOException;
 import java.util.HashMap;
