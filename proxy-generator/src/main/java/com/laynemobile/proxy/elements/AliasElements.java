@@ -313,7 +313,7 @@ public final class AliasElements {
         }
 
         @Override public String toString() {
-            return delegate.toString();
+            return ensure().toString();
         }
 
         private TypedElementAlias<?> ensure() {
@@ -334,7 +334,7 @@ public final class AliasElements {
         }
 
         private PackageElementAlias packageElement() {
-            return cast("not a PackageEementAlias");
+            return cast("not a PackageElementAlias");
         }
 
         private TypeElementAlias typeElement() {

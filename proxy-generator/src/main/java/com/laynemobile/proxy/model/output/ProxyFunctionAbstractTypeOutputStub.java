@@ -42,7 +42,7 @@ import javax.lang.model.type.TypeVariable;
 
 import sourcerer.processor.Env;
 
-public class AbstractProxyFunctionOutputStub extends AbstractTypeElementOutputStub {
+public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutputStub {
     private static final String ABSTRACT_PREFIX = "Abstract";
 
     private final ProxyElement parent;
@@ -52,11 +52,13 @@ public class AbstractProxyFunctionOutputStub extends AbstractTypeElementOutputSt
     private final String baseClassName;
     private final TypeMirror superClass;
 
-    private AbstractProxyFunctionOutputStub(ProxyElement parent, ProxyFunctionElement function, String baseClassName) {
+    private ProxyFunctionAbstractTypeOutputStub(ProxyElement parent, ProxyFunctionElement function,
+            String baseClassName) {
         this(parent, function, parent.packageName(), baseClassName);
     }
 
-    private AbstractProxyFunctionOutputStub(ProxyElement parent, ProxyFunctionElement function, String basePackageName,
+    private ProxyFunctionAbstractTypeOutputStub(ProxyElement parent, ProxyFunctionElement function,
+            String basePackageName,
             String baseClassName) {
         super(basePackageName + ".generated", ABSTRACT_PREFIX + baseClassName);
         this.parent = parent;
@@ -67,7 +69,7 @@ public class AbstractProxyFunctionOutputStub extends AbstractTypeElementOutputSt
         this.superClass = function.abstractProxyFunctionType();
     }
 
-    private AbstractProxyFunctionOutputStub(AbstractProxyFunctionOutputStub source, TypeMirror superClass) {
+    private ProxyFunctionAbstractTypeOutputStub(ProxyFunctionAbstractTypeOutputStub source, TypeMirror superClass) {
         super(source.packageName(), source.className());
         this.parent = source.parent;
         this.function = source.function;
@@ -77,7 +79,7 @@ public class AbstractProxyFunctionOutputStub extends AbstractTypeElementOutputSt
         this.superClass = superClass;
     }
 
-    public static AbstractProxyFunctionOutputStub create(ProxyFunctionElement function) {
+    public static ProxyFunctionAbstractTypeOutputStub create(ProxyFunctionElement function) {
         ProxyElement parent = function.parent();
         ExecutableElement element = function.element();
         String parammys = "";
@@ -97,11 +99,35 @@ public class AbstractProxyFunctionOutputStub extends AbstractTypeElementOutputSt
         }
 
         String baseClassName = parent.element().getSimpleName() + "_" + element.getSimpleName() + parammys;
-        return new AbstractProxyFunctionOutputStub(parent, function, baseClassName);
+        return new ProxyFunctionAbstractTypeOutputStub(parent, function, baseClassName);
     }
 
-    public AbstractProxyFunctionOutputStub withSuperClass(TypeMirror superClass) {
-        return new AbstractProxyFunctionOutputStub(this, superClass);
+    String baseClassName() {
+        return baseClassName;
+    }
+
+    String basePackageName() {
+        return basePackageName;
+    }
+
+    ExecutableElement element() {
+        return element;
+    }
+
+    ProxyFunctionElement function() {
+        return function;
+    }
+
+    ProxyElement parent() {
+        return parent;
+    }
+
+    TypeMirror superClass() {
+        return superClass;
+    }
+
+    public ProxyFunctionAbstractTypeOutputStub withSuperClass(TypeMirror superClass) {
+        return new ProxyFunctionAbstractTypeOutputStub(this, superClass);
     }
 
     @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
@@ -158,71 +184,8 @@ public class AbstractProxyFunctionOutputStub extends AbstractTypeElementOutputSt
         return classBuilder.build();
     }
 
-    @Override public TypeElementOutput writeTo(Env env) throws IOException {
+    @Override public ProxyFunctionAbstractTypeOutput writeTo(Env env) throws IOException {
         TypeElementOutput output = super.writeTo(env);
-        return new FunctionParentOutput(this, output.typeSpec());
-    }
-
-    private static class FunctionParentOutput extends AbstractTypeElementOutput {
-        private final AbstractProxyFunctionOutputStub source;
-
-        private FunctionParentOutput(AbstractProxyFunctionOutputStub source, TypeSpec typeSpec) {
-            super(source, typeSpec);
-            this.source = source;
-        }
-
-        @Override public boolean hasOutput() {
-            return true;
-        }
-
-        @Override public TypeElementOutputStub outputStub(Env env) {
-            return new FunctionSubclassOutputStub(this, env);
-        }
-    }
-
-    private static final class FunctionSubclassOutputStub extends AbstractTypeElementOutputStub {
-        private final FunctionParentOutput parentOutput;
-        private final TypeMirror superClass;
-
-        private FunctionSubclassOutputStub(FunctionParentOutput parentOutput, Env env) {
-            super(parentOutput.source.basePackageName + ".templates", parentOutput.source.baseClassName);
-            this.parentOutput = parentOutput;
-            this.superClass = parentOutput.element(env).asType();
-        }
-
-        @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
-            classBuilder = classBuilder.superclass(TypeName.get(superClass))
-                    .addModifiers(Modifier.PUBLIC);
-
-            AbstractProxyFunctionOutputStub stub = parentOutput.source;
-
-            List<TypeVariableAlias> typeVariables = Util.buildList(stub.parent.element().getTypeParameters(),
-                    new Util.Transformer<TypeVariableAlias, TypeParameterElementAlias>() {
-                        @Override
-                        public TypeVariableAlias transform(TypeParameterElementAlias typeParameterElementAlias) {
-                            TypeMirrorAlias type = typeParameterElementAlias.asType();
-                            if (type.getKind() == TypeKind.TYPEVAR) {
-                                return AliasTypes.get((TypeVariable) type.actual());
-                            }
-                            return null;
-                        }
-                    });
-
-            for (TypeVariableAlias typeVariable : typeVariables) {
-                classBuilder.addTypeVariable(TypeVariableName.get(typeVariable.actual()));
-            }
-
-            ProxyFunctionElement function = stub.function;
-            String name = function.name();
-
-            // Constructor
-            classBuilder.addMethod(MethodSpec.constructorBuilder()
-                    .addModifiers(Modifier.PROTECTED)
-                    .addParameter(TypeName.get(function.functionType()), name)
-                    .addStatement("super($L)", name)
-                    .build());
-
-            return classBuilder.build();
-        }
+        return new ProxyFunctionAbstractTypeOutput(this, output.typeSpec());
     }
 }

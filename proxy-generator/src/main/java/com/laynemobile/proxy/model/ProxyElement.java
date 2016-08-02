@@ -28,7 +28,7 @@ import com.laynemobile.proxy.elements.AliasElements;
 import com.laynemobile.proxy.elements.AnnotationMirrorAlias;
 import com.laynemobile.proxy.elements.TypeElementAlias;
 import com.laynemobile.proxy.functions.Func0;
-import com.laynemobile.proxy.model.output.AbstractProxyFunctionOutputStub;
+import com.laynemobile.proxy.model.output.ProxyFunctionAbstractTypeOutputStub;
 import com.laynemobile.proxy.model.output.TypeElementOutput;
 import com.laynemobile.proxy.model.output.TypeElementOutputStub;
 import com.laynemobile.proxy.types.DeclaredTypeAlias;
@@ -144,7 +144,7 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
             final Map<ProxyElement, ? extends Set<TypeElementOutput>> inputs, final Env env) {
         return Util.buildList(functions(), new Util.Transformer<TypeElementOutputStub, ProxyFunctionElement>() {
             @Override public TypeElementOutputStub transform(ProxyFunctionElement functionElement) {
-                final AbstractProxyFunctionOutputStub outputStub = functionElement.outputStub();
+                final ProxyFunctionAbstractTypeOutputStub outputStub = functionElement.outputStub();
                 for (ProxyFunctionElement override : functionElement.overrides()) {
                     ProxyElement overrideParentElement = override.parent();
                     Set<TypeElementOutput> set = inputs.get(overrideParentElement);

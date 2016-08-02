@@ -26,7 +26,7 @@ import com.laynemobile.proxy.cache.MultiAliasCache;
 import com.laynemobile.proxy.elements.AliasElements;
 import com.laynemobile.proxy.elements.ExecutableElementAlias;
 import com.laynemobile.proxy.elements.TypeElementAlias;
-import com.laynemobile.proxy.model.output.AbstractProxyFunctionOutputStub;
+import com.laynemobile.proxy.model.output.ProxyFunctionAbstractTypeOutputStub;
 import com.laynemobile.proxy.model.output.TypeElementGenerator;
 import com.laynemobile.proxy.model.output.TypeElementOutputStub;
 import com.laynemobile.proxy.types.AliasTypes;
@@ -61,7 +61,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
     private final TypeElementAlias abstractProxyFunctionElement;
     private final DeclaredTypeAlias abstractProxyFunctionType;
     private final ImmutableList<TypeMirror> boxedParamTypes;
-    private final AtomicReference<AbstractProxyFunctionOutputStub> output = new AtomicReference<>();
+    private final AtomicReference<ProxyFunctionAbstractTypeOutputStub> output = new AtomicReference<>();
 
     private ProxyFunctionElement(MethodElement source, Set<? extends ProxyFunctionElement> overrides, Env env) {
         super(source);
@@ -201,13 +201,13 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         return name;
     }
 
-    public AtomicReference<AbstractProxyFunctionOutputStub> output() {
+    public AtomicReference<ProxyFunctionAbstractTypeOutputStub> output() {
         return output;
     }
 
-    @Override public AbstractProxyFunctionOutputStub outputStub() {
-        AbstractProxyFunctionOutputStub o;
-        AtomicReference<AbstractProxyFunctionOutputStub> ref = output;
+    @Override public ProxyFunctionAbstractTypeOutputStub outputStub() {
+        ProxyFunctionAbstractTypeOutputStub o;
+        AtomicReference<ProxyFunctionAbstractTypeOutputStub> ref = output;
         if ((o = ref.get()) == null) {
             ref.compareAndSet(null, newOutput());
             return ref.get();
@@ -301,7 +301,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         }
     }
 
-    private AbstractProxyFunctionOutputStub newOutput() {
-        return AbstractProxyFunctionOutputStub.create(this);
+    private ProxyFunctionAbstractTypeOutputStub newOutput() {
+        return ProxyFunctionAbstractTypeOutputStub.create(this);
     }
 }

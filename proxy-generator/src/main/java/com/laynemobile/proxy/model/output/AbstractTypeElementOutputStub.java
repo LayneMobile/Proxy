@@ -45,10 +45,6 @@ public abstract class AbstractTypeElementOutputStub extends AbstractTypeElementS
                 .build();
         env.log("writing %s -> \n%s", qualifiedName(), javaFile.toString());
         javaFile.writeTo(env.filer());
-        return new AbstractTypeElementOutput(this, typeSpec) {
-            @Override public boolean hasOutput() {
-                return false;
-            }
-        };
+        return AbstractTypeElementOutput.create(this, typeSpec);
     }
 }

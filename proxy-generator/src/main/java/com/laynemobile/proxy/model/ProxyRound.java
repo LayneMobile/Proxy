@@ -18,7 +18,6 @@ package com.laynemobile.proxy.model;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util.Collector;
@@ -30,47 +29,20 @@ import com.laynemobile.proxy.model.output.TypeElementOutputStub;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
 
 import sourcerer.processor.Env;
 
 import static com.laynemobile.proxy.Util.buildSet;
 import static com.laynemobile.proxy.Util.combine;
 
-public class ProxyRound extends Env implements Iterable<ProxyRound> {
-    private static final Messager MESSAGER = new Messager() {
-        @Override public void printMessage(Diagnostic.Kind kind, CharSequence msg) {
-            System.out.printf("%s: %s\n", kind, msg);
-        }
-
-        @Override public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e) {
-            System.out.printf("%s: e='%s' - %s\n", kind, e, msg);
-        }
-
-        @Override public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e, AnnotationMirror a) {
-            System.out.printf("%s: e='%s', a='%s' - %s\n", kind, e, a, msg);
-        }
-
-        @Override
-        public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e, AnnotationMirror a,
-                AnnotationValue v) {
-            System.out.printf("%s: e='%s', a='%s', v='%s' - %s\n", kind, e, a, v, msg);
-        }
-    };
-
-    private final int round;
-    private final ProxyRound previous;
+public class ProxyRound extends EnvRound<ProxyRound> {
     private final ImmutableSet<? extends TypeElement> annotations;
     private final ImmutableSet<? extends Element> rootElements;
     private final ImmutableSet<ProxyElement> proxyElements;
@@ -79,8 +51,6 @@ public class ProxyRound extends Env implements Iterable<ProxyRound> {
 
     private ProxyRound(Env env) {
         super(env);
-        this.round = 0;
-        this.previous = null;
         this.annotations = ImmutableSet.of();
         this.rootElements = ImmutableSet.of();
         this.proxyElements = ImmutableSet.of();
@@ -93,8 +63,6 @@ public class ProxyRound extends Env implements Iterable<ProxyRound> {
             Set<? extends ProxyElement> processedElements,
             Map<ProxyElement, ImmutableSet<TypeElementOutput>> outputs) {
         super(previous);
-        this.round = previous.round + 1;
-        this.previous = previous;
         this.annotations = ImmutableSet.copyOf(annotations);
         this.rootElements = ImmutableSet.copyOf(rootElements);
         this.proxyElements = ImmutableSet.copyOf(proxyElements);
@@ -106,15 +74,12 @@ public class ProxyRound extends Env implements Iterable<ProxyRound> {
         return new ProxyRound(env);
     }
 
-    @Override public Messager messager() {
-        return MESSAGER;
-    }
-
-    public boolean isFirstRound() {
-        return previous == null;
+    @Override protected ProxyRound current() {
+        return this;
     }
 
     ProxyRound process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) throws IOException {
+        final ProxyEnv env = env();
         Set<ProxyElement> allProxyElements = new HashSet<>(allProxyElements());
         log("all proxy elements: %s", allProxyElements);
         Set<ProxyElement> proxyElements = new HashSet<>();
@@ -123,9 +88,9 @@ public class ProxyRound extends Env implements Iterable<ProxyRound> {
             if (element.getKind() != ElementKind.INTERFACE) {
                 error(element, "Only interfaces can be annotated with @%s",
                         GenerateProxyBuilder.class.getSimpleName());
-                return null; // Exit processing
+                throw new IOException("error");
             }
-            ProxyElement proxyElement = ProxyElement.cache().parse(element, this);
+            ProxyElement proxyElement = ProxyElement.cache().parse(element, env);
             if (proxyElement != null) {
                 proxyElements.add(proxyElement);
                 allProxyElements.add(proxyElement);
@@ -160,10 +125,6 @@ public class ProxyRound extends Env implements Iterable<ProxyRound> {
         return new ProxyRound(this, annotations, roundEnv.getRootElements(), proxyElements, round, outputs);
     }
 
-    @Override public Iterator<ProxyRound> iterator() {
-        return new StateIterator(this);
-    }
-
     private ImmutableSet<ProxyElement> unprocessed(Set<ProxyElement> proxyElements) {
         ImmutableSet<ProxyElement> allProcessedElements = allProcessedElements();
         ImmutableSet.Builder<ProxyElement> unprocessed = ImmutableSet.builder();
@@ -183,13 +144,14 @@ public class ProxyRound extends Env implements Iterable<ProxyRound> {
 
     private ImmutableMap<ProxyElement, ImmutableSet<TypeElementOutput>> write(Set<ProxyElement> round)
             throws IOException {
+        final ProxyEnv env = env();
         Map<ProxyElement, ImmutableSet<TypeElementOutput>> outputs = new HashMap<>();
         for (Map.Entry<ProxyElement, ? extends Set<TypeElementOutput>> inputEntry : this.outputs.entrySet()) {
             ImmutableSet.Builder<TypeElementOutput> set = ImmutableSet.builder();
             for (TypeElementOutput typeInput : inputEntry.getValue()) {
                 if (typeInput.hasOutput()) {
-                    TypeElementOutputStub inout = typeInput.outputStub(this);
-                    TypeElementOutput output = inout.writeTo(this);
+                    TypeElementOutputStub inout = typeInput.outputStub(env);
+                    TypeElementOutput output = inout.writeTo(env);
                     if (output != null) {
                         set.add(output);
                     }
@@ -204,8 +166,8 @@ public class ProxyRound extends Env implements Iterable<ProxyRound> {
             Set<TypeElementOutput> curr = Util.nullSafe(outputs.remove(proxyElement));
             ImmutableSet.Builder<TypeElementOutput> set = ImmutableSet.<TypeElementOutput>builder()
                     .addAll(curr);
-            for (TypeElementOutputStub outputStub : proxyElement.outputs(inputs, this)) {
-                TypeElementOutput output = outputStub.writeTo(this);
+            for (TypeElementOutputStub outputStub : proxyElement.outputs(inputs, env)) {
+                TypeElementOutput output = outputStub.writeTo(env);
                 if (output != null) {
                     set.add(output);
                 }
@@ -213,10 +175,6 @@ public class ProxyRound extends Env implements Iterable<ProxyRound> {
             outputs.put(proxyElement, set.build());
         }
         return ImmutableMap.copyOf(outputs);
-    }
-
-    ImmutableList<ProxyRound> allRounds() {
-        return ImmutableList.copyOf(iterator());
     }
 
     ImmutableSet<Element> allRootElements() {
@@ -244,6 +202,7 @@ public class ProxyRound extends Env implements Iterable<ProxyRound> {
     }
 
     ImmutableMap<ProxyElement, ImmutableSet<TypeElementOutput>> allOutputs() {
+        ProxyRound previous = previous();
         if (previous == null) {
             return outputs;
         }
@@ -252,34 +211,12 @@ public class ProxyRound extends Env implements Iterable<ProxyRound> {
 
     @Override public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("\nround", round)
+                .add("\nround", round())
                 .add("\nannotations", annotations)
                 .add("\nrootElements", rootElements)
                 .add("\nproxyElements", proxyElements)
                 .add("\nprocessedElements", processedElements)
                 .add("\noutputs", outputs)
                 .toString();
-    }
-
-    private static class StateIterator implements Iterator<ProxyRound> {
-        private ProxyRound proxyRound;
-
-        private StateIterator(ProxyRound proxyRound) {
-            this.proxyRound = proxyRound;
-        }
-
-        @Override public boolean hasNext() {
-            return proxyRound != null;
-        }
-
-        @Override public ProxyRound next() {
-            ProxyRound next = proxyRound;
-            proxyRound = proxyRound.previous;
-            return next;
-        }
-
-        @Override public void remove() {
-            throw new UnsupportedOperationException("immutable");
-        }
     }
 }

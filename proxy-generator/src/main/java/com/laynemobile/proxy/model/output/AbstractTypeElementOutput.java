@@ -24,16 +24,24 @@ import javax.lang.model.element.TypeElement;
 
 import sourcerer.processor.Env;
 
-public abstract class AbstractTypeElementOutput implements TypeElementOutput {
-    private final TypeElementOutputStub source;
+public abstract class AbstractTypeElementOutput<S extends TypeElementOutputStub> implements TypeElementOutput {
+    private final S source;
     private final TypeSpec typeSpec;
 
-    protected AbstractTypeElementOutput(TypeElementOutputStub source, TypeSpec typeSpec) {
+    protected AbstractTypeElementOutput(S source, TypeSpec typeSpec) {
         this.source = source;
         this.typeSpec = typeSpec;
     }
 
-    @Override public final TypeElementOutputStub source() {
+    static TypeElementOutput create(TypeElementOutputStub source, TypeSpec typeSpec) {
+        return new AbstractTypeElementOutput<TypeElementOutputStub>(source, typeSpec) {
+            @Override public boolean hasOutput() {
+                return false;
+            }
+        };
+    }
+
+    @Override public final S source() {
         return source;
     }
 

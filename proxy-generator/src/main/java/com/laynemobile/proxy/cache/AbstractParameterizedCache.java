@@ -23,7 +23,11 @@ public abstract class AbstractParameterizedCache<K, V, P>
         extends AbstractCache<K, V>
         implements ParameterizedCache<K, V, P> {
 
-    private final Map<K, P> params = new HashMap<>();
+    private final ThreadLocal<Map<K, P>> localParams = new ThreadLocal<Map<K, P>>() {
+        @Override protected Map<K, P> initialValue() {
+            return new HashMap<>();
+        }
+    };
 
     protected AbstractParameterizedCache() {}
 
@@ -70,21 +74,18 @@ public abstract class AbstractParameterizedCache<K, V, P>
         }
 
         boolean put;
-        synchronized (params) {
-            if (put = !params.containsKey(k)) {
-                params.put(k, p);
-            }
+        Map<K, P> params = localParams.get();
+        if (put = !params.containsKey(k)) {
+            params.put(k, p);
         }
 
-        v = super.get(k);
-
-        if (put) {
-            synchronized (params) {
+        try {
+            return super.get(k);
+        } finally {
+            if (put) {
                 params.remove(k);
             }
         }
-
-        return v;
     }
 
     @Override protected final void log(String format, Object... args) {
@@ -97,17 +98,13 @@ public abstract class AbstractParameterizedCache<K, V, P>
     }
 
     private P getParam(K key) {
-        synchronized (params) {
-            return params.get(key);
-        }
+        return localParams.get().get(key);
     }
 
     private P getParam() {
-        synchronized (params) {
-            for (P param : params.values()) {
-                if (param != null) {
-                    return param;
-                }
+        for (P param : localParams.get().values()) {
+            if (param != null) {
+                return param;
             }
         }
         return null;
