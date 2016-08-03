@@ -50,7 +50,7 @@ public abstract class AbstractTypeElementOutput<S extends TypeElementOutputStub>
     }
 
     @Override public TypeElement element(Env env) {
-        return env.elements().getTypeElement(source.qualifiedName());
+        return source.element(env);
     }
 
     @Override public boolean hasOutput() {

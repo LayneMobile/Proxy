@@ -40,7 +40,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -202,20 +201,26 @@ public final class Util {
     }
 
     public static <K, V> ImmutableMap<K, ImmutableSet<V>> combine(ImmutableMap<K, ImmutableSet<V>> one,
-            Map<K, ImmutableSet<V>> two) {
-        two = new HashMap<>(two);
+            Map<K, ImmutableSet<V>> _two) {
+        // copy in order to remove entries
+        Map<K, ImmutableSet<V>> two = new HashMap<>(_two);
         ImmutableMap.Builder<K, ImmutableSet<V>> out = ImmutableMap.builder();
         for (Map.Entry<K, ImmutableSet<V>> entry : one.entrySet()) {
             K key = entry.getKey();
-            Set<V> val = new HashSet<>(entry.getValue());
+            ImmutableSet<V> val = entry.getValue();
+            // get and remove from two
             ImmutableSet<V> twoVal = two.remove(key);
             if (twoVal != null) {
-                val.addAll(twoVal);
+                val = ImmutableSet.<V>builder()
+                        .addAll(val)
+                        .addAll(twoVal)
+                        .build();
             }
             if (!val.isEmpty()) {
-                out.put(key, ImmutableSet.copyOf(val));
+                out.put(key, val);
             }
         }
+        // iterate through entries for keys only present in two
         for (Map.Entry<K, ImmutableSet<V>> entry : two.entrySet()) {
             ImmutableSet<V> val = entry.getValue();
             if (!val.isEmpty()) {

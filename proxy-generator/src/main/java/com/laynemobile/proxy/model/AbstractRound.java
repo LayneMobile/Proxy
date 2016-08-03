@@ -17,6 +17,7 @@
 package com.laynemobile.proxy.model;
 
 import com.google.common.collect.ImmutableList;
+import com.laynemobile.proxy.Util;
 
 import java.util.Iterator;
 
@@ -65,6 +66,35 @@ public abstract class AbstractRound<R extends AbstractRound<R>> implements Round
         return ImmutableList.copyOf(iterator());
     }
 
+    protected abstract class Inner<I extends Inner<I>> implements Round<I> {
+        protected abstract I get(R parent);
+
+        @Override public final int round() {
+            return AbstractRound.this.round();
+        }
+
+        @Override public final I previous() {
+            R parent = AbstractRound.this.previous();
+            return parent == null ? null : get(parent);
+        }
+
+        @Override public final boolean isFirstRound() {
+            return AbstractRound.this.isFirstRound();
+        }
+
+        @Override public final ImmutableList<I> allRounds() {
+            return Util.buildList(AbstractRound.this.allRounds(), new Util.Transformer<I, R>() {
+                @Override public I transform(R r) {
+                    return get(r);
+                }
+            });
+        }
+
+        @Override public final Iterator<I> iterator() {
+            return new InnerIterator<>(this);
+        }
+    }
+
     private static final class RoundIterator<R extends AbstractRound<R>> implements Iterator<R> {
         private R round;
 
@@ -84,6 +114,28 @@ public abstract class AbstractRound<R extends AbstractRound<R>> implements Round
 
         @Override public void remove() {
             throw new UnsupportedOperationException("immutable");
+        }
+    }
+
+    private final class InnerIterator<I extends Inner<I>> implements Iterator<I> {
+        private final Inner<I> inner;
+        private final RoundIterator<R> it;
+
+        private InnerIterator(Inner<I> inner) {
+            this.inner = inner;
+            this.it = new RoundIterator<>(current());
+        }
+
+        @Override public boolean hasNext() {
+            return it.hasNext();
+        }
+
+        @Override public I next() {
+            return inner.get(it.next());
+        }
+
+        @Override public void remove() {
+            it.remove();
         }
     }
 }
