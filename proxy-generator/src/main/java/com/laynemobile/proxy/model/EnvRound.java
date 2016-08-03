@@ -79,10 +79,4 @@ public abstract class EnvRound<R extends EnvRound<R>> extends AbstractRound<R> {
     public final void error(String message, Object... args) {
         env.error(message, args);
     }
-
-    protected abstract class Inner<I extends Inner<I>> extends AbstractRound<R>.Inner<I> {
-        protected final ProxyEnv env() {
-            return EnvRound.this.env();
-        }
-    }
 }
