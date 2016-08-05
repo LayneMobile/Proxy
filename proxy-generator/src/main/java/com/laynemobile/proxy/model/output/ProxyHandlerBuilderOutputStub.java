@@ -16,25 +16,142 @@
 
 package com.laynemobile.proxy.model.output;
 
+import com.laynemobile.proxy.Util;
+import com.laynemobile.proxy.elements.TypeParameterElementAlias;
 import com.laynemobile.proxy.model.ProxyElement;
+import com.laynemobile.proxy.model.ProxyEnv;
+import com.laynemobile.proxy.model.ProxyFunctionElement;
+import com.laynemobile.proxy.types.AliasTypes;
+import com.laynemobile.proxy.types.TypeMirrorAlias;
+import com.laynemobile.proxy.types.TypeVariableAlias;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+
+import sourcerer.processor.Env;
+
 public class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutputStub {
-    private ProxyElement proxyElement;
-    private Set<ProxyFunctionTypeOutputStub> functions;
+    private final ProxyElement proxyElement;
+    private final ProxyEnv env;
+    private Set<ProxyFunctionOutput> functions = new HashSet<>();
 
-    private ProxyHandlerBuilderOutputStub(ProxyElement proxyElement) {
+    private ProxyHandlerBuilderOutputStub(ProxyElement proxyElement, Env env) {
         super(proxyElement.packageName() + ".generated", proxyElement.className().simpleName() + "HandlerBuilder");
+        this.proxyElement = proxyElement;
+        this.env = ProxyEnv.wrap(env);
     }
 
-    public static ProxyHandlerBuilderOutputStub create(ProxyElement proxyElement) {
-        return new ProxyHandlerBuilderOutputStub(proxyElement);
+    public static ProxyHandlerBuilderOutputStub create(ProxyElement proxyElement, Env env) {
+        return new ProxyHandlerBuilderOutputStub(proxyElement, env);
     }
+
+    /*
+    public class SourceHandlerBuilder<T, P extends Params> implements Builder<ProxyHandler<Source<T, P>>> {
+     */
 
     @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
+        DeclaredType proxyType = (DeclaredType) proxyElement.element().asType().actual();
+        TypeMirror[] typeParams = Util.toArray(proxyType.getTypeArguments());
+        TypeElement handlerElement = env.elements().getTypeElement("com.laynemobile.proxy.ProxyHandler");
+        DeclaredType handlerType = env.types().getDeclaredType(handlerElement, proxyType);
+        TypeElement builderElement = env.elements().getTypeElement("com.laynemobile.proxy.Builder");
+        DeclaredType builderType = env.types().getDeclaredType(builderElement, handlerType);
 
-        return classBuilder.build();
+        classBuilder.addSuperinterface(TypeName.get(builderType))
+                .addModifiers(Modifier.PUBLIC);
+        // TODO: add annotation!
+//                .addAnnotation(AnnotationSpec.builder(ProxyFunctionImplementation.class)
+//                        .addMember("value", "$T.class", subclass)
+//                        .build())
+        ;
+
+        List<TypeVariableAlias> typeVariables = Util.buildList(proxyElement.element().getTypeParameters(),
+                new Util.Transformer<TypeVariableAlias, TypeParameterElementAlias>() {
+                    @Override
+                    public TypeVariableAlias transform(TypeParameterElementAlias typeParameterElementAlias) {
+                        TypeMirrorAlias type = typeParameterElementAlias.asType();
+                        if (type.getKind() == TypeKind.TYPEVAR) {
+                            return AliasTypes.get((TypeVariable) type.actual());
+                        }
+                        return null;
+                    }
+                });
+
+        for (TypeVariableAlias typeVariable : typeVariables) {
+            classBuilder.addTypeVariable(TypeVariableName.get(typeVariable.actual()));
+        }
+
+        Map<String, CodeBlock> handlers = new HashMap<>();
+        for (ProxyFunctionOutput function : functions) {
+            ProxyFunctionElement element = function.element();
+            String name = element.name();
+
+            // create field
+
+            // create method for each constructor
+
+            // create code block for build function
+        }
+
+        TypeElement typeTokenElement = env.elements().getTypeElement("com.laynemobile.proxy.TypeToken");
+        DeclaredType typeTokenType = env.types().getDeclaredType(typeTokenElement, proxyType);
+
+        // build function
+
+        /*
+        @Override public ProxyHandler<Source<T, P>> build() {
+            final Source_callFunction<T, P> source = this.source;
+            if (source == null) {
+                throw new IllegalStateException("source function must be set");
+            }
+            final NamedMethodHandler sourceHandler = source.handler();
+            if (sourceHandler == null) {
+                throw new IllegalStateException("source function handler must not be null");
+            }
+            return ProxyHandler.builder(new TypeToken<Source<T, P>>() {})
+                    .handle(sourceHandler)
+                    .build();
+        }
+         */
+
+        MethodSpec.Builder buildMethod = MethodSpec.methodBuilder("build")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(TypeName.get(handlerType));
+
+        for (Map.Entry<String, CodeBlock> handlerEntry : handlers.entrySet()) {
+            buildMethod.addCode(handlerEntry.getValue());
+        }
+
+        CodeBlock.Builder returnCode = CodeBlock.builder()
+                .add("$[")
+                .add("return $T.builder(new $T() {})\n", ClassName.get(handlerElement), TypeName.get(typeTokenType));
+
+        for (String name : handlers.keySet()) {
+            returnCode.add(".handle($L)\n", name);
+        }
+
+        buildMethod.addCode(returnCode
+                .add(".build()")
+                .add(";\n$]")
+                .build());
+        return classBuilder.addMethod(buildMethod.build())
+                .build();
     }
 }

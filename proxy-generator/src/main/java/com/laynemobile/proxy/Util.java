@@ -76,6 +76,11 @@ import static com.laynemobile.proxy.Constants.SourceBuilder;
 
 public final class Util {
     private static final String TAG = Util.class.getSimpleName();
+    private static final Util.ArrayCreator<TypeMirror> TYPE_MIRROR_ARRAY_CREATOR = new Util.ArrayCreator<TypeMirror>() {
+        @Override public TypeMirror[] newArray(int size) {
+            return new TypeMirror[size];
+        }
+    };
 
     public static TypeMirror[] typeParameterArray(List<? extends TypeParameterElementAlias> typeParameters,
             final Env env, ArrayCreator<TypeMirror> arrayCreator) {
@@ -89,6 +94,10 @@ public final class Util {
                 return boxedType(typeParameter.asType(), env);
             }
         });
+    }
+
+    public static TypeMirror[] toArray(List<? extends TypeMirror> list) {
+        return toArray(list, TYPE_MIRROR_ARRAY_CREATOR);
     }
 
     public static <T> T[] toArray(List<? extends T> list, ArrayCreator<T> arrayCreator) {

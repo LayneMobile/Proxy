@@ -250,7 +250,7 @@ public class ProxyRound extends EnvRound<ProxyRound> {
             Map<ProxyElement, ProxyHandlerBuilderOutputStub> handlerStubs = new HashMap<>();
             for (ProxyElement p : lastOutput.outputs.keySet()) {
                 if (!allHandlerStubs.containsKey(p) && !inputStubs.containsKey(p)) {
-                    ProxyHandlerBuilderOutputStub builderStub = ProxyHandlerBuilderOutputStub.create(p);
+                    ProxyHandlerBuilderOutputStub builderStub = ProxyHandlerBuilderOutputStub.create(p, env);
                     handlerStubs.put(p, builderStub);
                     inputStubs.put(p, ImmutableSet.<TypeElementOutputStub>of(builderStub));
                 }
