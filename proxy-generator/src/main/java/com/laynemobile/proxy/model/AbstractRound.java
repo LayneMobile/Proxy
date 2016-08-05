@@ -37,8 +37,6 @@ public abstract class AbstractRound<R extends AbstractRound<R>> implements Round
         this.previous = previous;
     }
 
-    protected abstract R current();
-
     @Override public final int round() {
         return round;
     }
@@ -52,17 +50,20 @@ public abstract class AbstractRound<R extends AbstractRound<R>> implements Round
     }
 
     @Override public final Iterator<R> iterator() {
-        R current = current();
-        if (current == null) {
-            throw new NullPointerException("current cannot be null");
-        } else if (current != this) {
-            throw new IllegalArgumentException("current '" + current + "' must equal this");
-        }
-        return new RoundIterator<>(current);
+        return new RoundIterator<>(_this());
     }
 
     @Override public final ImmutableList<R> allRounds() {
         return ImmutableList.copyOf(iterator());
+    }
+
+    @SuppressWarnings("unchecked")
+    private R _this() {
+        try {
+            return (R) this;
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("this must be type parameter 'R'");
+        }
     }
 
     private static final class RoundIterator<R extends AbstractRound<R>> implements Iterator<R> {

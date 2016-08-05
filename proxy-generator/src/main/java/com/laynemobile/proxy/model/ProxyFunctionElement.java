@@ -28,12 +28,10 @@ import com.laynemobile.proxy.elements.ExecutableElementAlias;
 import com.laynemobile.proxy.elements.TypeElementAlias;
 import com.laynemobile.proxy.model.output.ProxyFunctionAbstractTypeOutputStub;
 import com.laynemobile.proxy.model.output.TypeElementGenerator;
-import com.laynemobile.proxy.model.output.TypeElementOutputStub;
 import com.laynemobile.proxy.types.AliasTypes;
 import com.laynemobile.proxy.types.DeclaredTypeAlias;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -213,24 +211,6 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
             return ref.get();
         }
         return o;
-    }
-
-    public void writeTo(Env env) throws IOException {
-        TypeElementAlias typeElement = typeElement();
-        ProxyElement parent = ProxyElement.cache().get(typeElement);
-        if (parent == null) {
-            throw new IllegalStateException(typeElement + " parent must be in cache");
-        }
-        TypeElementOutputStub output = outputStub();
-//        TypeSpec abstractType = outputStub.newTypeSpec();
-//        String generated = parent.packageName() + ".generated";
-        output.writeTo(env);
-//
-//        String templates = parent.packageName() + ".templates.temp";
-//        String className = abstractType.name.substring(ABSTRACT_PREFIX.length());
-//
-//        TypeSpec.Builder classBuider = TypeSpec.classBuilder(className)
-//                .superclass()
     }
 
     @Override public String toString() {

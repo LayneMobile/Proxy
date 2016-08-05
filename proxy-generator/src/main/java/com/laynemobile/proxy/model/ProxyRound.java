@@ -21,8 +21,10 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util.Collector;
+import com.laynemobile.proxy.Util.Transformer;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.internal.Util;
+import com.laynemobile.proxy.model.output.ProxyHandlerBuilderOutputStub;
 import com.laynemobile.proxy.model.output.TypeElementOutput;
 import com.laynemobile.proxy.model.output.TypeElementOutputStub;
 
@@ -62,10 +64,6 @@ public class ProxyRound extends EnvRound<ProxyRound> {
         return new ProxyRound(env);
     }
 
-    @Override protected ProxyRound current() {
-        return this;
-    }
-
     ProxyRound process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) throws IOException {
         // add all processed elements from current round
         Output lastOutput = output;
@@ -90,12 +88,33 @@ public class ProxyRound extends EnvRound<ProxyRound> {
                 .toString();
     }
 
+    private static ImmutableSet<ProxyElement> processProxyElements(final Env env, RoundEnvironment roundEnv)
+            throws IOException {
+        try {
+            Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(GenerateProxyBuilder.class);
+            return buildSet(elements, new Transformer<ProxyElement, Element>() {
+                @Override public ProxyElement transform(Element element) {
+                    // Ensure it is an interface element
+                    if (element.getKind() != ElementKind.INTERFACE) {
+                        env.error(element, "Only interfaces can be annotated with @%s",
+                                GenerateProxyBuilder.class.getSimpleName());
+                        throw new RuntimeException("error");
+                    }
+                    return ProxyElement.cache().parse(element, env);
+                }
+            });
+        } catch (Throwable e) {
+            throw new IOException(e);
+        }
+    }
+
     public static final class Input extends EnvRound<Input> {
         private final ImmutableSet<? extends TypeElement> annotations;
         private final ImmutableSet<? extends Element> rootElements;
         private final ImmutableSet<ProxyElement> proxyElements;
         private final ImmutableSet<ProxyElement> outputElements;
         private final ImmutableMap<ProxyElement, ImmutableSet<TypeElementOutputStub>> outputStubs;
+        private final ImmutableMap<ProxyElement, ProxyHandlerBuilderOutputStub> handlerStubs;
 
         private Input(Env env) {
             super(env);
@@ -104,21 +123,20 @@ public class ProxyRound extends EnvRound<ProxyRound> {
             this.proxyElements = ImmutableSet.of();
             this.outputElements = ImmutableSet.of();
             this.outputStubs = ImmutableMap.of();
+            this.handlerStubs = ImmutableMap.of();
         }
 
         private Input(Input previous, Set<? extends TypeElement> annotations, Set<? extends Element> rootElements,
                 Set<? extends ProxyElement> proxyElements, Set<? extends ProxyElement> outputElements,
-                Map<ProxyElement, ImmutableSet<TypeElementOutputStub>> outputStubs) {
+                Map<ProxyElement, ImmutableSet<TypeElementOutputStub>> outputStubs,
+                Map<ProxyElement, ProxyHandlerBuilderOutputStub> handlerStubs) {
             super(previous);
             this.annotations = ImmutableSet.copyOf(annotations);
             this.rootElements = ImmutableSet.copyOf(rootElements);
             this.proxyElements = ImmutableSet.copyOf(proxyElements);
             this.outputElements = ImmutableSet.copyOf(outputElements);
             this.outputStubs = ImmutableMap.copyOf(outputStubs);
-        }
-
-        @Override protected Input current() {
-            return this;
+            this.handlerStubs = ImmutableMap.copyOf(handlerStubs);
         }
 
         public ImmutableSet<? extends TypeElement> annotations() {
@@ -139,6 +157,10 @@ public class ProxyRound extends EnvRound<ProxyRound> {
 
         public ImmutableMap<ProxyElement, ImmutableSet<TypeElementOutputStub>> outputStubs() {
             return outputStubs;
+        }
+
+        public ImmutableMap<ProxyElement, ProxyHandlerBuilderOutputStub> handlerStubs() {
+            return handlerStubs;
         }
 
         public ImmutableSet<Element> allRootElements() {
@@ -173,6 +195,14 @@ public class ProxyRound extends EnvRound<ProxyRound> {
             return combine(previous.allOutputStubs(), outputStubs);
         }
 
+        public ImmutableMap<ProxyElement, ProxyHandlerBuilderOutputStub> allHandlerStubs() {
+            ImmutableMap.Builder<ProxyElement, ProxyHandlerBuilderOutputStub> out = ImmutableMap.builder();
+            for (Input input : allRounds()) {
+                out.putAll(input.handlerStubs);
+            }
+            return out.build();
+        }
+
         public ImmutableSet<ProxyElement> allProcessedElements() {
             Input previous = previous();
             if (previous == null) {
@@ -202,71 +232,60 @@ public class ProxyRound extends EnvRound<ProxyRound> {
             return unprocessed.build();
         }
 
-        private Input process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv,
-                Output lastOutput) throws IOException {
+        private Input process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv, Output lastOutput)
+                throws IOException {
             final ProxyEnv env = env();
-            Set<ProxyElement> allProxyElements = new HashSet<>(allProxyElements());
+            final ImmutableSet<ProxyElement> curProxyElements = processProxyElements(env, roundEnv);
+            final ImmutableSet<ProxyElement> allProxyElements = ImmutableSet.<ProxyElement>builder()
+                    .addAll(allProxyElements())
+                    .addAll(curProxyElements)
+                    .build();
+            final Map<ProxyElement, ImmutableSet<TypeElementOutputStub>> outputStubs
+                    = new HashMap<>(lastOutput.outputStubs(env));
             log("all proxy elements: %s", allProxyElements);
-            Set<ProxyElement> proxyElements = new HashSet<>();
-            for (Element element : roundEnv.getElementsAnnotatedWith(GenerateProxyBuilder.class)) {
-                // Ensure it is an interface element
-                if (element.getKind() != ElementKind.INTERFACE) {
-                    error(element, "Only interfaces can be annotated with @%s",
-                            GenerateProxyBuilder.class.getSimpleName());
-                    throw new IOException("error");
-                }
-                ProxyElement proxyElement = ProxyElement.cache().parse(element, env);
-                if (proxyElement != null) {
-                    proxyElements.add(proxyElement);
-                    allProxyElements.add(proxyElement);
+
+            ImmutableMap<ProxyElement, ProxyHandlerBuilderOutputStub> allHandlerStubs = allHandlerStubs();
+
+            // add builder elements
+            Map<ProxyElement, ProxyHandlerBuilderOutputStub> handlerStubs = new HashMap<>();
+            for (ProxyElement p : lastOutput.outputs.keySet()) {
+                if (!allHandlerStubs.containsKey(p) && !outputStubs.containsKey(p)) {
+                    ProxyHandlerBuilderOutputStub builderStub = ProxyHandlerBuilderOutputStub.create(p);
+                    handlerStubs.put(p, builderStub);
+                    outputStubs.put(p, ImmutableSet.<TypeElementOutputStub>of(builderStub));
                 }
             }
 
-            Map<ProxyElement, ImmutableSet<TypeElementOutputStub>> outputStubs = new HashMap<>();
-            for (Map.Entry<ProxyElement, ? extends Set<TypeElementOutput>> inputEntry : lastOutput.outputs.entrySet()) {
-                ImmutableSet.Builder<TypeElementOutputStub> set = null;
-                for (TypeElementOutput typeInput : inputEntry.getValue()) {
-                    if (typeInput.hasOutput()) {
-                        TypeElementOutputStub outputStub = typeInput.outputStub(env);
-                        if (outputStub != null) {
-                            if (set == null) {
-                                set = ImmutableSet.builder();
-                            }
-                            set.add(outputStub);
+            final ImmutableSet<ProxyElement> unprocessedElements = unprocessed(allProxyElements);
+            log("all unprocessed elements: %s", unprocessedElements);
+
+            final Set<ProxyElement> processedElements = new HashSet<>(allOutputElements());
+            processedElements.removeAll(outputStubs.keySet());
+
+            final Set<ProxyType> dependencies = buildSet(unprocessedElements, new Collector<ProxyType, ProxyElement>() {
+                @Override public void collect(ProxyElement unprocessed, ImmutableCollection.Builder<ProxyType> out) {
+                    for (ProxyType dependency : unprocessed.allDependencies()) {
+                        if (!processedElements.contains(dependency.element())) {
+                            out.add(dependency);
                         }
                     }
                 }
-                if (set != null) {
-                    outputStubs.put(inputEntry.getKey(), set.build());
-                }
-            }
-            Set<ProxyElement> processedElements = new HashSet<>(allOutputElements());
-            processedElements.removeAll(outputStubs.keySet());
+            });
 
-            Set<ProxyElement> round = new HashSet<>();
-            Set<ProxyType> dependencies = new HashSet<>();
-            ImmutableSet<ProxyElement> unprocessedElements = unprocessed(allProxyElements);
-            for (ProxyElement unprocessed : unprocessedElements) {
-                for (ProxyType dependency : unprocessed.allDependencies()) {
-                    if (!processedElements.contains(dependency.element())) {
-                        dependencies.add(dependency);
-                    }
-                }
-            }
-            log("all unprocessed elements: %s", unprocessedElements);
             log("dependencies: %s", dependencies);
-            OUTER:
-            for (ProxyElement unprocessed : unprocessedElements) {
-                for (ProxyType dependency : unprocessed.allDependencies()) {
-                    if (dependencies.contains(dependency)) {
-                        continue OUTER;
-                    }
-                }
-                round.add(unprocessed);
-            }
 
-            ImmutableMap<ProxyElement, ImmutableSet<TypeElementOutputStub>> inputs
-                    = combine(allOutputStubs(), outputStubs);
+            Set<ProxyElement> round = buildSet(unprocessedElements, new Transformer<ProxyElement, ProxyElement>() {
+                @Override public ProxyElement transform(ProxyElement unprocessed) {
+                    for (ProxyType dependency : unprocessed.allDependencies()) {
+                        if (dependencies.contains(dependency)) {
+                            return null;
+                        }
+                    }
+                    return unprocessed;
+                }
+            });
+
+            Map<ProxyElement, ImmutableSet<TypeElementOutputStub>> inputs = combine(allOutputStubs(), outputStubs);
             for (ProxyElement proxyElement : round) {
                 Set<TypeElementOutputStub> curr = Util.nullSafe(outputStubs.remove(proxyElement));
                 outputStubs.put(proxyElement, ImmutableSet.<TypeElementOutputStub>builder()
@@ -274,7 +293,8 @@ public class ProxyRound extends EnvRound<ProxyRound> {
                         .addAll(curr)
                         .build());
             }
-            return new Input(this, annotations, roundEnv.getRootElements(), proxyElements, round, outputStubs);
+            return new Input(this, annotations, roundEnv.getRootElements(), curProxyElements, round, outputStubs,
+                    handlerStubs);
         }
 
         @Override public String toString() {
@@ -315,8 +335,30 @@ public class ProxyRound extends EnvRound<ProxyRound> {
             return new Output(this, outputs.build());
         }
 
-        @Override protected Output current() {
-            return this;
+        public ImmutableMap<ProxyElement, ImmutableSet<TypeElementOutput>> outputs() {
+            return outputs;
+        }
+
+        public ImmutableMap<ProxyElement, ImmutableSet<TypeElementOutputStub>> outputStubs(Env env) {
+            ImmutableMap.Builder<ProxyElement, ImmutableSet<TypeElementOutputStub>> outputStubs = ImmutableMap.builder();
+            for (Map.Entry<ProxyElement, ? extends Set<TypeElementOutput>> inputEntry : outputs.entrySet()) {
+                ImmutableSet.Builder<TypeElementOutputStub> set = null;
+                for (TypeElementOutput typeInput : inputEntry.getValue()) {
+                    if (typeInput.hasOutput()) {
+                        TypeElementOutputStub outputStub = typeInput.outputStub(env);
+                        if (outputStub != null) {
+                            if (set == null) {
+                                set = ImmutableSet.builder();
+                            }
+                            set.add(outputStub);
+                        }
+                    }
+                }
+                if (set != null) {
+                    outputStubs.put(inputEntry.getKey(), set.build());
+                }
+            }
+            return outputStubs.build();
         }
 
         public ImmutableMap<ProxyElement, ImmutableSet<TypeElementOutput>> allOutputs() {
