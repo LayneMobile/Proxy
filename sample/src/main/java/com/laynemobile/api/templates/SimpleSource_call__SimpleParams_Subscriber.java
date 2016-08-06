@@ -17,15 +17,24 @@
 package com.laynemobile.api.templates;
 
 import com.laynemobile.api.SimpleParams;
-import com.laynemobile.api.generated.AbstractSimpleSource_call__SimpleParams_Subscriber;
 import com.laynemobile.proxy.annotations.Generated;
-import com.laynemobile.proxy.functions.Action2;
+import com.laynemobile.proxy.functions.Action1;
+import com.laynemobile.proxy.functions.Func0;
 
+import rx.Observable;
 import rx.Subscriber;
 
 @Generated
-public class SimpleSource_call__SimpleParams_Subscriber<T> extends AbstractSimpleSource_call__SimpleParams_Subscriber<T> {
-  public SimpleSource_call__SimpleParams_Subscriber(Action2<SimpleParams, Subscriber<? super T>> source) {
-    super(source);
-  }
+public class SimpleSource_call__SimpleParams_Subscriber<T> extends Source_call__P_Subscriber<T, SimpleParams> {
+    public SimpleSource_call__SimpleParams_Subscriber(Action1<Subscriber<? super T>> source) {
+        super(source);
+    }
+
+    public SimpleSource_call__SimpleParams_Subscriber(Func0<T> source) {
+        super(source);
+    }
+
+    public SimpleSource_call__SimpleParams_Subscriber(Observable<T> source) {
+        super(source);
+    }
 }

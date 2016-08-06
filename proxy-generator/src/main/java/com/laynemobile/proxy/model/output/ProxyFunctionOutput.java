@@ -83,36 +83,47 @@ public class ProxyFunctionOutput {
         ProxyEnv env = input.env();
         TypeElementOutputStub stub = null;
         if (abstractTypeOutputStub == null) {
-            stub = abstractTypeOutputStub = firstOutputStub(input);
-            abstractTypeOutput = abstractTypeOutputStub.writeTo(env);
+            stub = firstOutputStub(input, element.outputStub());
+            if (stub instanceof ProxyFunctionTypeOutputStub) {
+                // skip abstract type
+                typeOutputStub = (ProxyFunctionTypeOutputStub) stub;
+                typeOutput = typeOutput(input, typeOutputStub);
+            } else {
+                abstractTypeOutputStub = (ProxyFunctionAbstractTypeOutputStub) stub;
+                abstractTypeOutput = abstractTypeOutputStub.writeTo(env);
+            }
         } else if (typeOutputStub == null) {
             if (abstractTypeOutput.hasOutput()) {
                 stub = typeOutputStub = abstractTypeOutput.outputStub(env);
-                String typeOutputName = typeOutputStub.qualifiedName();
-                for (Element rootElement : input.allRootElements()) {
-                    if (rootElement.getKind() != ElementKind.CLASS) {
-                        continue;
-                    }
-
-                    TypeElement typeElement = (TypeElement) rootElement;
-                    if (typeOutputName.equals(typeElement.getQualifiedName().toString())) {
-                        // already created
-                        typeOutput = AbstractTypeElementOutput.create(typeOutputStub, null);
-                        return stub;
-                    }
-                }
-
-                typeOutput = typeOutputStub.writeTo(env);
+                typeOutput = typeOutput(input, typeOutputStub);
             }
         }
         return stub;
     }
 
-    private ProxyFunctionAbstractTypeOutputStub firstOutputStub(ProxyRound.Input input) {
+    private static TypeElementOutput typeOutput(ProxyRound.Input input, ProxyFunctionTypeOutputStub typeOutputStub)
+            throws IOException {
+        String typeOutputName = typeOutputStub.qualifiedName();
+        for (Element rootElement : input.allRootElements()) {
+            if (rootElement.getKind() != ElementKind.CLASS) {
+                continue;
+            }
+
+            TypeElement typeElement = (TypeElement) rootElement;
+            if (typeOutputName.equals(typeElement.getQualifiedName().toString())) {
+                // already created
+                return AbstractTypeElementOutput.create(typeOutputStub, null);
+            }
+        }
+
+        return typeOutputStub.writeTo(input.env());
+    }
+
+    private TypeElementOutputStub firstOutputStub(ProxyRound.Input input,
+            ProxyFunctionAbstractTypeOutputStub outputStub) {
         final ProxyEnv env = input.env();
         final ProxyElement parent = this.parent;
         final ImmutableMap<ProxyElement, ImmutableSet<ProxyFunctionOutput>> inputFunctions = input.allInputFunctions();
-        final ProxyFunctionAbstractTypeOutputStub outputStub = element.outputStub();
         for (ProxyFunctionElement override : element.overrides()) {
             ProxyElement overrideParentElement = override.parent();
             Set<ProxyFunctionOutput> set = inputFunctions.get(overrideParentElement);
@@ -146,7 +157,8 @@ public class ProxyFunctionOutput {
                 }
                 DeclaredType superType = env.types()
                         .getDeclaredType(superElement, typeParams);
-                return outputStub.withSuperClass(superType);
+                env.log("super proxy type '%s'", superType);
+                return new ProxyFunctionTypeOutputStub(outputStub, superType, env);
             }
         }
         return outputStub;

@@ -30,6 +30,6 @@ public class ProxyFunctionAbstractTypeOutput extends AbstractTypeElementOutput<P
     }
 
     @Override public ProxyFunctionTypeOutputStub outputStub(Env env) {
-        return new ProxyFunctionTypeOutputStub(this, env);
+        return new ProxyFunctionTypeOutputStub(source(), env);
     }
 }
