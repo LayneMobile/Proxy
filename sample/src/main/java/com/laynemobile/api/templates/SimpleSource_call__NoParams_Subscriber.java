@@ -25,16 +25,16 @@ import rx.Observable;
 import rx.Subscriber;
 
 @Generated
-public class SimpleSource_call__SimpleParams_Subscriber<T> extends Source_call__P_Subscriber<T, NoParams> {
-    public SimpleSource_call__SimpleParams_Subscriber(Action1<Subscriber<? super T>> source) {
+public class SimpleSource_call__NoParams_Subscriber<T> extends Source_call__P_Subscriber<T, NoParams> {
+    public SimpleSource_call__NoParams_Subscriber(Action1<Subscriber<? super T>> source) {
         super(source);
     }
 
-    public SimpleSource_call__SimpleParams_Subscriber(Func0<T> source) {
+    public SimpleSource_call__NoParams_Subscriber(Func0<T> source) {
         super(source);
     }
 
-    public SimpleSource_call__SimpleParams_Subscriber(Observable<T> source) {
+    public SimpleSource_call__NoParams_Subscriber(Observable<T> source) {
         super(source);
     }
 }
