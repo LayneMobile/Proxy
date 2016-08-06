@@ -16,6 +16,7 @@
 
 package com.laynemobile.proxy.model.output;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util.Transformer;
@@ -25,6 +26,8 @@ import com.laynemobile.proxy.model.ProxyFunctionElement;
 import com.laynemobile.proxy.model.ProxyRound;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.lang.model.element.ElementKind;
 
@@ -68,7 +71,7 @@ public class ProxyElementOutput {
             throws IOException {
         ProxyEnv env = input.env();
         boolean functionsFinished = true;
-        ImmutableSet.Builder<TypeElementOutputStub> out = ImmutableSet.builder();
+        Set<TypeElementOutputStub> out = new HashSet<>(outputs.size());
         for (ProxyFunctionOutput functionOutput : outputs) {
             if (!functionOutput.isFinished()) {
                 functionsFinished = false;
@@ -78,7 +81,7 @@ public class ProxyElementOutput {
                 }
             }
         }
-        if (functionsFinished) {
+        if (functionsFinished && out.isEmpty()) {
             if (handlerBuilderOutputStub == null) {
                 out.add(handlerBuilderOutputStub = ProxyHandlerBuilderOutputStub.create(env, element, outputs));
                 if (element.element().getKind() == ElementKind.INTERFACE) {
@@ -86,7 +89,7 @@ public class ProxyElementOutput {
                 }
             }
         }
-        return out.build();
+        return ImmutableSet.copyOf(out);
     }
 
     @Override public boolean equals(Object o) {
@@ -98,5 +101,11 @@ public class ProxyElementOutput {
 
     @Override public int hashCode() {
         return Objects.hashCode(element);
+    }
+
+    @Override public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("element", element)
+                .toString();
     }
 }

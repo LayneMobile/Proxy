@@ -35,9 +35,8 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.ExecutableElement;
@@ -76,12 +75,11 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
     @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
         DeclaredType proxyType = (DeclaredType) proxyElement.element().asType().actual();
         TypeMirror[] typeParams = typeMirrorArray(proxyType.getTypeArguments());
-        TypeElement handlerElement = env.elements().getTypeElement("com.laynemobile.proxy.ProxyHandler");
-        DeclaredType handlerType = env.types().getDeclaredType(handlerElement, proxyType);
-        TypeElement builderElement = env.elements().getTypeElement("com.laynemobile.proxy.Builder");
-        DeclaredType builderType = env.types().getDeclaredType(builderElement, handlerType);
+        TypeElement abstractBuilderElement = env.elements()
+                .getTypeElement("com.laynemobile.proxy.AbstractProxyHandlerBuilder");
+        DeclaredType abstractBuilderType = env.types().getDeclaredType(abstractBuilderElement, proxyType);
 
-        classBuilder.addSuperinterface(TypeName.get(builderType))
+        classBuilder.superclass(TypeName.get(abstractBuilderType))
                 .addModifiers(Modifier.PUBLIC);
         // TODO: add annotation!
 //                .addAnnotation(AnnotationSpec.builder(ProxyFunctionImplementation.class)
@@ -111,7 +109,7 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
 
         TypeName outputType = ParameterizedTypeName.get(typeName(), typeNameArray(typeVariableNames));
 
-        Map<String, CodeBlock> handlers = new HashMap<>();
+        Set<FieldSpec> handlerFields = new HashSet<>();
         for (ProxyFunctionOutput function : functions) {
             ProxyFunctionElement element = function.element();
             String fieldName = element.name();
@@ -124,15 +122,9 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
                     .addModifiers(Modifier.PRIVATE)
                     .build();
             classBuilder.addField(fieldSpec);
+            handlerFields.add(fieldSpec);
 
             // create method for each constructor
-
-            /*
-                public SourceHandlerBuilder<T, P> source(Action2<P, Subscriber<? super T>> source) {
-                    this.source = new Source_callFunction<>(source);
-                    return this;
-                }
-             */
             for (ExecutableElement constructor : ElementFilter.constructorsIn(fieldElement.getEnclosedElements())) {
                 List<? extends VariableElement> params = constructor.getParameters();
                 if (params.size() != 1) {
@@ -140,15 +132,6 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
                 }
                 VariableElement param = params.get(0);
                 TypeName paramType = TypeName.get(param.asType());
-//                    Set<Modifier> modifiers = param.getModifiers();
-//                    ParameterSpec.Builder paramSpec = ParameterSpec.builder(paramType, paramName)
-//                            .addModifiers(modifiers.toArray(new Modifier[modifiers.size()]));
-//                    for (AnnotationMirror am : method.getAnnotationMirrors()) {
-//                        TypeElement te = (TypeElement) am.getAnnotationType().asElement();
-//                        paramSpec.addAnnotation(ClassName.get(te));
-//                    }
-//                    spec.addParameter(paramSpec.build());
-//
                 classBuilder.addMethod(MethodSpec.methodBuilder(fieldName)
                         .addModifiers(Modifier.PUBLIC)
                         .returns(outputType)
@@ -157,8 +140,6 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
                         .addStatement("return this")
                         .build());
             }
-
-            // create code block for build function
         }
 
         TypeElement typeTokenElement = env.elements().getTypeElement("com.laynemobile.proxy.TypeToken");
@@ -182,21 +163,19 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
         }
          */
 
+        TypeElement handlerElement = env.elements().getTypeElement("com.laynemobile.proxy.ProxyHandler");
+        DeclaredType handlerType = env.types().getDeclaredType(handlerElement, proxyType);
         MethodSpec.Builder buildMethod = MethodSpec.methodBuilder("build")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .returns(TypeName.get(handlerType));
 
-        for (Map.Entry<String, CodeBlock> handlerEntry : handlers.entrySet()) {
-            buildMethod.addCode(handlerEntry.getValue());
-        }
-
         CodeBlock.Builder returnCode = CodeBlock.builder()
                 .add("$[")
                 .add("return $T.builder(new $T() {})\n", ClassName.get(handlerElement), TypeName.get(typeTokenType));
 
-        for (String name : handlers.keySet()) {
-            returnCode.add(".handle($L)\n", name);
+        for (FieldSpec handlerField : handlerFields) {
+            returnCode.add(".handle(handler($N))\n", handlerField);
         }
 
         buildMethod.addCode(returnCode
