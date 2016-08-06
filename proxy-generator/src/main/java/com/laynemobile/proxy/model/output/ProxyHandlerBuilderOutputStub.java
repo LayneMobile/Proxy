@@ -37,6 +37,7 @@ import com.squareup.javapoet.TypeVariableName;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.lang.model.element.ExecutableElement;
@@ -113,6 +114,9 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
         for (ProxyFunctionOutput function : functions) {
             ProxyFunctionElement element = function.element();
             String fieldName = element.name();
+            String methodName = "set" +
+                    fieldName.substring(0, 1).toUpperCase(Locale.US) +
+                    fieldName.substring(1);
 
             TypeElement fieldElement = function.typeOutputStub().element(env);
             DeclaredType fieldType = env.types().getDeclaredType(fieldElement, typeParams);
@@ -127,7 +131,7 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
             // create method for each constructor
             for (ExecutableElement constructor : ElementFilter.constructorsIn(fieldElement.getEnclosedElements())) {
                 List<? extends VariableElement> params = constructor.getParameters();
-                MethodSpec.Builder method = MethodSpec.methodBuilder(fieldName)
+                MethodSpec.Builder method = MethodSpec.methodBuilder(methodName)
                         .addModifiers(Modifier.PUBLIC)
                         .returns(outputType);
                 if (params.size() == 0) {

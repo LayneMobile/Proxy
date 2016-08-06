@@ -28,7 +28,7 @@ public class TestInterfaceHandler<T, R> implements Builder<ProcessorHandler.Pare
     private final TestInterfaceHandlerBuilder<T, R> builder = new TestInterfaceHandlerBuilder<>();
 
     public void setSource(Func1<T, R> source) {
-        builder.source(source);
+        builder.setSource(source);
     }
 
     @Override public ProcessorHandler.Parent<T, R, TestInterface<T, R>> build() {
