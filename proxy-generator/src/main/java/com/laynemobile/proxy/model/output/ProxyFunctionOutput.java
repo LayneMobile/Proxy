@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
@@ -86,6 +88,20 @@ public class ProxyFunctionOutput {
         } else if (typeOutputStub == null) {
             if (abstractTypeOutput.hasOutput()) {
                 stub = typeOutputStub = abstractTypeOutput.outputStub(env);
+                String typeOutputName = typeOutputStub.qualifiedName();
+                for (Element rootElement : input.allRootElements()) {
+                    if (rootElement.getKind() != ElementKind.CLASS) {
+                        continue;
+                    }
+
+                    TypeElement typeElement = (TypeElement) rootElement;
+                    if (typeOutputName.equals(typeElement.getQualifiedName().toString())) {
+                        // already created
+                        typeOutput = AbstractTypeElementOutput.create(typeOutputStub, null);
+                        return stub;
+                    }
+                }
+
                 typeOutput = typeOutputStub.writeTo(env);
             }
         }
@@ -95,15 +111,16 @@ public class ProxyFunctionOutput {
     private ProxyFunctionAbstractTypeOutputStub firstOutputStub(ProxyRound.Input input) {
         final ProxyEnv env = input.env();
         final ProxyElement parent = this.parent;
-        final ImmutableMap<ProxyElement, ImmutableSet<TypeElementOutputStub>> inputs = input.allInputStubs();
+        final ImmutableMap<ProxyElement, ImmutableSet<ProxyFunctionOutput>> inputFunctions = input.allInputFunctions();
         final ProxyFunctionAbstractTypeOutputStub outputStub = element.outputStub();
         for (ProxyFunctionElement override : element.overrides()) {
             ProxyElement overrideParentElement = override.parent();
-            Set<TypeElementOutputStub> set = inputs.get(overrideParentElement);
+            Set<ProxyFunctionOutput> set = inputFunctions.get(overrideParentElement);
             if (set == null) {
                 continue;
             }
-            for (TypeElementOutputStub generated : set) {
+            for (ProxyFunctionOutput functionOutput : set) {
+                ProxyFunctionTypeOutputStub generated = functionOutput.typeOutputStub;
                 env.log("say man");
                 env.log("%s -- writing override '%s' from '%s' -- %s", parent.toDebugString(),
                         outputStub.qualifiedName(), override, generated);

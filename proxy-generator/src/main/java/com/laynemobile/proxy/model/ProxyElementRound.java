@@ -30,18 +30,18 @@ import sourcerer.processor.Env;
 import static com.laynemobile.proxy.Util.buildSet;
 
 public class ProxyElementRound extends EnvRound<ProxyElementRound> {
-    private final ProxyElementOutput element;
+    private final ProxyElementOutput elementOutput;
     private final ImmutableSet<TypeElementOutputStub> outputStubs;
 
-    private ProxyElementRound(Env env, ProxyElementOutput element) {
+    private ProxyElementRound(Env env, ProxyElementOutput elementOutput) {
         super(env);
-        this.element = element;
+        this.elementOutput = elementOutput;
         this.outputStubs = ImmutableSet.of();
     }
 
     private ProxyElementRound(ProxyElementRound previous, ImmutableSet<TypeElementOutputStub> outputStubs) {
         super(previous);
-        this.element = previous.element;
+        this.elementOutput = previous.elementOutput;
         this.outputStubs = outputStubs;
     }
 
@@ -50,8 +50,12 @@ public class ProxyElementRound extends EnvRound<ProxyElementRound> {
         return new ProxyElementRound(env, output);
     }
 
-    public ProxyElementOutput element() {
-        return element;
+    public ProxyElementOutput elementOutput() {
+        return elementOutput;
+    }
+
+    public ProxyElement element() {
+        return elementOutput.element();
     }
 
     public ImmutableSet<TypeElementOutputStub> outputStubs() {
@@ -67,16 +71,16 @@ public class ProxyElementRound extends EnvRound<ProxyElementRound> {
     }
 
     public boolean isFinished() {
-        return element.isFinished();
+        return elementOutput.isFinished();
     }
 
     public ProxyElementRound nextRound(ProxyRound.Input input) throws IOException {
-        return new ProxyElementRound(this, element.nextOutputStubs(input));
+        return new ProxyElementRound(this, elementOutput.nextOutputStubs(input));
     }
 
     @Override public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("\nelement", element)
+                .add("\nelementOutput", elementOutput)
                 .add("\noutputStubs", outputStubs)
                 .toString();
     }

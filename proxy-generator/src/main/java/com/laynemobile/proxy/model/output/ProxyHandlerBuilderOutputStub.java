@@ -127,16 +127,21 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
             // create method for each constructor
             for (ExecutableElement constructor : ElementFilter.constructorsIn(fieldElement.getEnclosedElements())) {
                 List<? extends VariableElement> params = constructor.getParameters();
-                if (params.size() != 1) {
-                    throw new IllegalArgumentException("only 1 param allowed");
-                }
-                VariableElement param = params.get(0);
-                TypeName paramType = TypeName.get(param.asType());
-                classBuilder.addMethod(MethodSpec.methodBuilder(fieldName)
+                MethodSpec.Builder method = MethodSpec.methodBuilder(fieldName)
                         .addModifiers(Modifier.PUBLIC)
-                        .returns(outputType)
-                        .addParameter(paramType, fieldName)
-                        .addStatement("this.$N = new $T($L)", fieldSpec, fieldType, fieldName)
+                        .returns(outputType);
+                if (params.size() == 0) {
+                    method.addStatement("this.$N = new $T()", fieldSpec, fieldType);
+                } else if (params.size() == 1) {
+                    VariableElement param = params.get(0);
+                    TypeName paramType = TypeName.get(param.asType());
+                    method.addParameter(paramType, fieldName)
+                            .addStatement("this.$N = new $T($L)", fieldSpec, fieldType, fieldName);
+                } else {
+                    throw new IllegalArgumentException("no more than 1 param allowed");
+                }
+
+                classBuilder.addMethod(method
                         .addStatement("return this")
                         .build());
             }
@@ -146,23 +151,6 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
         DeclaredType typeTokenType = env.types().getDeclaredType(typeTokenElement, proxyType);
 
         // build function
-
-        /*
-        @Override public ProxyHandler<Source<T, P>> build() {
-            final Source_callFunction<T, P> source = this.source;
-            if (source == null) {
-                throw new IllegalStateException("source function must be set");
-            }
-            final NamedMethodHandler sourceHandler = source.handler();
-            if (sourceHandler == null) {
-                throw new IllegalStateException("source function handler must not be null");
-            }
-            return ProxyHandler.builder(new TypeToken<Source<T, P>>() {})
-                    .handle(sourceHandler)
-                    .build();
-        }
-         */
-
         TypeElement handlerElement = env.elements().getTypeElement("com.laynemobile.proxy.ProxyHandler");
         DeclaredType handlerType = env.types().getDeclaredType(handlerElement, proxyType);
         MethodSpec.Builder buildMethod = MethodSpec.methodBuilder("build")

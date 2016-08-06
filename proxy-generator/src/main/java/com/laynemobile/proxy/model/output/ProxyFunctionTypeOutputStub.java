@@ -18,6 +18,7 @@ package com.laynemobile.proxy.model.output;
 
 import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.elements.TypeParameterElementAlias;
+import com.laynemobile.proxy.model.ProxyEnv;
 import com.laynemobile.proxy.model.ProxyFunctionElement;
 import com.laynemobile.proxy.types.AliasTypes;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
@@ -27,23 +28,31 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 
 import sourcerer.processor.Env;
 
+import static javax.lang.model.util.ElementFilter.constructorsIn;
+
 public class ProxyFunctionTypeOutputStub extends AbstractTypeElementOutputStub {
+    private final Env env;
     private final ProxyFunctionAbstractTypeOutput parentOutput;
-    private final TypeMirror superClass;
+    private final DeclaredType superClass;
 
     ProxyFunctionTypeOutputStub(ProxyFunctionAbstractTypeOutput parentOutput, Env env) {
         super(parentOutput.source().basePackageName() + ".templates", parentOutput.source().baseClassName());
         this.parentOutput = parentOutput;
-        this.superClass = parentOutput.element(env).asType();
+        this.superClass = (DeclaredType) parentOutput.element(env).asType();
+        this.env = ProxyEnv.wrap(env);
     }
 
     @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
@@ -71,11 +80,37 @@ public class ProxyFunctionTypeOutputStub extends AbstractTypeElementOutputStub {
         String name = function.name();
 
         // Constructor
-        classBuilder.addMethod(MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(TypeName.get(function.functionType()), name)
-                .addStatement("super($L)", name)
-                .build());
+        for (ExecutableElement constructor : constructorsIn(superClass.asElement().getEnclosedElements())) {
+            MethodSpec.Builder method = MethodSpec.constructorBuilder()
+                    .addModifiers(Modifier.PUBLIC);
+
+            Set<String> paramNames = new HashSet<>();
+            for (VariableElement parameter : constructor.getParameters()) {
+//                TypeMirror paramType = env.types().asMemberOf(superClass, parameter);
+                String paramName = parameter.getSimpleName().toString();
+                paramNames.add(paramName);
+                method.addParameter(TypeName.get(parameter.asType()), paramName);
+            }
+
+            boolean first = true;
+            StringBuilder params = new StringBuilder();
+            for (String paramName : paramNames) {
+                if (!first) {
+                    params.append(", ");
+                }
+                first = false;
+                params.append(paramName);
+            }
+
+            method.addStatement("super($L)", params.toString());
+
+            classBuilder.addMethod(method.build());
+        }
+//        classBuilder.addMethod(MethodSpec.constructorBuilder()
+//                .addModifiers(Modifier.PUBLIC)
+//                .addParameter(TypeName.get(function.functionType()), name)
+//                .addStatement("super($L)", name)
+//                .build());
 
         return classBuilder.build();
     }

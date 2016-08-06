@@ -56,6 +56,10 @@ public class ProxyElementOutput {
         return element;
     }
 
+    public ImmutableSet<ProxyFunctionOutput> outputs() {
+        return outputs;
+    }
+
     public boolean isFinished() {
         for (ProxyFunctionOutput output : outputs) {
             if (!output.isFinished()) {

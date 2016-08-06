@@ -18,6 +18,7 @@ package com.laynemobile.api.templates;
 
 import com.laynemobile.api.Params;
 import com.laynemobile.api.generated.AbstractSource_call__P_Subscriber;
+import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Action1;
 import com.laynemobile.proxy.functions.Action2;
 import com.laynemobile.proxy.functions.Func0;
@@ -26,25 +27,25 @@ import com.laynemobile.proxy.functions.Func1;
 import rx.Observable;
 import rx.Subscriber;
 
-// subclass template created for user for constructor extensions
-public class Source_callFunction<T, P extends Params> extends AbstractSource_call__P_Subscriber<T, P> {
-    public Source_callFunction(Action2<P, Subscriber<? super T>> action2) {
-        super(action2);
+@Generated
+public class Source_call__P_Subscriber<T, P extends Params> extends AbstractSource_call__P_Subscriber<T, P> {
+    public Source_call__P_Subscriber(Action2<P, Subscriber<? super T>> source) {
+        super(source);
     }
 
-    public Source_callFunction(final Action1<Subscriber<? super T>> action1) {
+    public Source_call__P_Subscriber(final Action1<Subscriber<? super T>> source) {
         super(new Action2<P, Subscriber<? super T>>() {
             @Override public void call(P p, Subscriber<? super T> subscriber) {
-                action1.call(subscriber);
+                source.call(subscriber);
             }
         });
     }
 
-    public Source_callFunction(final Func1<P, T> func1) {
+    public Source_call__P_Subscriber(final Func1<P, T> source) {
         super(new Action2<P, Subscriber<? super T>>() {
             @Override public void call(P p, Subscriber<? super T> subscriber) {
                 try {
-                    T t = func1.call(p);
+                    T t = source.call(p);
                     subscriber.onNext(t);
                     subscriber.onCompleted();
                 } catch (Throwable e) {
@@ -54,18 +55,18 @@ public class Source_callFunction<T, P extends Params> extends AbstractSource_cal
         });
     }
 
-    public Source_callFunction(final Func0<T> func0) {
+    public Source_call__P_Subscriber(final Func0<T> source) {
         this(new Func1<P, T>() {
             @Override public T call(P p) {
-                return func0.call();
+                return source.call();
             }
         });
     }
 
-    public Source_callFunction(final Observable<T> observable) {
+    public Source_call__P_Subscriber(final Observable<T> source) {
         super(new Action2<P, Subscriber<? super T>>() {
             @Override public void call(P p, final Subscriber<? super T> child) {
-                observable.unsafeSubscribe(new Subscriber<T>(child) {
+                source.unsafeSubscribe(new Subscriber<T>(child) {
                     @Override public void onCompleted() {
                         if (!child.isUnsubscribed()) {
                             child.onCompleted();

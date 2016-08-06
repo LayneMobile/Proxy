@@ -24,6 +24,7 @@ import com.laynemobile.proxy.Util.Collector;
 import com.laynemobile.proxy.Util.Transformer;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.model.output.ProxyElementOutput;
+import com.laynemobile.proxy.model.output.ProxyFunctionOutput;
 import com.laynemobile.proxy.model.output.TypeElementOutputStub;
 
 import java.io.IOException;
@@ -118,7 +119,7 @@ public class ProxyRound extends EnvRound<ProxyRound> {
         private final ImmutableSet<? extends Element> rootElements;
         private final ImmutableSet<ProxyElement> proxyElements;
         private final ImmutableSet<ProxyElement> outputElements;
-        private final ImmutableSet<ProxyElementRound> inputs;
+        private final ImmutableSet<ProxyElementRound> inputRounds;
 
         private Input(Env env) {
             super(env);
@@ -126,18 +127,18 @@ public class ProxyRound extends EnvRound<ProxyRound> {
             this.rootElements = ImmutableSet.of();
             this.proxyElements = ImmutableSet.of();
             this.outputElements = ImmutableSet.of();
-            this.inputs = ImmutableSet.of();
+            this.inputRounds = ImmutableSet.of();
         }
 
         private Input(Input previous, Set<? extends TypeElement> annotations, Set<? extends Element> rootElements,
                 Set<? extends ProxyElement> proxyElements, Set<? extends ProxyElement> outputElements,
-                Set<ProxyElementRound> inputs) {
+                Set<ProxyElementRound> inputRounds) {
             super(previous);
             this.annotations = ImmutableSet.copyOf(annotations);
             this.rootElements = ImmutableSet.copyOf(rootElements);
             this.proxyElements = ImmutableSet.copyOf(proxyElements);
             this.outputElements = ImmutableSet.copyOf(outputElements);
-            this.inputs = ImmutableSet.copyOf(inputs);
+            this.inputRounds = ImmutableSet.copyOf(inputRounds);
         }
 
         public ImmutableSet<? extends TypeElement> annotations() {
@@ -156,15 +157,34 @@ public class ProxyRound extends EnvRound<ProxyRound> {
             return outputElements;
         }
 
-        public ImmutableSet<ProxyElementRound> inputs() {
-            return inputs;
+        public ImmutableSet<ProxyElementRound> inputRounds() {
+            return inputRounds;
         }
 
         public ImmutableMap<ProxyElement, ImmutableSet<TypeElementOutputStub>> inputStubs() {
             ImmutableMap.Builder<ProxyElement, ImmutableSet<TypeElementOutputStub>> out
                     = ImmutableMap.builder();
-            for (ProxyElementRound inputRound : inputs) {
-                out.put(inputRound.element().element(), inputRound.outputStubs());
+            for (ProxyElementRound inputRound : inputRounds) {
+                out.put(inputRound.element(), inputRound.outputStubs());
+            }
+            return out.build();
+        }
+
+        public ImmutableSet<ProxyElementOutput> allInputs() {
+            return buildSet(allRounds(), new Collector<ProxyElementOutput, Input>() {
+                @Override public void collect(Input input, ImmutableCollection.Builder<ProxyElementOutput> out) {
+                    for (ProxyElementRound inputRound : input.inputRounds) {
+                        out.add(inputRound.elementOutput());
+                    }
+                }
+            });
+        }
+
+        public ImmutableMap<ProxyElement, ImmutableSet<ProxyFunctionOutput>> allInputFunctions() {
+            ImmutableMap.Builder<ProxyElement, ImmutableSet<ProxyFunctionOutput>> out
+                    = ImmutableMap.builder();
+            for (ProxyElementOutput elementOutput : allInputs()) {
+                out.put(elementOutput.element(), elementOutput.outputs());
             }
             return out.build();
         }
@@ -300,7 +320,7 @@ public class ProxyRound extends EnvRound<ProxyRound> {
 
         Output write(Input input) throws IOException {
             final ProxyEnv env = input.env();
-            final Set<ProxyElementRound> outputs = new HashSet<>(input.inputs());
+            final Set<ProxyElementRound> outputs = new HashSet<>(input.inputRounds());
 
             for (ProxyElement proxyElement : input.outputElements()) {
                 outputs.add(ProxyElementRound.create(proxyElement, env)
