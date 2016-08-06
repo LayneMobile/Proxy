@@ -16,12 +16,12 @@
 
 package com.laynemobile.api;
 
-public final class SimpleParams implements Params {
-    private static final SimpleParams INSTANCE = new SimpleParams();
+public final class NoParams implements Params {
+    private static final NoParams INSTANCE = new NoParams();
 
-    private SimpleParams() {}
+    private NoParams() {}
 
-    public static SimpleParams instance() {
+    public static NoParams instance() {
         return INSTANCE;
     }
 }

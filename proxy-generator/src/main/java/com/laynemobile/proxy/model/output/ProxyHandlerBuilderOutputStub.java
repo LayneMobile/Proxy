@@ -35,6 +35,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -142,7 +143,25 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
                     method.addParameter(paramType, fieldName)
                             .addStatement("this.$N = new $T($L)", fieldSpec, fieldType, fieldName);
                 } else {
-                    throw new IllegalArgumentException("no more than 1 param allowed");
+                    List<String> paramNames = new ArrayList<>();
+                    for (VariableElement parameter : params) {
+                        TypeMirror paramType = parameter.asType();
+                        String paramName = parameter.getSimpleName().toString();
+                        paramNames.add(paramName);
+                        method.addParameter(TypeName.get(paramType), paramName);
+                    }
+
+                    boolean first = true;
+                    StringBuilder paramString = new StringBuilder();
+                    for (String paramName : paramNames) {
+                        if (!first) {
+                            paramString.append(", ");
+                        }
+                        first = false;
+                        paramString.append(paramName);
+                    }
+
+                    method.addStatement("this.$N = new $T($L)", fieldSpec, fieldType, paramString.toString());
                 }
 
                 classBuilder.addMethod(method

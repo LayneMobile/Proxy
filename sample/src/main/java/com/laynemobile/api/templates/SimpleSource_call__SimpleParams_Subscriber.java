@@ -16,7 +16,7 @@
 
 package com.laynemobile.api.templates;
 
-import com.laynemobile.api.SimpleParams;
+import com.laynemobile.api.NoParams;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Action1;
 import com.laynemobile.proxy.functions.Func0;
@@ -25,7 +25,7 @@ import rx.Observable;
 import rx.Subscriber;
 
 @Generated
-public class SimpleSource_call__SimpleParams_Subscriber<T> extends Source_call__P_Subscriber<T, SimpleParams> {
+public class SimpleSource_call__SimpleParams_Subscriber<T> extends Source_call__P_Subscriber<T, NoParams> {
     public SimpleSource_call__SimpleParams_Subscriber(Action1<Subscriber<? super T>> source) {
         super(source);
     }
