@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib'
+package com.laynemobile.api;
 
-rootProject.name = 'com.laynemobile.proxy'
+/** Marker interface for request parameters. */
+public interface Params {
+
+    /** Params Builder */
+    interface Builder<P extends Params> extends com.laynemobile.proxy.Builder<P> {}
+}
