@@ -14,12 +14,4 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample'
-
-rootProject.name = 'com.laynemobile.proxy'
+apply from: "${rootDir}/gradle/java-library.gradle"

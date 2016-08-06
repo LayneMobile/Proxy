@@ -16,35 +16,6 @@
 
 apply from: "${rootDir}/gradle/java-library.gradle"
 
-sourceSets {
-    common {
-        java {
-            srcDirs += 'src/common/java'
-        }
-        resources {
-            srcDirs += 'src/common/resources'
-        }
-    }
-    main {
-        java {
-            srcDirs += common.java.srcDirs
-        }
-        resources {
-            srcDirs += common.resources.srcDirs
-        }
-    }
-    rx {
-        java {
-            srcDirs += 'src/rx/java'
-            srcDirs += common.java.srcDirs
-        }
-        resources {
-            srcDirs += 'src/rx/resources'
-            srcDirs += common.resources.srcDirs
-        }
-    }
-}
-
 dependencies {
-    rxCompile "io.reactivex:rxjava:${appRxJavaVersion}"
+    compile project(':proxy-functions-core')
 }
