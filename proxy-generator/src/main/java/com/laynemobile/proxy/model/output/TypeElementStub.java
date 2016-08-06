@@ -16,6 +16,8 @@
 
 package com.laynemobile.proxy.model.output;
 
+import com.squareup.javapoet.ClassName;
+
 import javax.lang.model.element.TypeElement;
 
 import sourcerer.processor.Env;
@@ -26,6 +28,8 @@ public interface TypeElementStub {
     String className();
 
     String qualifiedName();
+
+    ClassName typeName();
 
     TypeElement element(Env env);
 }

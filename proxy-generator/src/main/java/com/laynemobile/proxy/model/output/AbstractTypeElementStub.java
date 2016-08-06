@@ -29,12 +29,14 @@ public abstract class AbstractTypeElementStub implements TypeElementStub {
     private final String packageName;
     private final String className;
     private final String qualifiedName;
+    private final ClassName typeName;
 
     protected AbstractTypeElementStub(String packageName, String className) {
         ClassName typeName = Util.typeName(packageName, className);
         this.packageName = packageName;
         this.className = className;
         this.qualifiedName = Util.qualifiedName(typeName);
+        this.typeName = typeName;
     }
 
     @Override public final String packageName() {
@@ -47,6 +49,10 @@ public abstract class AbstractTypeElementStub implements TypeElementStub {
 
     @Override public final String qualifiedName() {
         return qualifiedName;
+    }
+
+    @Override public final ClassName typeName() {
+        return typeName;
     }
 
     @Override public TypeElement element(Env env) {

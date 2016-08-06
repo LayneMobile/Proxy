@@ -16,7 +16,9 @@
 
 package com.laynemobile.proxy.model.output;
 
+import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util;
+import com.laynemobile.proxy.Util.Transformer;
 import com.laynemobile.proxy.elements.TypeParameterElementAlias;
 import com.laynemobile.proxy.model.ProxyElement;
 import com.laynemobile.proxy.model.ProxyEnv;
@@ -26,48 +28,54 @@ import com.laynemobile.proxy.types.TypeMirrorAlias;
 import com.laynemobile.proxy.types.TypeVariableAlias;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.ElementFilter;
 
 import sourcerer.processor.Env;
 
-public class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutputStub {
+import static com.laynemobile.proxy.Util.buildList;
+import static com.laynemobile.proxy.Util.typeMirrorArray;
+import static com.laynemobile.proxy.Util.typeNameArray;
+
+public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutputStub {
     private final ProxyElement proxyElement;
     private final ProxyEnv env;
-    private Set<ProxyFunctionOutput> functions = new HashSet<>();
+    private final ImmutableSet<ProxyFunctionOutput> functions;
 
-    private ProxyHandlerBuilderOutputStub(ProxyElement proxyElement, Env env) {
+    private ProxyHandlerBuilderOutputStub(Env env, ProxyElement proxyElement, Set<ProxyFunctionOutput> functions) {
         super(proxyElement.packageName() + ".generated", proxyElement.className().simpleName() + "HandlerBuilder");
-        this.proxyElement = proxyElement;
         this.env = ProxyEnv.wrap(env);
+        this.proxyElement = proxyElement;
+        this.functions = ImmutableSet.copyOf(functions);
     }
 
-    public static ProxyHandlerBuilderOutputStub create(ProxyElement proxyElement, Env env) {
-        return new ProxyHandlerBuilderOutputStub(proxyElement, env);
+    static ProxyHandlerBuilderOutputStub create(Env env, ProxyElement proxyElement,
+            Set<ProxyFunctionOutput> functions) {
+        return new ProxyHandlerBuilderOutputStub(env, proxyElement, functions);
     }
-
-    /*
-    public class SourceHandlerBuilder<T, P extends Params> implements Builder<ProxyHandler<Source<T, P>>> {
-     */
 
     @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
         DeclaredType proxyType = (DeclaredType) proxyElement.element().asType().actual();
-        TypeMirror[] typeParams = Util.toArray(proxyType.getTypeArguments());
+        TypeMirror[] typeParams = typeMirrorArray(proxyType.getTypeArguments());
         TypeElement handlerElement = env.elements().getTypeElement("com.laynemobile.proxy.ProxyHandler");
         DeclaredType handlerType = env.types().getDeclaredType(handlerElement, proxyType);
         TypeElement builderElement = env.elements().getTypeElement("com.laynemobile.proxy.Builder");
@@ -82,7 +90,7 @@ public class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutputStub
         ;
 
         List<TypeVariableAlias> typeVariables = Util.buildList(proxyElement.element().getTypeParameters(),
-                new Util.Transformer<TypeVariableAlias, TypeParameterElementAlias>() {
+                new Transformer<TypeVariableAlias, TypeParameterElementAlias>() {
                     @Override
                     public TypeVariableAlias transform(TypeParameterElementAlias typeParameterElementAlias) {
                         TypeMirrorAlias type = typeParameterElementAlias.asType();
@@ -93,18 +101,62 @@ public class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutputStub
                     }
                 });
 
-        for (TypeVariableAlias typeVariable : typeVariables) {
-            classBuilder.addTypeVariable(TypeVariableName.get(typeVariable.actual()));
-        }
+        List<TypeVariableName> typeVariableNames
+                = buildList(typeVariables, new Transformer<TypeVariableName, TypeVariableAlias>() {
+            @Override public TypeVariableName transform(TypeVariableAlias typeVariableAlias) {
+                return TypeVariableName.get(typeVariableAlias.actual());
+            }
+        });
+        classBuilder.addTypeVariables(typeVariableNames);
+
+        TypeName outputType = ParameterizedTypeName.get(typeName(), typeNameArray(typeVariableNames));
 
         Map<String, CodeBlock> handlers = new HashMap<>();
         for (ProxyFunctionOutput function : functions) {
             ProxyFunctionElement element = function.element();
-            String name = element.name();
+            String fieldName = element.name();
+
+            TypeElement fieldElement = function.typeOutputStub().element(env);
+            DeclaredType fieldType = env.types().getDeclaredType(fieldElement, typeParams);
 
             // create field
+            FieldSpec fieldSpec = FieldSpec.builder(TypeName.get(fieldType), fieldName)
+                    .addModifiers(Modifier.PRIVATE)
+                    .build();
+            classBuilder.addField(fieldSpec);
 
             // create method for each constructor
+
+            /*
+                public SourceHandlerBuilder<T, P> source(Action2<P, Subscriber<? super T>> source) {
+                    this.source = new Source_callFunction<>(source);
+                    return this;
+                }
+             */
+            for (ExecutableElement constructor : ElementFilter.constructorsIn(fieldElement.getEnclosedElements())) {
+                List<? extends VariableElement> params = constructor.getParameters();
+                if (params.size() != 1) {
+                    throw new IllegalArgumentException("only 1 param allowed");
+                }
+                VariableElement param = params.get(0);
+                TypeName paramType = TypeName.get(param.asType());
+//                    Set<Modifier> modifiers = param.getModifiers();
+//                    ParameterSpec.Builder paramSpec = ParameterSpec.builder(paramType, paramName)
+//                            .addModifiers(modifiers.toArray(new Modifier[modifiers.size()]));
+//                    for (AnnotationMirror am : method.getAnnotationMirrors()) {
+//                        TypeElement te = (TypeElement) am.getAnnotationType().asElement();
+//                        paramSpec.addAnnotation(ClassName.get(te));
+//                    }
+//                    spec.addParameter(paramSpec.build());
+//
+                classBuilder.addMethod(MethodSpec.methodBuilder(fieldName)
+                        .addModifiers(Modifier.PUBLIC)
+                        .returns(outputType)
+                        .addParameter(paramType, fieldName)
+                        .addStatement("this.$N = new $T(fieldName)", fieldSpec, fieldType)
+                        .addStatement("return this")
+                        .build());
+            }
 
             // create code block for build function
         }

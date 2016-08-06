@@ -16,10 +16,68 @@
 
 package com.laynemobile.proxy.model;
 
-public class ProxyElementRound {
-    private final ProxyElement proxyElement;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableCollection.Builder;
+import com.google.common.collect.ImmutableSet;
+import com.laynemobile.proxy.Util.Collector;
+import com.laynemobile.proxy.model.output.ProxyElementOutput;
+import com.laynemobile.proxy.model.output.TypeElementOutputStub;
 
-    private ProxyElementRound(ProxyElement proxyElement) {
-        this.proxyElement = proxyElement;
+import java.io.IOException;
+
+import sourcerer.processor.Env;
+
+import static com.laynemobile.proxy.Util.buildSet;
+
+public class ProxyElementRound extends EnvRound<ProxyElementRound> {
+    private final ProxyElementOutput element;
+    private final ImmutableSet<TypeElementOutputStub> outputStubs;
+
+    private ProxyElementRound(Env env, ProxyElementOutput element) {
+        super(env);
+        this.element = element;
+        this.outputStubs = ImmutableSet.of();
+    }
+
+    private ProxyElementRound(ProxyElementRound previous, ImmutableSet<TypeElementOutputStub> outputStubs) {
+        super(previous);
+        this.element = previous.element;
+        this.outputStubs = outputStubs;
+    }
+
+    public static ProxyElementRound create(ProxyElement element, Env env) {
+        ProxyElementOutput output = ProxyElementOutput.create(element);
+        return new ProxyElementRound(env, output);
+    }
+
+    public ProxyElementOutput element() {
+        return element;
+    }
+
+    public ImmutableSet<TypeElementOutputStub> outputStubs() {
+        return outputStubs;
+    }
+
+    public ImmutableSet<TypeElementOutputStub> allOutputStubs() {
+        return buildSet(allRounds(), new Collector<TypeElementOutputStub, ProxyElementRound>() {
+            @Override public void collect(ProxyElementRound round, Builder<TypeElementOutputStub> out) {
+                out.addAll(round.outputStubs());
+            }
+        });
+    }
+
+    public boolean isFinished() {
+        return element.isFinished();
+    }
+
+    public ProxyElementRound nextRound(ProxyRound.Input input) throws IOException {
+        return new ProxyElementRound(this, element.nextOutputStubs(input));
+    }
+
+    @Override public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("\nelement", element)
+                .add("\noutputStubs", outputStubs)
+                .toString();
     }
 }

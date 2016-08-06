@@ -16,10 +16,15 @@
 
 package com.laynemobile.proxy.model.output;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util.Transformer;
 import com.laynemobile.proxy.model.ProxyElement;
+import com.laynemobile.proxy.model.ProxyEnv;
 import com.laynemobile.proxy.model.ProxyFunctionElement;
+import com.laynemobile.proxy.model.ProxyRound;
+
+import java.io.IOException;
 
 import static com.laynemobile.proxy.Util.buildSet;
 
@@ -41,6 +46,10 @@ public class ProxyElementOutput {
         return new ProxyElementOutput(element);
     }
 
+    public ProxyElement element() {
+        return element;
+    }
+
     public boolean isFinished() {
         for (ProxyFunctionOutput output : outputs) {
             if (!output.isFinished()) {
@@ -50,5 +59,38 @@ public class ProxyElementOutput {
         synchronized (this) {
             return handlerBuilderOutputStub != null;
         }
+    }
+
+    public synchronized ImmutableSet<TypeElementOutputStub> nextOutputStubs(ProxyRound.Input input)
+            throws IOException {
+        ProxyEnv env = input.env();
+        boolean functionsFinished = true;
+        ImmutableSet.Builder<TypeElementOutputStub> out = ImmutableSet.builder();
+        for (ProxyFunctionOutput functionOutput : outputs) {
+            if (!functionOutput.isFinished()) {
+                functionsFinished = false;
+                TypeElementOutputStub outputStub = functionOutput.nextOutputStub(input);
+                if (outputStub != null) {
+                    out.add(outputStub);
+                }
+            }
+        }
+        if (functionsFinished) {
+            if (handlerBuilderOutputStub == null) {
+                out.add(handlerBuilderOutputStub = ProxyHandlerBuilderOutputStub.create(env, element, outputs));
+            }
+        }
+        return out.build();
+    }
+
+    @Override public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProxyElementOutput)) return false;
+        ProxyElementOutput that = (ProxyElementOutput) o;
+        return Objects.equal(element, that.element);
+    }
+
+    @Override public int hashCode() {
+        return Objects.hashCode(element);
     }
 }

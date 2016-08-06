@@ -17,22 +17,23 @@
 package com.laynemobile.proxy.model.output;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.model.ProxyElement;
+import com.laynemobile.proxy.model.ProxyEnv;
 import com.laynemobile.proxy.model.ProxyFunctionElement;
+import com.laynemobile.proxy.model.ProxyRound;
 import com.laynemobile.proxy.model.ProxyType;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 
-import sourcerer.processor.Env;
-
-import static com.laynemobile.proxy.Util.toArray;
+import static com.laynemobile.proxy.Util.typeMirrorArray;
 
 public class ProxyFunctionOutput {
     private final ProxyElement parent;
@@ -75,31 +76,26 @@ public class ProxyFunctionOutput {
         return typeOutput != null;
     }
 
-    public synchronized TypeElementOutputStub nextOutputStub(
-            Map<ProxyElement, ? extends Set<TypeElementOutputStub>> inputs,
-            Env env) throws IOException {
+    public synchronized TypeElementOutputStub nextOutputStub(ProxyRound.Input input)
+            throws IOException {
+        ProxyEnv env = input.env();
+        TypeElementOutputStub stub = null;
         if (abstractTypeOutputStub == null) {
-            return firstOutputStub(inputs, env);
-        } else if (abstractTypeOutput == null) {
+            stub = abstractTypeOutputStub = firstOutputStub(input);
             abstractTypeOutput = abstractTypeOutputStub.writeTo(env);
-            if (abstractTypeOutput.hasOutput()) {
-                return typeOutputStub = abstractTypeOutput.outputStub(env);
-            }
         } else if (typeOutputStub == null) {
-            return typeOutputStub = abstractTypeOutput.outputStub(env);
-        } else if (typeOutput == null) {
-            typeOutput = typeOutputStub.writeTo(env);
-            if (typeOutput.hasOutput()) {
-                return typeOutput.outputStub(env);
+            if (abstractTypeOutput.hasOutput()) {
+                stub = typeOutputStub = abstractTypeOutput.outputStub(env);
+                typeOutput = typeOutputStub.writeTo(env);
             }
         }
-        return null;
+        return stub;
     }
 
-    private TypeElementOutputStub firstOutputStub(
-            Map<ProxyElement, ? extends Set<TypeElementOutputStub>> inputs,
-            Env env) {
+    private ProxyFunctionAbstractTypeOutputStub firstOutputStub(ProxyRound.Input input) {
+        final ProxyEnv env = input.env();
         final ProxyElement parent = this.parent;
+        final ImmutableMap<ProxyElement, ImmutableSet<TypeElementOutputStub>> inputs = input.allInputStubs();
         final ProxyFunctionAbstractTypeOutputStub outputStub = element.outputStub();
         for (ProxyFunctionElement override : element.overrides()) {
             ProxyElement overrideParentElement = override.parent();
@@ -124,7 +120,7 @@ public class ProxyFunctionOutput {
                     continue;
                 }
 
-                TypeMirror[] typeParams = toArray(overrideParentType.type().actual().getTypeArguments());
+                TypeMirror[] typeParams = typeMirrorArray(overrideParentType.type().actual().getTypeArguments());
                 final TypeElement superElement = generated.element(env);
                 env.log("super proxy element '%s', type parameters: '%s'", superElement,
                         Arrays.toString(typeParams));
@@ -136,7 +132,7 @@ public class ProxyFunctionOutput {
                 return outputStub.withSuperClass(superType);
             }
         }
-        return abstractTypeOutputStub = outputStub;
+        return outputStub;
     }
 
     @Override public boolean equals(Object o) {

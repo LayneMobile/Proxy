@@ -140,7 +140,7 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
     };
 
     public ImmutableList<TypeElementOutputStub> outputs(ProxyRound.Input input, final Env env) {
-        final Map<ProxyElement, ? extends Set<TypeElementOutputStub>> inputs = input.allInputs();
+        final Map<ProxyElement, ? extends Set<TypeElementOutputStub>> inputs = input.allInputStubs();
         return Util.buildList(functions(), new Util.Transformer<TypeElementOutputStub, ProxyFunctionElement>() {
             @Override public TypeElementOutputStub transform(ProxyFunctionElement functionElement) {
                 final ProxyFunctionAbstractTypeOutputStub outputStub = functionElement.outputStub();

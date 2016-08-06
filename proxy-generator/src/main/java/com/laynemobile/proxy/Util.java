@@ -76,9 +76,14 @@ import static com.laynemobile.proxy.Constants.SourceBuilder;
 
 public final class Util {
     private static final String TAG = Util.class.getSimpleName();
-    private static final Util.ArrayCreator<TypeMirror> TYPE_MIRROR_ARRAY_CREATOR = new Util.ArrayCreator<TypeMirror>() {
+    private static final ArrayCreator<TypeMirror> TYPE_MIRROR_ARRAY_CREATOR = new ArrayCreator<TypeMirror>() {
         @Override public TypeMirror[] newArray(int size) {
             return new TypeMirror[size];
+        }
+    };
+    private static final ArrayCreator<TypeName> TYPE_NAME_ARRAY_CREATOR = new ArrayCreator<TypeName>() {
+        @Override public TypeName[] newArray(int size) {
+            return new TypeName[size];
         }
     };
 
@@ -96,8 +101,12 @@ public final class Util {
         });
     }
 
-    public static TypeMirror[] toArray(List<? extends TypeMirror> list) {
+    public static TypeMirror[] typeMirrorArray(List<? extends TypeMirror> list) {
         return toArray(list, TYPE_MIRROR_ARRAY_CREATOR);
+    }
+
+    public static TypeName[] typeNameArray(List<? extends TypeName> list) {
+        return toArray(list, TYPE_NAME_ARRAY_CREATOR);
     }
 
     public static <T> T[] toArray(List<? extends T> list, ArrayCreator<T> arrayCreator) {
@@ -205,6 +214,15 @@ public final class Util {
         ImmutableMap.Builder<KR, VR> out = ImmutableMap.builder();
         for (Map.Entry<? extends KT, ? extends VT> entry : in.entrySet()) {
             out.put(keyTransformer.transform(entry.getKey()), valueTransformer.transform(entry.getValue()));
+        }
+        return out.build();
+    }
+
+    public static <VR, KT, VT> ImmutableMap<KT, VR> buildMap(Map<? extends KT, ? extends VT> in,
+            Transformer<VR, VT> valueTransformer) {
+        ImmutableMap.Builder<KT, VR> out = ImmutableMap.builder();
+        for (Map.Entry<? extends KT, ? extends VT> entry : in.entrySet()) {
+            out.put(entry.getKey(), valueTransformer.transform(entry.getValue()));
         }
         return out.build();
     }
@@ -334,6 +352,33 @@ public final class Util {
             spec.addTypeVariable(
                     TypeVariableName.get(typeParamName, bounds.toArray(new TypeName[bounds.size()])));
         }
+    }
+
+    public static String copyParameters(ExecutableElement method, MethodSpec.Builder spec) {
+        List<String> paramNames = new ArrayList<>();
+        for (VariableElement param : method.getParameters()) {
+            String paramName = param.getSimpleName().toString();
+            paramNames.add(paramName);
+            TypeName paramType = TypeName.get(param.asType());
+            Set<Modifier> modifiers = param.getModifiers();
+            ParameterSpec.Builder paramSpec = ParameterSpec.builder(paramType, paramName)
+                    .addModifiers(modifiers.toArray(new Modifier[modifiers.size()]));
+            for (AnnotationMirror am : method.getAnnotationMirrors()) {
+                TypeElement te = (TypeElement) am.getAnnotationType().asElement();
+                paramSpec.addAnnotation(ClassName.get(te));
+            }
+            spec.addParameter(paramSpec.build());
+        }
+        boolean first = true;
+        StringBuilder paramString = new StringBuilder();
+        for (String paramName : paramNames) {
+            if (!first) {
+                paramString.append(", ");
+            }
+            first = false;
+            paramString.append(paramName);
+        }
+        return paramString.toString();
     }
 
     static String copyParameters(ExecutableElement method, MethodSpec.Builder spec,
@@ -560,6 +605,17 @@ public final class Util {
             this.typeArguments = Collections.unmodifiableList(t.getTypeArguments());
         }
     }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Transformer<T, T> noopTransformer() {
+        return (Transformer<T, T>) NOOP_TRANSFORMER;
+    }
+
+    private static final Transformer NOOP_TRANSFORMER = new Transformer() {
+        @Override public Object transform(Object o) {
+            return o;
+        }
+    };
 
     public interface Transformer<R, T> {
         R transform(T t);
