@@ -266,7 +266,7 @@ public class ProxyRound extends EnvRound<ProxyRound> {
             final Set<ProxyElement> processedElements = new HashSet<>(allOutputElements());
             for (ProxyElementRound inputRound : inputRounds) {
                 if (!inputRound.isFinished()) {
-                    processedElements.remove(inputRound.element().element());
+                    processedElements.remove(inputRound.element());
                 }
             }
 
