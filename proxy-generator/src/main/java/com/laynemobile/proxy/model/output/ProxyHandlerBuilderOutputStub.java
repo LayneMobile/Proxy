@@ -153,7 +153,7 @@ public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutp
                         .addModifiers(Modifier.PUBLIC)
                         .returns(outputType)
                         .addParameter(paramType, fieldName)
-                        .addStatement("this.$N = new $T(fieldName)", fieldSpec, fieldType)
+                        .addStatement("this.$N = new $T($L)", fieldSpec, fieldType, fieldName)
                         .addStatement("return this")
                         .build());
             }

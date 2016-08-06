@@ -26,12 +26,15 @@ import com.laynemobile.proxy.model.ProxyRound;
 
 import java.io.IOException;
 
+import javax.lang.model.element.ElementKind;
+
 import static com.laynemobile.proxy.Util.buildSet;
 
 public class ProxyElementOutput {
     private final ProxyElement element;
     private final ImmutableSet<ProxyFunctionOutput> outputs;
     private ProxyHandlerBuilderOutputStub handlerBuilderOutputStub;
+    private TypeElementOutput handlerBuilderOutput;
 
     private ProxyElementOutput(final ProxyElement element) {
         this.element = element;
@@ -78,6 +81,9 @@ public class ProxyElementOutput {
         if (functionsFinished) {
             if (handlerBuilderOutputStub == null) {
                 out.add(handlerBuilderOutputStub = ProxyHandlerBuilderOutputStub.create(env, element, outputs));
+                if (element.element().getKind() == ElementKind.INTERFACE) {
+                    handlerBuilderOutput = handlerBuilderOutputStub.writeTo(env);
+                }
             }
         }
         return out.build();
