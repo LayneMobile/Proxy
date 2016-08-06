@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy;
+package com.laynemobile.proxy.templates;
 
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
-import com.laynemobile.proxy.annotations.GenerateProxyFunction;
+import com.laynemobile.proxy.annotations.Generated;
+import com.laynemobile.proxy.functions.Func1;
+import com.laynemobile.proxy.generated.AbstractTestInterface_call__T;
 
-@GenerateProxyBuilder(parent = true)
-public interface TestInterface<T, R> {
-    @GenerateProxyFunction("source")
-    R call(T t);
+@Generated
+public class TestInterface_call__T<T, R> extends AbstractTestInterface_call__T<T, R> {
+    public TestInterface_call__T(Func1<T, R> source) {
+        super(source);
+    }
 }

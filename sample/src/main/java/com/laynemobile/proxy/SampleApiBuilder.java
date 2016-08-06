@@ -16,13 +16,12 @@
 
 package com.laynemobile.proxy;
 
+import com.laynemobile.proxy.functions.Func1;
 import com.laynemobile.proxy.processor.Processor;
 import com.laynemobile.proxy.processor.ProcessorBuilder;
 import com.laynemobile.proxy.processor.ProcessorHandler;
 
 import java.util.List;
-
-import rx.functions.Func1;
 
 public final class SampleApiBuilder<T, R> {
 

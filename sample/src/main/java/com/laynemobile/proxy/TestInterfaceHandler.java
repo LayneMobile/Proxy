@@ -17,26 +17,22 @@
 package com.laynemobile.proxy;
 
 import com.laynemobile.proxy.annotations.ProxyHandlerModule;
+import com.laynemobile.proxy.functions.Func1;
+import com.laynemobile.proxy.generated.TestInterfaceHandlerBuilder;
 import com.laynemobile.proxy.processor.ErrorHandler;
 import com.laynemobile.proxy.processor.Processor;
 import com.laynemobile.proxy.processor.ProcessorHandler;
 
-import java.lang.reflect.Method;
-
-import rx.functions.Func1;
-
 @ProxyHandlerModule
 public class TestInterfaceHandler<T, R> implements Builder<ProcessorHandler.Parent<T, R, TestInterface<T, R>>> {
-    private Func1<T, R> source;
+    private final TestInterfaceHandlerBuilder<T, R> builder = new TestInterfaceHandlerBuilder<>();
 
     public void setSource(Func1<T, R> source) {
-        this.source = source;
+        builder.source(source);
     }
 
     @Override public ProcessorHandler.Parent<T, R, TestInterface<T, R>> build() {
-        return build(ProxyHandler.builder(new TypeToken<TestInterface<T, R>>())
-                .handle("call", new Handler<>(source))
-                .build());
+        return build(builder.build());
     }
 
     private static <T, R> ProcessorHandler.Parent<T, R, TestInterface<T, R>> build(
@@ -62,30 +58,5 @@ public class TestInterfaceHandler<T, R> implements Builder<ProcessorHandler.Pare
                 };
             }
         };
-    }
-
-    private static final class Handler<T, R> implements MethodHandler {
-        private final Func1<T, R> func;
-
-        private Handler(Func1<T, R> func) {
-            this.func = func;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
-            Class<?>[] paramTypes = method.getParameterTypes();
-            if (paramTypes.length == 1) {
-                try {
-                    T param = (T) args[0];
-                    R value = func.call(param);
-                    result.set(value);
-                    return true;
-                } catch (ClassCastException e) {
-                    // ignore
-                }
-            }
-            return false;
-        }
     }
 }

@@ -16,11 +16,10 @@
 
 package com.laynemobile.proxy;
 
+import com.laynemobile.proxy.functions.Func1;
 import com.laynemobile.proxy.processor.Processor;
 import com.laynemobile.proxy.processor.ProcessorBuilder;
 import com.laynemobile.proxy.processor.ProcessorHandler;
-
-import rx.functions.Func1;
 
 //@GenerateProxyBuilder(TestProxyHandlerModule.class)
 public class TestApi {
