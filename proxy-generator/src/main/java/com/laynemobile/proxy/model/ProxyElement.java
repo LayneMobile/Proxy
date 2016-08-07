@@ -28,25 +28,19 @@ import com.laynemobile.proxy.elements.AliasElements;
 import com.laynemobile.proxy.elements.AnnotationMirrorAlias;
 import com.laynemobile.proxy.elements.TypeElementAlias;
 import com.laynemobile.proxy.functions.Func0;
-import com.laynemobile.proxy.model.output.ProxyFunctionAbstractTypeOutputStub;
-import com.laynemobile.proxy.model.output.TypeElementOutputStub;
 import com.laynemobile.proxy.types.DeclaredTypeAlias;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
 import com.squareup.javapoet.ClassName;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 
 import sourcerer.processor.Env;
 
@@ -131,58 +125,6 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
 
     public ImmutableList<ProxyFunctionElement> functions() {
         return functions;
-    }
-
-    private static final Util.ArrayCreator<TypeMirror> TYPE_MIRROR_ARRAY_CREATOR = new Util.ArrayCreator<TypeMirror>() {
-        @Override public TypeMirror[] newArray(int size) {
-            return new TypeMirror[size];
-        }
-    };
-
-    public ImmutableList<TypeElementOutputStub> outputs(ProxyRound.Input input, final Env env) {
-        final Map<ProxyElement, ? extends Set<TypeElementOutputStub>> inputs = input.allInputStubs();
-        return Util.buildList(functions(), new Util.Transformer<TypeElementOutputStub, ProxyFunctionElement>() {
-            @Override public TypeElementOutputStub transform(ProxyFunctionElement functionElement) {
-                final ProxyFunctionAbstractTypeOutputStub outputStub = functionElement.outputStub();
-                for (ProxyFunctionElement override : functionElement.overrides()) {
-                    ProxyElement overrideParentElement = override.parent();
-                    Set<TypeElementOutputStub> set = inputs.get(overrideParentElement);
-                    if (set == null) {
-                        continue;
-                    }
-                    for (TypeElementOutputStub generated : set) {
-                        env.log("say man");
-                        env.log("%s -- writing override '%s' from '%s' -- %s", toDebugString(),
-                                outputStub.qualifiedName(), override, generated);
-                        env.log("say man");
-
-                        ProxyType overrideParentType = null;
-                        for (ProxyType test : directDependencies()) {
-                            if (test.element().equals(overrideParentElement)) {
-                                overrideParentType = test;
-                                break;
-                            }
-                        }
-                        if (overrideParentType == null) {
-                            continue;
-                        }
-
-                        TypeMirror[] typeParams = Util.toArray(overrideParentType.type().actual().getTypeArguments(),
-                                TYPE_MIRROR_ARRAY_CREATOR);
-                        final TypeElement superElement = generated.element(env);
-                        env.log("super proxy element '%s', type parameters: '%s'", superElement,
-                                Arrays.toString(typeParams));
-                        if (superElement == null) {
-                            continue;
-                        }
-                        DeclaredType superType = env.types()
-                                .getDeclaredType(superElement, typeParams);
-                        return outputStub.withSuperClass(superType);
-                    }
-                }
-                return outputStub;
-            }
-        });
     }
 
     @Override public int compareTo(ProxyElement o) {

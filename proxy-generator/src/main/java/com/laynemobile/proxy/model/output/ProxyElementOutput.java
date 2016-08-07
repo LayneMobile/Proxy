@@ -71,25 +71,28 @@ public class ProxyElementOutput {
         }
     }
 
-    public synchronized ImmutableSet<TypeElementOutputStub> nextOutputStubs(ProxyRound.Input input)
+    public synchronized ImmutableSet<TypeElementOutput> nextOutputs(ProxyRound.Input input)
             throws IOException {
         ProxyEnv env = input.env();
         boolean functionsFinished = true;
-        Set<TypeElementOutputStub> out = new HashSet<>(outputs.size());
+        Set<TypeElementOutput> out = new HashSet<>(outputs.size());
         for (ProxyFunctionOutput functionOutput : outputs) {
             if (!functionOutput.isFinished()) {
                 functionsFinished = false;
-                TypeElementOutputStub outputStub = functionOutput.nextOutputStub(input);
-                if (outputStub != null) {
-                    out.add(outputStub);
+                TypeElementOutput output = functionOutput.nextOutput(input);
+                if (output != null) {
+                    out.add(output);
                 }
             }
         }
         if (functionsFinished && out.isEmpty()) {
             if (handlerBuilderOutputStub == null) {
-                out.add(handlerBuilderOutputStub = ProxyHandlerBuilderOutputStub.create(env, element, outputs));
+                handlerBuilderOutputStub = ProxyHandlerBuilderOutputStub.create(env, element, outputs);
                 if (element.element().getKind() == ElementKind.INTERFACE) {
                     handlerBuilderOutput = handlerBuilderOutputStub.writeTo(env);
+                    if (handlerBuilderOutput != null) {
+                        out.add(handlerBuilderOutput);
+                    }
                 }
             }
         }

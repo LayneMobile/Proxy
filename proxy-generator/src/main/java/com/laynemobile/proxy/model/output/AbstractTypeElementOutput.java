@@ -27,14 +27,20 @@ import sourcerer.processor.Env;
 public abstract class AbstractTypeElementOutput<S extends TypeElementOutputStub> implements TypeElementOutput {
     private final S source;
     private final TypeSpec typeSpec;
+    private final boolean didWrite;
 
-    protected AbstractTypeElementOutput(S source, TypeSpec typeSpec) {
+    protected AbstractTypeElementOutput(S source, TypeSpec typeSpec, boolean didWrite) {
         this.source = source;
         this.typeSpec = typeSpec;
+        this.didWrite = didWrite;
     }
 
-    static TypeElementOutput create(TypeElementOutputStub source, TypeSpec typeSpec) {
-        return new AbstractTypeElementOutput<TypeElementOutputStub>(source, typeSpec) {
+    static TypeElementOutput existing(TypeElementOutputStub source) {
+        return create(source, null, false);
+    }
+
+    static TypeElementOutput create(TypeElementOutputStub source, TypeSpec typeSpec, boolean didWrite) {
+        return new AbstractTypeElementOutput<TypeElementOutputStub>(source, typeSpec, didWrite) {
             @Override public boolean hasOutput() {
                 return false;
             }
@@ -47,6 +53,10 @@ public abstract class AbstractTypeElementOutput<S extends TypeElementOutputStub>
 
     @Override public final TypeSpec typeSpec() {
         return typeSpec;
+    }
+
+    @Override public final boolean didWrite() {
+        return didWrite;
     }
 
     @Override public TypeElement element(Env env) {

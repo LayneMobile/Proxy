@@ -57,7 +57,7 @@ import static com.laynemobile.proxy.Util.buildList;
 import static com.laynemobile.proxy.Util.typeMirrorArray;
 import static com.laynemobile.proxy.Util.typeNameArray;
 
-public final class ProxyHandlerBuilderOutputStub extends AbstractTypeElementOutputStub {
+public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutputStub {
     private final ProxyElement proxyElement;
     private final ProxyEnv env;
     private final ImmutableSet<ProxyFunctionOutput> functions;

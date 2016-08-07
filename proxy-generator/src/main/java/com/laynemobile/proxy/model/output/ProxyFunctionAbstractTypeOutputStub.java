@@ -30,7 +30,6 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.lang.model.element.ExecutableElement;
@@ -40,9 +39,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 
-import sourcerer.processor.Env;
-
-public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutputStub {
+public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutputStub<ProxyFunctionAbstractTypeOutput> {
     private static final String ABSTRACT_PREFIX = "Abstract";
 
     private final ProxyElement parent;
@@ -184,8 +181,7 @@ public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutp
         return classBuilder.build();
     }
 
-    @Override public ProxyFunctionAbstractTypeOutput writeTo(Env env) throws IOException {
-        TypeElementOutput output = super.writeTo(env);
-        return new ProxyFunctionAbstractTypeOutput(this, output.typeSpec());
+    @Override protected ProxyFunctionAbstractTypeOutput convert(TypeElementOutput output) {
+        return new ProxyFunctionAbstractTypeOutput(this, output.typeSpec(), output.didWrite());
     }
 }

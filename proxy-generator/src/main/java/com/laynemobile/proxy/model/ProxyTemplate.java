@@ -51,10 +51,6 @@ public class ProxyTemplate extends Template {
         log("  ");
         log("round=%s", round);
         log("  ");
-        log("annotations=%s", annotations);
-        log("  ");
-        log("root-elements=%s", roundEnv.getRootElements());
-        log("  ");
 
         try {
             round = round.process(annotations, roundEnv);

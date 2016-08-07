@@ -22,9 +22,13 @@ import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
 
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+
 import sourcerer.processor.Env;
 
-public abstract class AbstractTypeElementOutputStub extends AbstractTypeElementStub implements TypeElementOutputStub {
+public abstract class AbstractTypeElementOutputStub<T extends TypeElementOutput> extends AbstractTypeElementStub implements TypeElementOutputStub {
     protected AbstractTypeElementOutputStub(String packageName, String className) {
         super(packageName, className);
     }
@@ -39,12 +43,32 @@ public abstract class AbstractTypeElementOutputStub extends AbstractTypeElementS
         );
     }
 
-    @Override public TypeElementOutput writeTo(Env env) throws IOException {
+    protected abstract T convert(TypeElementOutput output);
+
+    protected T create(TypeSpec typeSpec, boolean didWrite) {
+        return convert(AbstractTypeElementOutput.create(this, typeSpec, didWrite));
+    }
+
+    protected T write(Env env) throws IOException {
         TypeSpec typeSpec = newTypeSpec();
         JavaFile javaFile = JavaFile.builder(packageName(), typeSpec)
                 .build();
         env.log("writing %s -> \n%s", qualifiedName(), javaFile.toString());
         javaFile.writeTo(env.filer());
-        return AbstractTypeElementOutput.create(this, typeSpec);
+        return create(typeSpec, true);
+    }
+
+    @Override public final T writeTo(Env env) throws IOException {
+        TypeElement typeElement = env.elements().getTypeElement(qualifiedName());
+        env.log("potentially writing type element: %s", typeElement);
+        if (typeElement != null) {
+            TypeMirror typeMirror = typeElement.asType();
+            env.log("asType()=%s, typeKind=%s", typeMirror, typeMirror.getKind());
+            if (typeMirror.getKind() != TypeKind.ERROR) {
+                env.log("found type element");
+                return create(newTypeSpec(), false);
+            }
+        }
+        return write(env);
     }
 }

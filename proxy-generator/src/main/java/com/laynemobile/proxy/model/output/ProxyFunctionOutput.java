@@ -44,6 +44,7 @@ public class ProxyFunctionOutput {
     private ProxyFunctionAbstractTypeOutput abstractTypeOutput;
     private ProxyFunctionTypeOutputStub typeOutputStub;
     private TypeElementOutput typeOutput;
+    private boolean finished;
 
     ProxyFunctionOutput(ProxyElement parent, ProxyFunctionElement element) {
         this.parent = parent;
@@ -75,30 +76,32 @@ public class ProxyFunctionOutput {
     }
 
     public synchronized boolean isFinished() {
-        return typeOutput != null;
+        return finished;
     }
 
-    public synchronized TypeElementOutputStub nextOutputStub(ProxyRound.Input input)
+    public synchronized TypeElementOutput nextOutput(ProxyRound.Input input)
             throws IOException {
         ProxyEnv env = input.env();
-        TypeElementOutputStub stub = null;
+        TypeElementOutput output = null;
         if (abstractTypeOutputStub == null) {
-            stub = firstOutputStub(input, element.outputStub());
+            TypeElementOutputStub stub = firstOutputStub(input, element.outputStub());
             if (stub instanceof ProxyFunctionTypeOutputStub) {
+                finished = true;
                 // skip abstract type
                 typeOutputStub = (ProxyFunctionTypeOutputStub) stub;
-                typeOutput = typeOutput(input, typeOutputStub);
+                output = typeOutput = typeOutput(input, typeOutputStub);
             } else {
                 abstractTypeOutputStub = (ProxyFunctionAbstractTypeOutputStub) stub;
-                abstractTypeOutput = abstractTypeOutputStub.writeTo(env);
+                output = abstractTypeOutput = abstractTypeOutputStub.writeTo(env);
             }
         } else if (typeOutputStub == null) {
+            finished = true;
             if (abstractTypeOutput.hasOutput()) {
-                stub = typeOutputStub = abstractTypeOutput.outputStub(env);
-                typeOutput = typeOutput(input, typeOutputStub);
+                typeOutputStub = abstractTypeOutput.outputStub(env);
+                output = typeOutput = typeOutput(input, typeOutputStub);
             }
         }
-        return stub;
+        return output;
     }
 
     private static TypeElementOutput typeOutput(ProxyRound.Input input, ProxyFunctionTypeOutputStub typeOutputStub)
@@ -112,7 +115,7 @@ public class ProxyFunctionOutput {
             TypeElement typeElement = (TypeElement) rootElement;
             if (typeOutputName.equals(typeElement.getQualifiedName().toString())) {
                 // already created
-                return AbstractTypeElementOutput.create(typeOutputStub, null);
+                return AbstractTypeElementOutput.existing(typeOutputStub);
             }
         }
 

@@ -16,22 +16,12 @@
 
 package com.laynemobile.proxy.model.output;
 
-import com.squareup.javapoet.TypeSpec;
+public class DefaultTypeElementOutputStub extends AbstractTypeElementOutputStub<TypeElementOutput> {
+    protected DefaultTypeElementOutputStub(String packageName, String className) {
+        super(packageName, className);
+    }
 
-import javax.lang.model.element.TypeElement;
-
-import sourcerer.processor.Env;
-
-public interface TypeElementOutput {
-    TypeElementOutputStub source();
-
-    TypeSpec typeSpec();
-
-    boolean didWrite();
-
-    TypeElement element(Env env);
-
-    boolean hasOutput();
-
-    TypeElementOutputStub outputStub(Env env);
+    @Override protected TypeElementOutput convert(TypeElementOutput output) {
+        return output;
+    }
 }

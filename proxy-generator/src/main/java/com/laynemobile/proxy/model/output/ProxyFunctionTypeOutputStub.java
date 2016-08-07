@@ -51,7 +51,7 @@ import static com.laynemobile.proxy.Util.buildList;
 import static com.laynemobile.proxy.Util.typeMirrorArray;
 import static javax.lang.model.util.ElementFilter.constructorsIn;
 
-public class ProxyFunctionTypeOutputStub extends AbstractTypeElementOutputStub {
+public class ProxyFunctionTypeOutputStub extends DefaultTypeElementOutputStub {
     private final Env env;
     private final ProxyFunctionAbstractTypeOutputStub parentOutput;
     private final DeclaredType superClass;

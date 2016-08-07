@@ -21,8 +21,8 @@ import com.squareup.javapoet.TypeSpec;
 import sourcerer.processor.Env;
 
 public class ProxyFunctionAbstractTypeOutput extends AbstractTypeElementOutput<ProxyFunctionAbstractTypeOutputStub> {
-    ProxyFunctionAbstractTypeOutput(ProxyFunctionAbstractTypeOutputStub source, TypeSpec typeSpec) {
-        super(source, typeSpec);
+    ProxyFunctionAbstractTypeOutput(ProxyFunctionAbstractTypeOutputStub source, TypeSpec typeSpec, boolean didWrite) {
+        super(source, typeSpec, didWrite);
     }
 
     @Override public boolean hasOutput() {
