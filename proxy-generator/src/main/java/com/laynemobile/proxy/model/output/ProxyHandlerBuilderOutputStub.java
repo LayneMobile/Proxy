@@ -63,7 +63,7 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
     private final ImmutableSet<ProxyFunctionOutput> functions;
 
     private ProxyHandlerBuilderOutputStub(Env env, ProxyElement proxyElement, Set<ProxyFunctionOutput> functions) {
-        super(proxyElement.packageName() + ".generated", proxyElement.className().simpleName() + "HandlerBuilder");
+        super(proxyElement.packageName(), proxyElement.className().simpleName() + "HandlerBuilder");
         this.env = ProxyEnv.wrap(env);
         this.proxyElement = proxyElement;
         this.functions = ImmutableSet.copyOf(functions);

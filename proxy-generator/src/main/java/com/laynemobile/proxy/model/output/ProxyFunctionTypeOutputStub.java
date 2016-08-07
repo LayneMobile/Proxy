@@ -61,7 +61,7 @@ public class ProxyFunctionTypeOutputStub extends DefaultTypeElementOutputStub {
     }
 
     ProxyFunctionTypeOutputStub(ProxyFunctionAbstractTypeOutputStub parentOutput, DeclaredType superClass, Env env) {
-        super(parentOutput.basePackageName() + ".templates", parentOutput.baseClassName());
+        super(parentOutput.basePackageName(), parentOutput.baseClassName());
         this.parentOutput = parentOutput;
         this.superClass = superClass;
         this.env = ProxyEnv.wrap(env);

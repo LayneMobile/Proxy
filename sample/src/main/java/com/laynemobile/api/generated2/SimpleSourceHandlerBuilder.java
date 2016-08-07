@@ -18,8 +18,8 @@ package com.laynemobile.api.generated2;
 
 import com.laynemobile.api.NoParams;
 import com.laynemobile.api.SimpleSource;
-import com.laynemobile.api.generated.SourceHandlerBuilder;
-import com.laynemobile.api.templates.SimpleSource_call__NoParams_Subscriber;
+import com.laynemobile.api.SourceHandlerBuilder;
+import com.laynemobile.api.functions.SimpleSource_call__NoParams_Subscriber;
 import com.laynemobile.proxy.AbstractProxyHandlerBuilder;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Action1;

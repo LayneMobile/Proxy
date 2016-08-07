@@ -18,7 +18,6 @@ package com.laynemobile.proxy;
 
 import com.laynemobile.proxy.annotations.ProxyHandlerModule;
 import com.laynemobile.proxy.functions.Func1;
-import com.laynemobile.proxy.generated.TestInterfaceHandlerBuilder;
 import com.laynemobile.proxy.processor.ErrorHandler;
 import com.laynemobile.proxy.processor.Processor;
 import com.laynemobile.proxy.processor.ProcessorHandler;

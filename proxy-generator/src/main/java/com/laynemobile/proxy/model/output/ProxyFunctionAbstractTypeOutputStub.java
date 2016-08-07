@@ -51,13 +51,13 @@ public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutp
 
     private ProxyFunctionAbstractTypeOutputStub(ProxyElement parent, ProxyFunctionElement function,
             String baseClassName) {
-        this(parent, function, parent.packageName(), baseClassName);
+        this(parent, function, parent.packageName() + ".functions", baseClassName);
     }
 
     private ProxyFunctionAbstractTypeOutputStub(ProxyElement parent, ProxyFunctionElement function,
             String basePackageName,
             String baseClassName) {
-        super(basePackageName + ".generated", ABSTRACT_PREFIX + baseClassName);
+        super(basePackageName + ".parent", ABSTRACT_PREFIX + baseClassName);
         this.parent = parent;
         this.function = function;
         this.element = function.element();

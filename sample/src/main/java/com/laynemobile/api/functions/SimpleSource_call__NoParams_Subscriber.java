@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.templates;
+package com.laynemobile.api.functions;
 
+import com.laynemobile.api.NoParams;
 import com.laynemobile.proxy.annotations.Generated;
+import com.laynemobile.proxy.functions.Action1;
 import com.laynemobile.proxy.functions.Func0;
-import com.laynemobile.proxy.generated.AbstractTestInterfaceExtension_doMore;
+
+import rx.Observable;
+import rx.Subscriber;
 
 @Generated
-public class TestInterfaceExtension_doMore<T, R> extends AbstractTestInterfaceExtension_doMore<T, R> {
-    public TestInterfaceExtension_doMore(Func0<Object> more) {
-        super(more);
+public class SimpleSource_call__NoParams_Subscriber<T> extends Source_call__P_Subscriber<T, NoParams> {
+    public SimpleSource_call__NoParams_Subscriber(Action1<Subscriber<? super T>> source) {
+        super(source);
+    }
+
+    public SimpleSource_call__NoParams_Subscriber(Func0<T> source) {
+        super(source);
+    }
+
+    public SimpleSource_call__NoParams_Subscriber(Observable<T> source) {
+        super(source);
     }
 }

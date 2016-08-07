@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.templates;
+package com.laynemobile.api.functions;
 
+import com.laynemobile.api.Params;
+import com.laynemobile.api.Retrofittable;
+import com.laynemobile.api.functions.parent.AbstractRetrofitSource_getRetrofittable;
 import com.laynemobile.proxy.annotations.Generated;
-import com.laynemobile.proxy.functions.Func1;
-import com.laynemobile.proxy.generated.AbstractTestInterface_call__T;
+import com.laynemobile.proxy.functions.Func0;
 
 @Generated
-public class TestInterface_call__T<T, R> extends AbstractTestInterface_call__T<T, R> {
-    public TestInterface_call__T(Func1<T, R> source) {
-        super(source);
+public class RetrofitSource_getRetrofittable<T, P extends Params, S> extends AbstractRetrofitSource_getRetrofittable<T, P, S> {
+    public RetrofitSource_getRetrofittable(Func0<Retrofittable<S>> getRetrofittable) {
+        super(getRetrofittable);
     }
 }

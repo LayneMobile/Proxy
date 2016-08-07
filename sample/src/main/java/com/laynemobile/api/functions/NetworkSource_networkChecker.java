@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.laynemobile.api.templates;
+package com.laynemobile.api.functions;
 
 import com.laynemobile.api.NetworkChecker;
 import com.laynemobile.api.Params;
-import com.laynemobile.api.generated.AbstractNetworkSource_networkChecker;
+import com.laynemobile.api.functions.parent.AbstractNetworkSource_networkChecker;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Func0;
 

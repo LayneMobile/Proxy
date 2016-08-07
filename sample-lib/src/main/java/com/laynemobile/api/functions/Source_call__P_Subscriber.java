@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.laynemobile.api.templates;
+package com.laynemobile.api.functions;
 
 import com.laynemobile.api.Params;
-import com.laynemobile.api.generated.AbstractSource_call__P_Subscriber;
+import com.laynemobile.api.functions.parent.AbstractSource_call__P_Subscriber;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Action1;
 import com.laynemobile.proxy.functions.Action2;

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.laynemobile.api.templates;
+package com.laynemobile.api.functions;
 
-import com.laynemobile.api.generated.AbstractRetrofittable_getService;
+import com.laynemobile.api.functions.parent.AbstractRetrofittable_getService;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Func0;
 
