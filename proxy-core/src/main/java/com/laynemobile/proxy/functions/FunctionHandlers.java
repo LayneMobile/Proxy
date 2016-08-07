@@ -51,6 +51,20 @@ public final class FunctionHandlers {
         };
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T1, T2, R> MethodHandler from(Func2<T1, T2, R> func2) {
+        return new AbstractFunctionHandler<Func2<T1, T2, R>>(func2) {
+            @Override protected boolean tryHandle(Object proxy, Method method, Class<?>[] paramTypes,
+                    Object[] args, MethodResult result) throws Throwable {
+                if (paramTypes.length == 2) {
+                    result.set(function.call((T1) args[0], (T2) args[1]));
+                    return true;
+                }
+                return false;
+            }
+        };
+    }
+
     public static MethodHandler from(Action0 action0) {
         return new AbstractFunctionHandler<Action0>(action0) {
             @Override protected boolean tryHandle(Object proxy, Method method, Class<?>[] paramTypes, Object[] args,
