@@ -67,11 +67,9 @@ public class ProxyRound extends EnvRound<ProxyRound> {
         Input newInput = input.process(annotations, roundEnv, lastOutput);
         Output newOutput = lastOutput.write(newInput);
         ProxyRound nextRound = new ProxyRound(this, newInput, newOutput);
-        log("  ");
-        log("nextRound=%s", nextRound);
-        log("  ");
-        if (!newOutput.outputRounds().isEmpty()) {
-            return newOutput.didWrite() ? nextRound : nextRound.process(annotations, roundEnv);
+        if (!newOutput.outputRounds().isEmpty() && !newOutput.didWrite()) {
+            log("round=%s", nextRound);
+            return nextRound.process(annotations, roundEnv);
         }
         return nextRound;
     }

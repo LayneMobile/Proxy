@@ -47,7 +47,7 @@ public abstract class AbstractParameterizedCache<K, V, P>
     protected abstract V create(K k, P p);
 
     protected void log(P p, String format, Object... args) {
-        super.log(format, args);
+//        super.log(format, args);
     }
 
     @Override public final V get(K key) {

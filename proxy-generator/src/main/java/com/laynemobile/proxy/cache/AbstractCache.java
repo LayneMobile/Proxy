@@ -40,7 +40,7 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 
     // Must return instance of FutureValue<V>
     // i.e. <FV extends V & FutureValue<V>>
-    protected V createFutureValue() {
+    protected V createFutureValue(K k) {
         return null;
     }
 
@@ -91,9 +91,9 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
     }
 
     protected void log(String format, Object... args) {
-        System.out.printf("%s - ", getClass());
-        System.out.printf(format, args);
-        System.out.println();
+//        System.out.printf("%s - ", getClass());
+//        System.out.printf(format, args);
+//        System.out.println();
     }
 
     private V getInternal(K key, Map<K, V> threadCalls) {
@@ -106,7 +106,7 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
                     "stack overflow! must return <V extends FutureValue<V>> in createFutureValue() for key: " + key);
         }
 
-        final V _temp = createFutureValue();
+        final V _temp = createFutureValue(key);
         if (_temp != null && !(_temp instanceof FutureValue)) {
             throw new IllegalStateException("createFutureValue() must return instance of FutureValue<V>");
         }

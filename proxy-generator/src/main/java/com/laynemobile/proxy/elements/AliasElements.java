@@ -117,7 +117,7 @@ public final class AliasElements {
     private static final class Cache extends AbstractCache<Element, ElementAlias> {
         private Cache() {}
 
-        @Override protected ForwardingAlias createFutureValue() {
+        @Override protected ForwardingAlias createFutureValue(Element element) {
             return new ForwardingAlias();
         }
 
@@ -126,9 +126,9 @@ public final class AliasElements {
             return element.accept(new Visitor7(), null);
         }
 
-//        @Override protected void log(String format, Object... args) {
-//            // do nothing
-//        }
+        @Override protected void log(String format, Object... args) {
+            // do nothing
+        }
     }
 
     private static final class Visitor7 extends SimpleElementVisitor7<ElementAlias, Void> {

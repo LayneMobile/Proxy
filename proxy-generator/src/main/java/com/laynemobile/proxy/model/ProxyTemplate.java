@@ -48,12 +48,10 @@ public class ProxyTemplate extends Template {
     }
 
     @Override public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        log("  ");
-        log("round=%s", round);
-        log("  ");
-
         try {
             round = round.process(annotations, roundEnv);
+            log("round=%s", round);
+            log("  ");
         } catch (IOException e) {
             error("error writing: %s", ProxyLog.getStackTraceString(e));
             return true; // exit processing

@@ -90,8 +90,16 @@ public final class AliasTypes {
     private static final class Cache extends AbstractCache<TypeMirror, TypeMirrorAlias> {
         private Cache() {}
 
-        @Override protected ForwardingAlias createFutureValue() {
-            return new ForwardingAlias();
+        @Override protected ForwardingAlias<?> createFutureValue(TypeMirror typeMirror) {
+            return typeMirror.accept(new SimpleTypeVisitor7<ForwardingAlias<?>, Void>() {
+                @Override protected ForwardingAlias<?> defaultAction(TypeMirror e, Void aVoid) {
+                    return new DefaultForwardingAlias();
+                }
+
+                @Override public ForwardingAlias<?> visitDeclared(DeclaredType t, Void aVoid) {
+                    return new DeclaredForwardingAlias();
+                }
+            }, null);
         }
 
         @Override protected TypeMirrorAlias create(TypeMirror typeMirror) {
@@ -99,9 +107,9 @@ public final class AliasTypes {
             return typeMirror.accept(new Visitor7(), null);
         }
 
-//        @Override protected void log(String format, Object... args) {
-//            // do nothing
-//        }
+        @Override protected void log(String format, Object... args) {
+            // do nothing
+        }
     }
 
     private static final class Visitor7 extends SimpleTypeVisitor7<TypeMirrorAlias, Void> {
@@ -159,46 +167,126 @@ public final class AliasTypes {
         }
     }
 
-    private static final class ForwardingAlias
-            implements TypedTypeMirrorAlias<TypeMirror>,
-            ArrayType,
-            ErrorType,
-            NoType,
-            NullType,
-            DeclaredType,
-            PrimitiveType,
-            TypeVariable,
-            WildcardType,
-            UnionType,
-            ExecutableType,
-            AbstractCache.FutureValue<TypedTypeMirrorAlias<?>> {
-        private TypedTypeMirrorAlias<?> delegate;
+    private interface ForwardingAlias<T extends TypeMirror>
+            extends TypedTypeMirrorAlias<T>,
+            AbstractCache.FutureValue<TypedTypeMirrorAlias<T>> {}
 
-        private ForwardingAlias() {}
+    private static abstract class AbstractForwardingAlias<T extends TypeMirror> implements ForwardingAlias<T> {
+        private TypedTypeMirrorAlias<T> delegate;
 
-        @Override public void setDelegate(TypedTypeMirrorAlias<?> delegate) {
+        @Override public final void setDelegate(TypedTypeMirrorAlias<T> delegate) {
             if (this.delegate == null) {
                 this.delegate = delegate;
             }
         }
 
-        @Override public TypeMirror actual() {
+        @Override public final T actual() {
             return ensure().actual();
         }
 
-        @Override public String toDebugString() {
+        @Override public final String toDebugString() {
             return ensure().toDebugString();
         }
 
         // Basic typemirror
 
-        @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {
+        @Override public final <R, P> R accept(TypeVisitor<R, P> v, P p) {
             return ensure().accept(v, p);
         }
 
-        @Override public TypeKind getKind() {
+        @Override public final TypeKind getKind() {
             return ensure().getKind();
         }
+
+        // equals & hash
+
+        @Override public final boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof TypeMirrorAlias)) return false;
+            TypeMirrorAlias od = o instanceof DefaultForwardingAlias
+                    ? ((DefaultForwardingAlias) o).delegate
+                    : (TypeMirrorAlias) o;
+            return Objects.equal(delegate, od);
+        }
+
+        @Override public final int hashCode() {
+            return Objects.hashCode(delegate);
+        }
+
+        @Override public final String toString() {
+            return String.valueOf(delegate);
+        }
+
+        protected final TypedTypeMirrorAlias<T> ensure() {
+            TypedTypeMirrorAlias<T> d = delegate;
+            if (d == null) {
+                throw new NullPointerException("delegate is null");
+            }
+            return d;
+        }
+
+        @SuppressWarnings("unchecked")
+        protected final <T2 extends TypeMirrorAlias> T2 cast(String message) {
+            try {
+                return (T2) ensure();
+            } catch (ClassCastException e) {
+                throw new UnsupportedOperationException(message, e);
+            }
+        }
+
+        protected final ArrayTypeAlias arrayType() {
+            return cast("not an ArrayTypeAlias");
+        }
+
+        protected final DeclaredTypeAlias declaredType() {
+            return cast("not a DeclaredTypeAlias");
+        }
+
+        protected final WildcardTypeAlias wildcardType() {
+            return cast("not a WildcardTypeAlias");
+        }
+
+        protected final TypeVariableAlias typeVariable() {
+            return cast("not a TypeVariableAlias");
+        }
+
+        protected final UnionTypeAlias unionType() {
+            return cast("not an UnionTypeAlias");
+        }
+
+        protected final ExecutableTypeAlias executableType() {
+            return cast("not an ExecutableTypeAlias");
+        }
+    }
+
+    private static final class DeclaredForwardingAlias extends AbstractForwardingAlias<DeclaredType>
+            implements DeclaredTypeAlias {
+        @Override public ElementAlias asElement() {
+            return declaredType().asElement();
+        }
+
+        @Override public TypeMirrorAlias getEnclosingType() {
+            return declaredType().getEnclosingType();
+        }
+
+        @Override public List<? extends TypeMirrorAlias> getTypeArguments() {
+            return declaredType().getTypeArguments();
+        }
+    }
+
+    private static final class DefaultForwardingAlias extends AbstractForwardingAlias<TypeMirror>
+            implements ArrayType,
+            ErrorType,
+            NoType,
+            NullType,
+            PrimitiveType,
+            TypeVariable,
+            WildcardType,
+            UnionType,
+            ExecutableType {
+        private TypedTypeMirrorAlias<?> delegate;
+
+        private DefaultForwardingAlias() {}
 
         // Array type
 
@@ -262,66 +350,6 @@ public final class AliasTypes {
 
         @Override public List<? extends TypeVariableAlias> getTypeVariables() {
             return executableType().getTypeVariables();
-        }
-
-        // equals & hash
-
-        @Override public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof TypeMirrorAlias)) return false;
-            TypeMirrorAlias od = o instanceof ForwardingAlias
-                    ? ((ForwardingAlias) o).delegate
-                    : (TypeMirrorAlias) o;
-            return Objects.equal(delegate, od);
-        }
-
-        @Override public int hashCode() {
-            return Objects.hashCode(delegate);
-        }
-
-        @Override public String toString() {
-            return delegate.toString();
-        }
-
-        private TypedTypeMirrorAlias<?> ensure() {
-            TypedTypeMirrorAlias<?> d = delegate;
-            if (d == null) {
-                throw new NullPointerException("delegate is null");
-            }
-            return d;
-        }
-
-        @SuppressWarnings("unchecked")
-        private <T extends TypeMirrorAlias> T cast(String message) {
-            try {
-                return (T) ensure();
-            } catch (ClassCastException e) {
-                throw new UnsupportedOperationException(message, e);
-            }
-        }
-
-        private ArrayTypeAlias arrayType() {
-            return cast("not an ArrayTypeAlias");
-        }
-
-        private DeclaredTypeAlias declaredType() {
-            return cast("not a DeclaredTypeAlias");
-        }
-
-        private WildcardTypeAlias wildcardType() {
-            return cast("not a WildcardTypeAlias");
-        }
-
-        private TypeVariableAlias typeVariable() {
-            return cast("not a TypeVariableAlias");
-        }
-
-        private UnionTypeAlias unionType() {
-            return cast("not an UnionTypeAlias");
-        }
-
-        private ExecutableTypeAlias executableType() {
-            return cast("not an ExecutableTypeAlias");
         }
     }
 }

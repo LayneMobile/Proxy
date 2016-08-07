@@ -31,7 +31,7 @@ public abstract class MultiAliasCache<K1, K2, V extends Alias<?>>
     }
 
     @Override protected void log(Env env, String format, Object... args) {
-        env.log(format, args);
+//        env.log(format, args);
     }
 
     public static <K1, K2, V extends Alias<?>> MultiAliasCache<K1, K2, V> create(

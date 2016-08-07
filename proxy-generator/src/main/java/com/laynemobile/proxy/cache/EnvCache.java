@@ -36,7 +36,7 @@ public abstract class EnvCache<K, V> extends AbstractParameterizedCache<K, V, En
     }
 
     @Override protected void log(Env env, String format, Object... args) {
-        env.log(format, args);
+//        env.log(format, args);
     }
 
     public interface Creator<K, V> extends ParameterizedCache.Creator<K, V, Env> {}

@@ -321,5 +321,9 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
             }
             return null;
         }
+
+        @Override protected void log(Env env, String format, Object... args) {
+            env.log(format, args);
+        }
     }
 }
