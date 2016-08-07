@@ -76,7 +76,15 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
 
     @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
         DeclaredType proxyType = (DeclaredType) proxyElement.element().asType().actual();
+        List<? extends TypeMirror> wildcardTypeArguments
+                = buildList(proxyType.getTypeArguments(), new Transformer<TypeMirror, TypeMirror>() {
+            @Override public TypeMirror transform(TypeMirror typeMirror) {
+                // Create wildcard type for each type mirror
+                return env.types().getWildcardType(typeMirror, null);
+            }
+        });
         TypeMirror[] typeParams = typeMirrorArray(proxyType.getTypeArguments());
+        TypeMirror[] wildcardTypeParams = typeMirrorArray(wildcardTypeArguments);
         TypeElement abstractBuilderElement = env.elements()
                 .getTypeElement("com.laynemobile.proxy.AbstractProxyHandlerBuilder");
         DeclaredType abstractBuilderType = env.types().getDeclaredType(abstractBuilderElement, proxyType);
@@ -121,13 +129,24 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
 
             TypeElement fieldElement = function.typeOutputStub().element(env);
             DeclaredType fieldType = env.types().getDeclaredType(fieldElement, typeParams);
+            DeclaredType wildcardFieldType = env.types().getDeclaredType(fieldElement, wildcardTypeParams);
+            TypeName wildcardFieldTypeName = TypeName.get(wildcardFieldType);
 
             // create field
-            FieldSpec fieldSpec = FieldSpec.builder(TypeName.get(fieldType), fieldName)
+            FieldSpec fieldSpec = FieldSpec.builder(wildcardFieldTypeName, fieldName)
                     .addModifiers(Modifier.PRIVATE)
                     .build();
             classBuilder.addField(fieldSpec);
             handlerFields.add(fieldSpec);
+
+            // create setter method for field
+            classBuilder.addMethod(MethodSpec.methodBuilder(methodName)
+                    .addModifiers(Modifier.PUBLIC)
+                    .returns(outputType)
+                    .addParameter(wildcardFieldTypeName, fieldName)
+                    .addStatement("this.$N = $L", fieldSpec, fieldName)
+                    .addStatement("return this")
+                    .build());
 
             // create method for each constructor
             for (ExecutableElement constructor : ElementFilter.constructorsIn(fieldElement.getEnclosedElements())) {
