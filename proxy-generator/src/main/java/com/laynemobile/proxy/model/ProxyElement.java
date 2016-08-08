@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util;
+import com.laynemobile.proxy.Util.Collector;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.cache.AliasCache;
 import com.laynemobile.proxy.elements.AliasElements;
@@ -44,6 +45,8 @@ import javax.lang.model.type.TypeKind;
 
 import sourcerer.processor.Env;
 
+import static com.laynemobile.proxy.Util.buildSet;
+
 public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         implements Comparable<ProxyElement> {
 
@@ -55,11 +58,12 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
     private final ImmutableSet<ProxyType> directDependencies;
     private final ImmutableList<ProxyFunctionElement> functions;
     private final ImmutableSet<ProxyType> paramDependencies;
+    private final ImmutableSet<ProxyElement> overrides;
 
     private ProxyElement(TypeElementAlias source, boolean parent, ClassName className, List<TypeElementAlias> dependsOn,
             TypeElementAlias replaces, TypeElementAlias extendsFrom, Set<ProxyType> directDependencies, Env env) {
         super(source);
-        ImmutableList<ProxyFunctionElement> functions = ProxyFunctionElement.parse(source, env);
+        final ImmutableList<ProxyFunctionElement> functions = ProxyFunctionElement.parse(source, env);
         ImmutableSet.Builder<ProxyType> paramDependencies = ImmutableSet.builder();
         for (ProxyFunctionElement function : functions) {
             MethodElement method = function.value();
@@ -85,6 +89,17 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
         this.directDependencies = ImmutableSet.copyOf(directDependencies);
         this.functions = functions;
         this.paramDependencies = paramDependencies.build();
+        this.overrides = buildSet(functions, new Collector<ProxyElement, ProxyFunctionElement>() {
+            @Override
+            public void collect(ProxyFunctionElement function, ImmutableCollection.Builder<ProxyElement> out) {
+                for (ProxyFunctionElement override : function.overrides()) {
+                    ProxyElement parent = override.parent();
+                    if (parent.element().getKind() == ElementKind.INTERFACE) {
+                        out.add(parent);
+                    }
+                }
+            }
+        });
     }
 
     public static AliasCache<TypeElementAlias, ? extends ProxyElement, Element> cache() {
@@ -125,6 +140,14 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
 
     public ImmutableList<ProxyFunctionElement> functions() {
         return functions;
+    }
+
+    public ImmutableSet<ProxyType> paramDependencies() {
+        return paramDependencies;
+    }
+
+    public ImmutableSet<ProxyElement> overrides() {
+        return overrides;
     }
 
     @Override public int compareTo(ProxyElement o) {
@@ -176,7 +199,7 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
                 .addAll(directDependencies)
                 .addAll(paramDependencies)
                 .build();
-        return Util.buildSet(dependencies, new Util.Collector<ProxyType, ProxyType>() {
+        return buildSet(dependencies, new Collector<ProxyType, ProxyType>() {
             @Override public void collect(ProxyType dependency, ImmutableCollection.Builder<ProxyType> out) {
                 out.add(dependency);
                 out.addAll(dependency.element().allDependencies());

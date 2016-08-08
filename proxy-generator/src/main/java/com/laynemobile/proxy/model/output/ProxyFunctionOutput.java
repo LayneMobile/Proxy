@@ -19,6 +19,7 @@ package com.laynemobile.proxy.model.output;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.laynemobile.proxy.model.AnnotatedProxyElement;
 import com.laynemobile.proxy.model.ProxyElement;
 import com.laynemobile.proxy.model.ProxyEnv;
 import com.laynemobile.proxy.model.ProxyFunctionElement;
@@ -38,7 +39,7 @@ import javax.lang.model.type.TypeMirror;
 import static com.laynemobile.proxy.Util.typeMirrorArray;
 
 public class ProxyFunctionOutput {
-    private final ProxyElement parent;
+    private final AnnotatedProxyElement parent;
     private final ProxyFunctionElement element;
     private ProxyFunctionAbstractTypeOutputStub abstractTypeOutputStub;
     private ProxyFunctionAbstractTypeOutput abstractTypeOutput;
@@ -46,12 +47,12 @@ public class ProxyFunctionOutput {
     private TypeElementOutput typeOutput;
     private boolean finished;
 
-    ProxyFunctionOutput(ProxyElement parent, ProxyFunctionElement element) {
+    ProxyFunctionOutput(AnnotatedProxyElement parent, ProxyFunctionElement element) {
         this.parent = parent;
         this.element = element;
     }
 
-    public ProxyElement parent() {
+    public AnnotatedProxyElement parent() {
         return parent;
     }
 
@@ -118,15 +119,14 @@ public class ProxyFunctionOutput {
                 return AbstractTypeElementOutput.existing(typeOutputStub);
             }
         }
-
         return typeOutputStub.writeTo(input.env());
     }
 
     private TypeElementOutputStub firstOutputStub(ProxyRound.Input input,
             ProxyFunctionAbstractTypeOutputStub outputStub) {
         final ProxyEnv env = input.env();
-        final ProxyElement parent = this.parent;
-        final ImmutableMap<ProxyElement, ImmutableSet<ProxyFunctionOutput>> inputFunctions = input.allInputFunctions();
+        final AnnotatedProxyElement parent = this.parent;
+        final ImmutableMap<AnnotatedProxyElement, ImmutableSet<ProxyFunctionOutput>> inputFunctions = input.allInputFunctions();
         for (ProxyFunctionElement override : element.overrides()) {
             ProxyElement overrideParentElement = override.parent();
             Set<ProxyFunctionOutput> set = inputFunctions.get(overrideParentElement);
@@ -141,7 +141,7 @@ public class ProxyFunctionOutput {
                 env.log("say man");
 
                 ProxyType overrideParentType = null;
-                for (ProxyType test : parent.directDependencies()) {
+                for (ProxyType test : parent.element().directDependencies()) {
                     if (test.element().equals(overrideParentElement)) {
                         overrideParentType = test;
                         break;

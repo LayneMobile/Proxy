@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.Util.Transformer;
 import com.laynemobile.proxy.elements.TypeParameterElementAlias;
+import com.laynemobile.proxy.model.AnnotatedProxyElement;
 import com.laynemobile.proxy.model.ProxyElement;
 import com.laynemobile.proxy.model.ProxyEnv;
 import com.laynemobile.proxy.model.ProxyFunctionElement;
@@ -58,24 +59,38 @@ import static com.laynemobile.proxy.Util.typeMirrorArray;
 import static com.laynemobile.proxy.Util.typeNameArray;
 
 public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutputStub {
-    private final ProxyElement proxyElement;
+    private final AnnotatedProxyElement proxyElement;
     private final ProxyEnv env;
     private final ImmutableSet<ProxyFunctionOutput> functions;
 
-    private ProxyHandlerBuilderOutputStub(Env env, ProxyElement proxyElement, Set<ProxyFunctionOutput> functions) {
-        super(proxyElement.packageName(), proxyElement.className().simpleName() + "HandlerBuilder");
+    private ProxyHandlerBuilderOutputStub(Env env, AnnotatedProxyElement proxyElement,
+            Set<ProxyFunctionOutput> functions) {
+        super(proxyElement.element().packageName(), className(proxyElement.element()));
         this.env = ProxyEnv.wrap(env);
         this.proxyElement = proxyElement;
         this.functions = ImmutableSet.copyOf(functions);
     }
 
-    static ProxyHandlerBuilderOutputStub create(Env env, ProxyElement proxyElement,
+    static ProxyHandlerBuilderOutputStub create(Env env, AnnotatedProxyElement proxyElement,
             Set<ProxyFunctionOutput> functions) {
         return new ProxyHandlerBuilderOutputStub(env, proxyElement, functions);
     }
 
+    public static boolean exists(ProxyElement proxyElement, Env env) {
+        return DefaultTypeElementOutputStub.create(packageName(proxyElement), className(proxyElement))
+                .elementExists(env);
+    }
+
+    private static String packageName(ProxyElement proxyElement) {
+        return proxyElement.packageName();
+    }
+
+    private static String className(ProxyElement proxyElement) {
+        return proxyElement.className().simpleName() + "HandlerBuilder";
+    }
+
     @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {
-        DeclaredType proxyType = (DeclaredType) proxyElement.element().asType().actual();
+        DeclaredType proxyType = (DeclaredType) proxyElement.element().element().asType().actual();
         List<? extends TypeMirror> wildcardTypeArguments
                 = buildList(proxyType.getTypeArguments(), new Transformer<TypeMirror, TypeMirror>() {
             @Override public TypeMirror transform(TypeMirror typeMirror) {
@@ -97,7 +112,7 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
 //                        .build())
         ;
 
-        List<TypeVariableAlias> typeVariables = Util.buildList(proxyElement.element().getTypeParameters(),
+        List<TypeVariableAlias> typeVariables = Util.buildList(proxyElement.element().element().getTypeParameters(),
                 new Transformer<TypeVariableAlias, TypeParameterElementAlias>() {
                     @Override
                     public TypeVariableAlias transform(TypeParameterElementAlias typeParameterElementAlias) {

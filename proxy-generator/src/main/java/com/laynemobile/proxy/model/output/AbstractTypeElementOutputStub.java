@@ -28,7 +28,7 @@ import javax.lang.model.type.TypeMirror;
 
 import sourcerer.processor.Env;
 
-public abstract class AbstractTypeElementOutputStub<T extends TypeElementOutput> extends AbstractTypeElementStub implements TypeElementOutputStub {
+public abstract class AbstractTypeElementOutputStub<T extends TypeElementOutput> extends DefaultTypeElementStub implements TypeElementOutputStub {
     protected AbstractTypeElementOutputStub(String packageName, String className) {
         super(packageName, className);
     }

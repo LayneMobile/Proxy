@@ -50,7 +50,6 @@ import sourcerer.processor.Env;
 public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> implements TypeElementGenerator {
     private static MultiAliasCache<TypeElementAlias, MethodElement, ProxyFunctionElement> CACHE
             = MultiAliasCache.create(new Creator());
-    private static final String ABSTRACT_PREFIX = "Abstract";
 
     private final String name;
     private final ImmutableSet<ProxyFunctionElement> overrides;

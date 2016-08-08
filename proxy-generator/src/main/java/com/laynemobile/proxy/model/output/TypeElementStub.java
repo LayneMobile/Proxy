@@ -32,4 +32,6 @@ public interface TypeElementStub {
     ClassName typeName();
 
     TypeElement element(Env env);
+
+    boolean elementExists(Env env);
 }

@@ -45,7 +45,7 @@ public class ProxyElementRound extends EnvRound<ProxyElementRound> {
         this.outputs = outputs;
     }
 
-    public static ProxyElementRound create(ProxyElement element, Env env) {
+    public static ProxyElementRound create(AnnotatedProxyElement element, Env env) {
         ProxyElementOutput output = ProxyElementOutput.create(element);
         return new ProxyElementRound(env, output);
     }
@@ -54,7 +54,7 @@ public class ProxyElementRound extends EnvRound<ProxyElementRound> {
         return elementOutput;
     }
 
-    public ProxyElement element() {
+    public AnnotatedProxyElement element() {
         return elementOutput.element();
     }
 

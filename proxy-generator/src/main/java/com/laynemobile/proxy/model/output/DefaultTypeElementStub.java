@@ -22,21 +22,27 @@ import com.laynemobile.proxy.Util;
 import com.squareup.javapoet.ClassName;
 
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 
 import sourcerer.processor.Env;
 
-public abstract class AbstractTypeElementStub implements TypeElementStub {
+public class DefaultTypeElementStub implements TypeElementStub {
     private final String packageName;
     private final String className;
     private final String qualifiedName;
     private final ClassName typeName;
 
-    protected AbstractTypeElementStub(String packageName, String className) {
+    protected DefaultTypeElementStub(String packageName, String className) {
         ClassName typeName = Util.typeName(packageName, className);
         this.packageName = packageName;
         this.className = className;
         this.qualifiedName = Util.qualifiedName(typeName);
         this.typeName = typeName;
+    }
+
+    public static TypeElementStub create(String packageName, String className) {
+        return new DefaultTypeElementStub(packageName, className);
     }
 
     @Override public final String packageName() {
@@ -59,10 +65,19 @@ public abstract class AbstractTypeElementStub implements TypeElementStub {
         return env.elements().getTypeElement(qualifiedName);
     }
 
+    @Override public boolean elementExists(Env env) {
+        TypeElement element = element(env);
+        TypeMirror type;
+        if (element != null && (type = element.asType()) != null) {
+            return type.getKind() != TypeKind.ERROR;
+        }
+        return false;
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AbstractTypeElementStub)) return false;
-        AbstractTypeElementStub that = (AbstractTypeElementStub) o;
+        if (!(o instanceof DefaultTypeElementStub)) return false;
+        DefaultTypeElementStub that = (DefaultTypeElementStub) o;
         return Objects.equal(qualifiedName, that.qualifiedName);
     }
 

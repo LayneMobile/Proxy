@@ -20,7 +20,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util.Transformer;
-import com.laynemobile.proxy.model.ProxyElement;
+import com.laynemobile.proxy.model.AnnotatedProxyElement;
 import com.laynemobile.proxy.model.ProxyEnv;
 import com.laynemobile.proxy.model.ProxyFunctionElement;
 import com.laynemobile.proxy.model.ProxyRound;
@@ -34,25 +34,26 @@ import javax.lang.model.element.ElementKind;
 import static com.laynemobile.proxy.Util.buildSet;
 
 public class ProxyElementOutput {
-    private final ProxyElement element;
+    private final AnnotatedProxyElement element;
     private final ImmutableSet<ProxyFunctionOutput> outputs;
     private ProxyHandlerBuilderOutputStub handlerBuilderOutputStub;
     private TypeElementOutput handlerBuilderOutput;
 
-    private ProxyElementOutput(final ProxyElement element) {
+    private ProxyElementOutput(final AnnotatedProxyElement element) {
         this.element = element;
-        this.outputs = buildSet(element.functions(), new Transformer<ProxyFunctionOutput, ProxyFunctionElement>() {
+        this.outputs
+                = buildSet(element.element().functions(), new Transformer<ProxyFunctionOutput, ProxyFunctionElement>() {
             @Override public ProxyFunctionOutput transform(ProxyFunctionElement proxyFunctionElement) {
                 return new ProxyFunctionOutput(element, proxyFunctionElement);
             }
         });
     }
 
-    public static ProxyElementOutput create(ProxyElement element) {
+    public static ProxyElementOutput create(AnnotatedProxyElement element) {
         return new ProxyElementOutput(element);
     }
 
-    public ProxyElement element() {
+    public AnnotatedProxyElement element() {
         return element;
     }
 
@@ -88,7 +89,7 @@ public class ProxyElementOutput {
         if (functionsFinished && out.isEmpty()) {
             if (handlerBuilderOutputStub == null) {
                 handlerBuilderOutputStub = ProxyHandlerBuilderOutputStub.create(env, element, outputs);
-                if (element.element().getKind() == ElementKind.INTERFACE) {
+                if (element.element().element().getKind() == ElementKind.INTERFACE) {
                     handlerBuilderOutput = handlerBuilderOutputStub.writeTo(env);
                     if (handlerBuilderOutput != null) {
                         out.add(handlerBuilderOutput);
