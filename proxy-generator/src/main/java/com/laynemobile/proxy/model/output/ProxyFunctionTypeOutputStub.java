@@ -72,7 +72,7 @@ public class ProxyFunctionTypeOutputStub extends DefaultTypeElementOutputStub {
                 .addModifiers(Modifier.PUBLIC);
 
         ProxyFunctionAbstractTypeOutputStub stub = parentOutput;
-        List<TypeVariableAlias> typeVariables = Util.buildList(stub.parent().element().getTypeParameters(),
+        List<TypeVariableAlias> typeVariables = Util.buildList(stub.parent().element().element().getTypeParameters(),
                 new Transformer<TypeVariableAlias, TypeParameterElementAlias>() {
                     @Override
                     public TypeVariableAlias transform(TypeParameterElementAlias typeParameterElementAlias) {

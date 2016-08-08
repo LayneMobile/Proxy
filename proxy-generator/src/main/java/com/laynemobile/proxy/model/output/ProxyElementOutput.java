@@ -41,8 +41,7 @@ public class ProxyElementOutput {
 
     private ProxyElementOutput(final AnnotatedProxyElement element) {
         this.element = element;
-        this.outputs
-                = buildSet(element.element().functions(), new Transformer<ProxyFunctionOutput, ProxyFunctionElement>() {
+        this.outputs = buildSet(element.functions(), new Transformer<ProxyFunctionOutput, ProxyFunctionElement>() {
             @Override public ProxyFunctionOutput transform(ProxyFunctionElement proxyFunctionElement) {
                 return new ProxyFunctionOutput(element, proxyFunctionElement);
             }

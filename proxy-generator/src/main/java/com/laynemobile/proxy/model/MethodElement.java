@@ -17,21 +17,34 @@
 package com.laynemobile.proxy.model;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.laynemobile.proxy.Util;
+import com.google.common.collect.ImmutableSet;
+import com.laynemobile.proxy.Util.Collector;
 import com.laynemobile.proxy.Util.Transformer;
 import com.laynemobile.proxy.cache.EnvCache;
 import com.laynemobile.proxy.cache.MultiAliasCache;
+import com.laynemobile.proxy.elements.AliasElements;
 import com.laynemobile.proxy.elements.ElementAlias;
 import com.laynemobile.proxy.elements.ExecutableElementAlias;
 import com.laynemobile.proxy.elements.TypeElementAlias;
 import com.laynemobile.proxy.elements.VariableElementAlias;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
 
+import java.util.Collection;
+
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 
 import sourcerer.processor.Env;
+
+import static com.laynemobile.proxy.Util.buildList;
+import static com.laynemobile.proxy.Util.buildSet;
 
 public final class MethodElement extends AbstractValueAlias<ExecutableElementAlias> {
     private static MultiAliasCache<TypeElementAlias, ExecutableElementAlias, MethodElement> CACHE
@@ -48,7 +61,7 @@ public final class MethodElement extends AbstractValueAlias<ExecutableElementAli
         this.returnType = element.getReturnType();
         this.params = ImmutableList.copyOf(element.getParameters());
         this.paramTypes
-                = Util.buildList(element.getParameters(), new Transformer<TypeMirrorAlias, VariableElementAlias>() {
+                = buildList(element.getParameters(), new Transformer<TypeMirrorAlias, VariableElementAlias>() {
             @Override public TypeMirrorAlias transform(VariableElementAlias param) {
                 env.log("param: %s", param);
                 ElementKind paramKind = param.getKind();
@@ -64,9 +77,47 @@ public final class MethodElement extends AbstractValueAlias<ExecutableElementAli
         return CACHE;
     }
 
+    public static ImmutableSet<MethodElement> inherited(final TypeElementAlias typeElement,
+            final Collection<? extends TypeElementAlias> superElements, final Env env) {
+        return buildSet(superElements, new Collector<MethodElement, TypeElementAlias>() {
+            @Override
+            public void collect(TypeElementAlias superElement, ImmutableCollection.Builder<MethodElement> out) {
+                out.addAll(inherited(typeElement, superElement, env));
+            }
+        });
+    }
+
+    public static ImmutableSet<MethodElement> inherited(final TypeElementAlias typeElement,
+            final TypeElementAlias superElement, final Env env) {
+        TypeMirror typeMirror = typeElement.asType().actual();
+        if (typeMirror.getKind() != TypeKind.DECLARED) {
+            return ImmutableSet.of();
+        }
+        final DeclaredType containing = (DeclaredType) typeMirror;
+        final Types types = env.types();
+//        if (!types.isAssignable(containing, superElement.asType().actual())) {
+//            return ImmutableSet.of();
+//        }
+        final EnvCache<ExecutableElementAlias, MethodElement> cache = CACHE.getOrCreate(typeElement, env);
+        return buildSet(parse(superElement, env), new Transformer<MethodElement, MethodElement>() {
+            @Override public MethodElement transform(MethodElement methodElement) {
+                ExecutableElement superMethod = methodElement.element().actual();
+                env.log("%s -- superMethod: %s", typeElement, superMethod);
+                ExecutableType methodType = (ExecutableType) types.asMemberOf(containing, superMethod);
+                env.log("%s -- methodType: %s", typeElement, methodType);
+                ExecutableElement method = (ExecutableElement) types.asElement(methodType);
+                env.log("%s -- method: %s", typeElement, method);
+                if (method != null) {
+                    return cache.getOrCreate(AliasElements.get(method), env);
+                }
+                return cache.getOrCreate(AliasElements.get(superMethod), env);
+            }
+        });
+    }
+
     public static ImmutableList<MethodElement> parse(TypeElementAlias typeElement, final Env env) {
         final EnvCache<ExecutableElementAlias, MethodElement> cache = CACHE.getOrCreate(typeElement, env);
-        return Util.buildList(typeElement.getEnclosedElements(), new Transformer<MethodElement, ElementAlias>() {
+        return buildList(typeElement.getEnclosedElements(), new Transformer<MethodElement, ElementAlias>() {
             @Override public MethodElement transform(ElementAlias element) {
                 if (element.getKind() != ElementKind.METHOD) {
                     return null;

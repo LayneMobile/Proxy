@@ -22,21 +22,18 @@ import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util.Transformer;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.cache.ParameterizedCache;
+import com.laynemobile.proxy.elements.TypeElementAlias;
+import com.squareup.javapoet.ClassName;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 
 import sourcerer.processor.Env;
 
@@ -51,7 +48,7 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
     private final ImmutableSet<ProxyType> unannotatedParamDependencies;
     private final ImmutableSet<AnnotatedProxyElement> annotatedOverrides;
     private final ImmutableSet<ProxyElement> unannotatedOverrides;
-    private final ImmutableList<ProxyFunctionElement> functions;
+    private final ImmutableSet<ProxyFunctionElement> functions;
 
     private AnnotatedProxyElement(ProxyElement element, GenerateProxyBuilder annotation, Env env) {
         super(element);
@@ -63,20 +60,12 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
             }
         }
         ImmutableSet<ProxyElement> unannotatedOverrides = unannotatedElements(overrides, env);
-        LinkedHashSet<ProxyFunctionElement> functions = new LinkedHashSet<>(element.functions());
-
-        TypeMirror type = element.element().asType().actual();
-        if (type != null && type.getKind() == TypeKind.DECLARED) {
-            DeclaredType containing = (DeclaredType) type;
-            for (ProxyElement unannotatedOverride : unannotatedOverrides) {
-                for (ProxyFunctionElement overrideFunction : unannotatedOverride.functions()) {
-                    ExecutableElement base = overrideFunction.element().actual();
-                    TypeMirror method = env.types().asMemberOf(containing, base);
-                    env.log("override type: '%s', parent: '%s', method: '%s'", containing,
-                            unannotatedOverride.element(), method);
-                }
+        ImmutableSet<TypeElementAlias> unannotatedOverrideAliases
+                = buildSet(unannotatedOverrides, new Transformer<TypeElementAlias, ProxyElement>() {
+            @Override public TypeElementAlias transform(ProxyElement proxyElement) {
+                return proxyElement.element();
             }
-        }
+        });
 
         this.env = env;
         this.annotation = annotation;
@@ -86,7 +75,11 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
         this.unannotatedParamDependencies = unannotatedTypes(element.paramDependencies(), env);
         this.annotatedOverrides = annotatedElements(overrides, env);
         this.unannotatedOverrides = unannotatedOverrides;
-        this.functions = ImmutableList.copyOf(functions);
+        this.functions = ImmutableSet.<ProxyFunctionElement>builder()
+                .addAll(element.functions())
+                .addAll(ProxyFunctionElement.inherited(element.element(), unannotatedOverrideAliases, env))
+                .build();
+        env.log("%s -- functions: %s", element, functions);
     }
 
     public static ParameterizedCache<ProxyElement, AnnotatedProxyElement, Env> cache() {
@@ -121,6 +114,14 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
         return annotation;
     }
 
+    public String packageName() {
+        return element().packageName();
+    }
+
+    public ClassName className() {
+        return element().className();
+    }
+
     public ImmutableSet<AnnotatedProxyType> annotatedDirectDependencies() {
         return annotatedDirectDependencies;
     }
@@ -153,7 +154,7 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
         return unannotatedTypes(element().allDependencies(), env);
     }
 
-    public ImmutableList<ProxyFunctionElement> functions() {
+    public ImmutableSet<ProxyFunctionElement> functions() {
         return functions;
     }
 

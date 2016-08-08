@@ -20,6 +20,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.laynemobile.proxy.Util.Transformer;
 import com.laynemobile.proxy.annotations.GenerateProxyFunction;
 import com.laynemobile.proxy.cache.EnvCache;
 import com.laynemobile.proxy.cache.MultiAliasCache;
@@ -33,6 +34,7 @@ import com.laynemobile.proxy.types.DeclaredTypeAlias;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -46,6 +48,8 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import sourcerer.processor.Env;
+
+import static com.laynemobile.proxy.Util.buildList;
 
 public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> implements TypeElementGenerator {
     private static MultiAliasCache<TypeElementAlias, MethodElement, ProxyFunctionElement> CACHE
@@ -131,13 +135,30 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
         this.boxedParamTypes = boxedParamTypes.build();
     }
 
-    public static ImmutableList<ProxyFunctionElement> parse(TypeElementAlias typeElement, Env env) {
-        EnvCache<MethodElement, ProxyFunctionElement> cache = CACHE.getOrCreate(typeElement, env);
-        ImmutableList.Builder<ProxyFunctionElement> builder = ImmutableList.builder();
-        for (MethodElement element : MethodElement.parse(typeElement, env)) {
-            builder.add(cache.getOrCreate(element, env));
-        }
-        return builder.build();
+    public static ImmutableList<ProxyFunctionElement> parse(TypeElementAlias typeElement, final Env env) {
+        return transform(typeElement, MethodElement.parse(typeElement, env), env);
+    }
+
+    public static ImmutableSet<ProxyFunctionElement> inherited(TypeElementAlias typeElement,
+            Collection<? extends TypeElementAlias> superElements, Env env) {
+        Set<MethodElement> methods = MethodElement.inherited(typeElement, superElements, env);
+        return ImmutableSet.copyOf(transform(typeElement, methods, env));
+    }
+
+    public static ImmutableSet<ProxyFunctionElement> inherited(TypeElementAlias typeElement,
+            TypeElementAlias superElement, Env env) {
+        Set<MethodElement> methods = MethodElement.inherited(typeElement, superElement, env);
+        return ImmutableSet.copyOf(transform(typeElement, methods, env));
+    }
+
+    private static ImmutableList<ProxyFunctionElement> transform(TypeElementAlias typeElement,
+            Collection<? extends MethodElement> methods, final Env env) {
+        final EnvCache<MethodElement, ProxyFunctionElement> cache = CACHE.getOrCreate(typeElement, env);
+        return buildList(methods, new Transformer<ProxyFunctionElement, MethodElement>() {
+            @Override public ProxyFunctionElement transform(MethodElement element) {
+                return cache.getOrCreate(element, env);
+            }
+        });
     }
 
     private static TypeMirror boxedType(TypeMirrorAlias typeMirror, Env env) {

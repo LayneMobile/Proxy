@@ -18,7 +18,7 @@ package com.laynemobile.proxy.model.output;
 
 import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.elements.TypeParameterElementAlias;
-import com.laynemobile.proxy.model.ProxyElement;
+import com.laynemobile.proxy.model.AnnotatedProxyElement;
 import com.laynemobile.proxy.model.ProxyFunctionElement;
 import com.laynemobile.proxy.types.AliasTypes;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
@@ -42,19 +42,19 @@ import javax.lang.model.type.TypeVariable;
 public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutputStub<ProxyFunctionAbstractTypeOutput> {
     private static final String ABSTRACT_PREFIX = "Abstract";
 
-    private final ProxyElement parent;
+    private final AnnotatedProxyElement parent;
     private final ProxyFunctionElement function;
     private final ExecutableElement element;
     private final String basePackageName;
     private final String baseClassName;
     private final TypeMirror superClass;
 
-    private ProxyFunctionAbstractTypeOutputStub(ProxyElement parent, ProxyFunctionElement function,
+    private ProxyFunctionAbstractTypeOutputStub(AnnotatedProxyElement parent, ProxyFunctionElement function,
             String baseClassName) {
         this(parent, function, parent.packageName() + ".functions", baseClassName);
     }
 
-    private ProxyFunctionAbstractTypeOutputStub(ProxyElement parent, ProxyFunctionElement function,
+    private ProxyFunctionAbstractTypeOutputStub(AnnotatedProxyElement parent, ProxyFunctionElement function,
             String basePackageName,
             String baseClassName) {
         super(basePackageName + ".parent", ABSTRACT_PREFIX + baseClassName);
@@ -77,7 +77,7 @@ public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutp
     }
 
     public static ProxyFunctionAbstractTypeOutputStub create(ProxyFunctionElement function) {
-        ProxyElement parent = function.parent();
+        AnnotatedProxyElement parent = AnnotatedProxyElement.cache().get(function.parent());
         ExecutableElement element = function.element();
         String parammys = "";
         for (TypeMirror paramType : function.boxedParamTypes()) {
@@ -95,7 +95,7 @@ public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutp
             }
         }
 
-        String baseClassName = parent.element().getSimpleName() + "_" + element.getSimpleName() + parammys;
+        String baseClassName = parent.element().element().getSimpleName() + "_" + element.getSimpleName() + parammys;
         return new ProxyFunctionAbstractTypeOutputStub(parent, function, baseClassName);
     }
 
@@ -115,7 +115,7 @@ public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutp
         return function;
     }
 
-    ProxyElement parent() {
+    AnnotatedProxyElement parent() {
         return parent;
     }
 
@@ -136,7 +136,7 @@ public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutp
 //                        .build())
         ;
 
-        List<TypeVariableAlias> typeVariables = Util.buildList(parent.element().getTypeParameters(),
+        List<TypeVariableAlias> typeVariables = Util.buildList(parent.element().element().getTypeParameters(),
                 new Util.Transformer<TypeVariableAlias, TypeParameterElementAlias>() {
                     @Override
                     public TypeVariableAlias transform(TypeParameterElementAlias typeParameterElementAlias) {
