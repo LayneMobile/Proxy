@@ -22,49 +22,71 @@ import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util.Transformer;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.cache.ParameterizedCache;
-import com.laynemobile.proxy.model.output.ProxyHandlerBuilderOutputStub;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 
 import sourcerer.processor.Env;
 
 import static com.laynemobile.proxy.Util.buildSet;
 
 public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement> {
+    private final Env env;
     private final GenerateProxyBuilder annotation;
     private final ImmutableSet<AnnotatedProxyType> annotatedDirectDependencies;
     private final ImmutableSet<ProxyType> unannotatedDirectDependencies;
     private final ImmutableSet<AnnotatedProxyType> annotatedParamDependencies;
     private final ImmutableSet<ProxyType> unannotatedParamDependencies;
-    private final ImmutableSet<ProxyElement> overrides;
+    private final ImmutableSet<AnnotatedProxyElement> annotatedOverrides;
+    private final ImmutableSet<ProxyElement> unannotatedOverrides;
+    private final ImmutableList<ProxyFunctionElement> functions;
 
     private AnnotatedProxyElement(ProxyElement element, GenerateProxyBuilder annotation, Env env) {
         super(element);
         Set<ProxyElement> overrides = new HashSet<>(element.overrides());
-        for (ProxyType dependency : unannotated(element.allDependencies())) {
+        for (ProxyType dependency : unannotatedTypes(element.allDependencies(), env)) {
             ProxyElement dependencyElement = dependency.element();
-            if (dependencyElement.element().getKind() != ElementKind.INTERFACE) {
-                continue;
-            }
-            if (!ProxyHandlerBuilderOutputStub.exists(element, env)) {
+            if (dependencyElement.element().getKind() == ElementKind.INTERFACE) {
                 overrides.add(dependencyElement);
             }
         }
+        ImmutableSet<ProxyElement> unannotatedOverrides = unannotatedElements(overrides, env);
+        LinkedHashSet<ProxyFunctionElement> functions = new LinkedHashSet<>(element.functions());
 
+        TypeMirror type = element.element().asType().actual();
+        if (type != null && type.getKind() == TypeKind.DECLARED) {
+            DeclaredType containing = (DeclaredType) type;
+            for (ProxyElement unannotatedOverride : unannotatedOverrides) {
+                for (ProxyFunctionElement overrideFunction : unannotatedOverride.functions()) {
+                    ExecutableElement base = overrideFunction.element().actual();
+                    TypeMirror method = env.types().asMemberOf(containing, base);
+                    env.log("override type: '%s', parent: '%s', method: '%s'", containing,
+                            unannotatedOverride.element(), method);
+                }
+            }
+        }
+
+        this.env = env;
         this.annotation = annotation;
-        this.annotatedDirectDependencies = annotated(element.directDependencies());
-        this.unannotatedDirectDependencies = unannotated(element.directDependencies());
-        this.annotatedParamDependencies = annotated(element.paramDependencies());
-        this.unannotatedParamDependencies = unannotated(element.paramDependencies());
-        this.overrides = ImmutableSet.copyOf(overrides);
+        this.annotatedDirectDependencies = annotatedTypes(element.directDependencies(), env);
+        this.unannotatedDirectDependencies = unannotatedTypes(element.directDependencies(), env);
+        this.annotatedParamDependencies = annotatedTypes(element.paramDependencies(), env);
+        this.unannotatedParamDependencies = unannotatedTypes(element.paramDependencies(), env);
+        this.annotatedOverrides = annotatedElements(overrides, env);
+        this.unannotatedOverrides = unannotatedOverrides;
+        this.functions = ImmutableList.copyOf(functions);
     }
 
     public static ParameterizedCache<ProxyElement, AnnotatedProxyElement, Env> cache() {
@@ -115,12 +137,24 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
         return unannotatedParamDependencies;
     }
 
+    public ImmutableSet<AnnotatedProxyElement> annotatedOverrides() {
+        return annotatedOverrides;
+    }
+
+    public ImmutableSet<ProxyElement> unannotatedOverrides() {
+        return unannotatedOverrides;
+    }
+
     public ImmutableSet<AnnotatedProxyType> allAnnotatedDependencies() {
-        return annotated(element().allDependencies());
+        return annotatedTypes(element().allDependencies(), env);
     }
 
     public ImmutableSet<ProxyType> allUnannotatedDependencies() {
-        return unannotated(element().allDependencies());
+        return unannotatedTypes(element().allDependencies(), env);
+    }
+
+    public ImmutableList<ProxyFunctionElement> functions() {
+        return functions;
     }
 
     @Override public boolean equals(Object o) {
@@ -139,19 +173,40 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
                 .toString();
     }
 
-    private static ImmutableSet<AnnotatedProxyType> annotated(Set<? extends ProxyType> proxyTypes) {
+    private static ImmutableSet<AnnotatedProxyType> annotatedTypes(Set<? extends ProxyType> proxyTypes, final Env env) {
         return buildSet(proxyTypes, new Transformer<AnnotatedProxyType, ProxyType>() {
             @Override public AnnotatedProxyType transform(ProxyType proxyType) {
-                return AnnotatedProxyType.cache().get(proxyType);
+                return AnnotatedProxyType.cache().getOrCreate(proxyType, env);
             }
         });
     }
 
-    private static ImmutableSet<ProxyType> unannotated(Set<? extends ProxyType> proxyTypes) {
+    private static ImmutableSet<ProxyType> unannotatedTypes(Set<? extends ProxyType> proxyTypes, final Env env) {
         return buildSet(proxyTypes, new Transformer<ProxyType, ProxyType>() {
             @Override public ProxyType transform(ProxyType proxyType) {
-                if (AnnotatedProxyType.cache().get(proxyType) == null) {
+                if (AnnotatedProxyType.cache().getOrCreate(proxyType, env) == null) {
                     return proxyType;
+                }
+                return null;
+            }
+        });
+    }
+
+    private static ImmutableSet<AnnotatedProxyElement> annotatedElements(Set<? extends ProxyElement> proxyElements,
+            final Env env) {
+        return buildSet(proxyElements, new Transformer<AnnotatedProxyElement, ProxyElement>() {
+            @Override public AnnotatedProxyElement transform(ProxyElement proxyElement) {
+                return cache().getOrCreate(proxyElement, env);
+            }
+        });
+    }
+
+    private static ImmutableSet<ProxyElement> unannotatedElements(Set<? extends ProxyElement> proxyElements,
+            final Env env) {
+        return buildSet(proxyElements, new Transformer<ProxyElement, ProxyElement>() {
+            @Override public ProxyElement transform(ProxyElement proxyElement) {
+                if (cache().getOrCreate(proxyElement, env) == null) {
+                    return proxyElement;
                 }
                 return null;
             }

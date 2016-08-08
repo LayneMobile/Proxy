@@ -28,6 +28,7 @@ import com.laynemobile.proxy.model.ProxyType;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.Element;
@@ -129,7 +130,13 @@ public class ProxyFunctionOutput {
         final ImmutableMap<AnnotatedProxyElement, ImmutableSet<ProxyFunctionOutput>> inputFunctions = input.allInputFunctions();
         for (ProxyFunctionElement override : element.overrides()) {
             ProxyElement overrideParentElement = override.parent();
-            Set<ProxyFunctionOutput> set = inputFunctions.get(overrideParentElement);
+            Set<ProxyFunctionOutput> set = null;
+            for (Map.Entry<AnnotatedProxyElement, ImmutableSet<ProxyFunctionOutput>> entry : inputFunctions.entrySet()) {
+                if (overrideParentElement.equals(entry.getKey().element())) {
+                    set = entry.getValue();
+                    break;
+                }
+            }
             if (set == null) {
                 continue;
             }
