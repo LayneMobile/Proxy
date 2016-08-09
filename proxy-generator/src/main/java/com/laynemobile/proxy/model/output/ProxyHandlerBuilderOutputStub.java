@@ -59,6 +59,7 @@ import static com.laynemobile.proxy.Util.typeMirrorArray;
 import static com.laynemobile.proxy.Util.typeNameArray;
 
 public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutputStub {
+    private static final String CLASS_SUFFIX = "ProxyHandlerBuilder";
     private final AnnotatedProxyElement proxyElement;
     private final ProxyEnv env;
     private final ImmutableSet<ProxyFunctionOutput> functions;
@@ -86,7 +87,7 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
     }
 
     private static String className(ProxyElement proxyElement) {
-        return proxyElement.className().simpleName() + "HandlerBuilder";
+        return proxyElement.className().simpleName() + CLASS_SUFFIX;
     }
 
     @Override protected TypeSpec build(TypeSpec.Builder classBuilder) {

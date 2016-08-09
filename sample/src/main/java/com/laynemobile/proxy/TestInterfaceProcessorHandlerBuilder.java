@@ -23,8 +23,8 @@ import com.laynemobile.proxy.processor.Processor;
 import com.laynemobile.proxy.processor.ProcessorHandler;
 
 @ProxyHandlerModule
-public class TestInterfaceHandler<T, R> implements Builder<ProcessorHandler.Parent<T, R, TestInterface<T, R>>> {
-    private final TestInterfaceHandlerBuilder<T, R> builder = new TestInterfaceHandlerBuilder<>();
+public class TestInterfaceProcessorHandlerBuilder<T, R> implements Builder<ProcessorHandler.Parent<T, R, TestInterface<T, R>>> {
+    private final TestInterfaceProxyHandlerBuilder<T, R> builder = new TestInterfaceProxyHandlerBuilder<>();
 
     public void setSource(Func1<T, R> source) {
         builder.setSource(source);

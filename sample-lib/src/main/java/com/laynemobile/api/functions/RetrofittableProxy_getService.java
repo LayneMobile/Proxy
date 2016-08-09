@@ -16,19 +16,19 @@
 
 package com.laynemobile.api.functions;
 
-import com.laynemobile.api.functions.parent.AbstractRetrofittable_getService;
+import com.laynemobile.api.functions.parent.AbstractRetrofittableProxy_getService;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Func0;
 
 import retrofit.RestAdapter;
 
 @Generated
-public class Retrofittable_getService<S> extends AbstractRetrofittable_getService<S> {
-    public Retrofittable_getService(Func0<S> service) {
+public class RetrofittableProxy_getService<S> extends AbstractRetrofittableProxy_getService<S> {
+    public RetrofittableProxy_getService(Func0<S> service) {
         super(service);
     }
 
-    public Retrofittable_getService(final Class<S> serviceType, final Func0<RestAdapter> restAdapter) {
+    public RetrofittableProxy_getService(final Class<S> serviceType, final Func0<RestAdapter> restAdapter) {
         super(new Func0<S>() {
             @Override public S call() {
                 return createService(serviceType, restAdapter.call());
@@ -36,7 +36,7 @@ public class Retrofittable_getService<S> extends AbstractRetrofittable_getServic
         });
     }
 
-    public Retrofittable_getService(final Class<S> serviceType, final RestAdapter restAdapter) {
+    public RetrofittableProxy_getService(final Class<S> serviceType, final RestAdapter restAdapter) {
         super(new Func0<S>() {
             @Override public S call() {
                 return createService(serviceType, restAdapter);

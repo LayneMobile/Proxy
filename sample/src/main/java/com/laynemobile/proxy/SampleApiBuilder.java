@@ -35,7 +35,7 @@ public final class SampleApiBuilder<T, R> {
 
     // Parent Builder first step, which returns 2nd (optional) extensions variation
     public final class TestProxyHandlerModuleBuilder {
-        private final TestInterfaceHandler<T, R> builder = new TestInterfaceHandler<>();
+        private final TestInterfaceProcessorHandlerBuilder<T, R> builder = new TestInterfaceProcessorHandlerBuilder<>();
 
         private TestProxyHandlerModuleBuilder() {}
 

@@ -18,13 +18,13 @@ package com.laynemobile.api.functions;
 
 import com.laynemobile.api.Params;
 import com.laynemobile.api.Retrofittable;
-import com.laynemobile.api.functions.parent.AbstractRetrofitSource_getRetrofittable;
+import com.laynemobile.api.functions.parent.AbstractRetrofitSourceProxy_getRetrofittable;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Func0;
 
 @Generated
-public class RetrofitSource_getRetrofittable<T, P extends Params, S> extends AbstractRetrofitSource_getRetrofittable<T, P, S> {
-    public RetrofitSource_getRetrofittable(Func0<Retrofittable<S>> getRetrofittable) {
+public class RetrofitSourceProxy_getRetrofittable<T, P extends Params, S> extends AbstractRetrofitSourceProxy_getRetrofittable<T, P, S> {
+    public RetrofitSourceProxy_getRetrofittable(Func0<Retrofittable<S>> getRetrofittable) {
         super(getRetrofittable);
     }
 }

@@ -18,17 +18,17 @@ package com.laynemobile.api.functions;
 
 import com.laynemobile.api.NetworkChecker;
 import com.laynemobile.api.Params;
-import com.laynemobile.api.functions.parent.AbstractNetworkSource_networkChecker;
+import com.laynemobile.api.functions.parent.AbstractNetworkSourceProxy_networkChecker;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Func0;
 
 @Generated
-public class NetworkSource_networkChecker<T, P extends Params> extends AbstractNetworkSource_networkChecker<T, P> {
-    public NetworkSource_networkChecker(Func0<NetworkChecker> networkChecker) {
+public class NetworkSourceProxy_networkChecker<T, P extends Params> extends AbstractNetworkSourceProxy_networkChecker<T, P> {
+    public NetworkSourceProxy_networkChecker(Func0<NetworkChecker> networkChecker) {
         super(networkChecker);
     }
 
-    public NetworkSource_networkChecker(final NetworkChecker networkChecker) {
+    public NetworkSourceProxy_networkChecker(final NetworkChecker networkChecker) {
         super(new Func0<NetworkChecker>() {
             @Override public NetworkChecker call() {
                 return networkChecker;
@@ -36,7 +36,7 @@ public class NetworkSource_networkChecker<T, P extends Params> extends AbstractN
         });
     }
 
-    public NetworkSource_networkChecker() {
+    public NetworkSourceProxy_networkChecker() {
         super(new Func0<NetworkChecker>() {
             @Override public NetworkChecker call() {
                 // TODO: plugin for default implementation

@@ -17,11 +17,11 @@
 package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.annotations.Generated;
-import com.laynemobile.proxy.functions.parent.AbstractTestInterface_call__T;
+import com.laynemobile.proxy.functions.parent.AbstractTestInterfaceProxy_call__T;
 
 @Generated
-public class TestInterface_call__T<T, R> extends AbstractTestInterface_call__T<T, R> {
-    public TestInterface_call__T(Func1<T, R> source) {
+public class TestInterfaceProxy_call__T<T, R> extends AbstractTestInterfaceProxy_call__T<T, R> {
+    public TestInterfaceProxy_call__T(Func1<T, R> source) {
         super(source);
     }
 }

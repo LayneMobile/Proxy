@@ -16,15 +16,25 @@
 
 package com.laynemobile.api.functions;
 
-import com.laynemobile.api.Stashable;
-import com.laynemobile.api.StashableParams;
-import com.laynemobile.api.functions.parent.AbstractStashableSource_getStashable__P;
+import com.laynemobile.api.NoParams;
 import com.laynemobile.proxy.annotations.Generated;
-import com.laynemobile.proxy.functions.Func1;
+import com.laynemobile.proxy.functions.Action1;
+import com.laynemobile.proxy.functions.Func0;
+
+import rx.Observable;
+import rx.Subscriber;
 
 @Generated
-public class StashableSource_getStashable__P<T, P extends StashableParams<?>> extends AbstractStashableSource_getStashable__P<T, P> {
-    public StashableSource_getStashable__P(Func1<P, Stashable<T>> getStashable) {
-        super(getStashable);
+public class SimpleSourceProxy_call__NoParams_Subscriber<T> extends SourceProxy_call__P_Subscriber<T, NoParams> {
+    public SimpleSourceProxy_call__NoParams_Subscriber(Action1<Subscriber<? super T>> source) {
+        super(source);
+    }
+
+    public SimpleSourceProxy_call__NoParams_Subscriber(Func0<T> source) {
+        super(source);
+    }
+
+    public SimpleSourceProxy_call__NoParams_Subscriber(Observable<T> source) {
+        super(source);
     }
 }

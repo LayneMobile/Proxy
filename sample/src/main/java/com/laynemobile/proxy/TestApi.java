@@ -25,15 +25,15 @@ import com.laynemobile.proxy.processor.ProcessorHandler;
 public class TestApi {
 
     public Step2 setSource(Func1<Integer, String> source) {
-        TestInterfaceHandler builder = new TestInterfaceHandler();
+        TestInterfaceProcessorHandlerBuilder<Integer, String> builder = new TestInterfaceProcessorHandlerBuilder<>();
         builder.setSource(source);
         return new Step2(builder.build());
     }
 
     public static final class Step2 {
-        private final com.laynemobile.proxy.processor.ProcessorBuilder<Integer, String, TestInterface> builder;
+        private final ProcessorBuilder<Integer, String, TestInterface<Integer, String>> builder;
 
-        private Step2(ProcessorHandler.Parent<Integer, String, TestInterface> parent) {
+        private Step2(ProcessorHandler.Parent<Integer, String, TestInterface<Integer, String>> parent) {
             this.builder = ProcessorBuilder.create(parent);
         }
 

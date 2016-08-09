@@ -18,8 +18,8 @@ package com.laynemobile.api.generated2;
 
 import com.laynemobile.api.NoParams;
 import com.laynemobile.api.SimpleSource;
-import com.laynemobile.api.SourceHandlerBuilder;
-import com.laynemobile.api.functions.SimpleSource_call__NoParams_Subscriber;
+import com.laynemobile.api.SourceProxyHandlerBuilder;
+import com.laynemobile.api.functions.SimpleSourceProxy_call__NoParams_Subscriber;
 import com.laynemobile.proxy.AbstractProxyHandlerBuilder;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Action1;
@@ -30,25 +30,25 @@ import rx.Subscriber;
 
 @Generated
 public abstract class SimpleSourceHandlerBuilder<T> extends AbstractProxyHandlerBuilder<SimpleSource<T>> {
-    private final SourceHandlerBuilder<T, NoParams> source = new SourceHandlerBuilder<>();
+    private final SourceProxyHandlerBuilder<T, NoParams> source = new SourceProxyHandlerBuilder<>();
 
-    public SimpleSourceHandlerBuilder<T> setSource(SimpleSource_call__NoParams_Subscriber<? extends T> source) {
+    public SimpleSourceHandlerBuilder<T> setSource(SimpleSourceProxy_call__NoParams_Subscriber<? extends T> source) {
         this.source.setSource(source);
         return this;
     }
 
     public SimpleSourceHandlerBuilder<T> setSource(Action1<Subscriber<? super T>> source) {
-        this.source.setSource(new SimpleSource_call__NoParams_Subscriber<T>(source));
+        this.source.setSource(new SimpleSourceProxy_call__NoParams_Subscriber<T>(source));
         return this;
     }
 
     public SimpleSourceHandlerBuilder<T> setSource(Func0<T> source) {
-        this.source.setSource(new SimpleSource_call__NoParams_Subscriber<T>(source));
+        this.source.setSource(new SimpleSourceProxy_call__NoParams_Subscriber<T>(source));
         return this;
     }
 
     public SimpleSourceHandlerBuilder<T> setSource(Observable<T> source) {
-        this.source.setSource(new SimpleSource_call__NoParams_Subscriber<T>(source));
+        this.source.setSource(new SimpleSourceProxy_call__NoParams_Subscriber<T>(source));
         return this;
     }
 

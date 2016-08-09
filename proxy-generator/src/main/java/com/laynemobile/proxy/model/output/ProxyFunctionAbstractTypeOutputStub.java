@@ -39,8 +39,11 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 
+import static java.util.Locale.US;
+
 public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutputStub<ProxyFunctionAbstractTypeOutput> {
     private static final String ABSTRACT_PREFIX = "Abstract";
+    private static final String PROXY_SUFFIX = "Proxy";
 
     private final AnnotatedProxyElement parent;
     private final ProxyFunctionElement function;
@@ -95,7 +98,8 @@ public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutp
             }
         }
 
-        String baseClassName = parent.element().element().getSimpleName() + "_" + element.getSimpleName() + parammys;
+        String baseClassName = String.format(US, "%s%s_%s%s",
+                parent.element().element().getSimpleName(), PROXY_SUFFIX, element.getSimpleName(), parammys);
         return new ProxyFunctionAbstractTypeOutputStub(parent, function, baseClassName);
     }
 
