@@ -23,6 +23,7 @@ import com.laynemobile.proxy.Util.Transformer;
 import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
 import com.laynemobile.proxy.cache.ParameterizedCache;
 import com.laynemobile.proxy.elements.TypeElementAlias;
+import com.laynemobile.proxy.model.output.ProxyHandlerBuilderOutputStub;
 import com.squareup.javapoet.ClassName;
 
 import java.io.IOException;
@@ -252,10 +253,15 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
         }
 
         private AnnotatedProxyElement create(ProxyElement proxyElement, Env env) {
-            GenerateProxyBuilder annotation;
-            if (proxyElement != null
-                    && (annotation = proxyElement.element().getAnnotation(GenerateProxyBuilder.class)) != null) {
-                return new AnnotatedProxyElement(proxyElement, annotation, env);
+            if (proxyElement != null) {
+                GenerateProxyBuilder annotation;
+                if ((annotation = proxyElement.element().getAnnotation(GenerateProxyBuilder.class)) != null) {
+                    return new AnnotatedProxyElement(proxyElement, annotation, env);
+                }
+                if (ProxyHandlerBuilderOutputStub.exists(proxyElement, env)) {
+                    env.log("returning existing AnnotatedProxyElement: %s", proxyElement);
+                    return new AnnotatedProxyElement(proxyElement, null, env);
+                }
             }
             return null;
         }

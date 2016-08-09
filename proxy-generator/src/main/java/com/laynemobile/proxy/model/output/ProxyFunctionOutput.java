@@ -31,8 +31,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
@@ -108,17 +106,9 @@ public class ProxyFunctionOutput {
 
     private static TypeElementOutput typeOutput(ProxyRound.Input input, ProxyFunctionTypeOutputStub typeOutputStub)
             throws IOException {
-        String typeOutputName = typeOutputStub.qualifiedName();
-        for (Element rootElement : input.allRootElements()) {
-            if (rootElement.getKind() != ElementKind.CLASS) {
-                continue;
-            }
-
-            TypeElement typeElement = (TypeElement) rootElement;
-            if (typeOutputName.equals(typeElement.getQualifiedName().toString())) {
-                // already created
-                return AbstractTypeElementOutput.existing(typeOutputStub);
-            }
+        if (typeOutputStub.elementExists(input.env())) {
+            // already created
+            return AbstractTypeElementOutput.existing(typeOutputStub);
         }
         return typeOutputStub.writeTo(input.env());
     }

@@ -28,7 +28,6 @@ import com.laynemobile.proxy.model.output.TypeElementOutput;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import javax.annotation.processing.RoundEnvironment;
@@ -238,8 +237,8 @@ public class ProxyRound extends EnvRound<ProxyRound> {
         private Input process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv, Output lastOutput)
                 throws IOException {
             final ProxyEnv env = env();
-            final ImmutableSet<AnnotatedProxyElement> curAnnotatedElements = AnnotatedProxyElement.process(env,
-                    roundEnv);
+            final ImmutableSet<AnnotatedProxyElement> curAnnotatedElements
+                    = AnnotatedProxyElement.process(env, roundEnv);
             final ImmutableSet<AnnotatedProxyElement> allAnnotatedElements = ImmutableSet.<AnnotatedProxyElement>builder()
                     .addAll(allAnnotatedElements())
                     .addAll(curAnnotatedElements)
@@ -252,14 +251,7 @@ public class ProxyRound extends EnvRound<ProxyRound> {
             final Set<AnnotatedProxyElement> processedElements = new HashSet<>(allOutputElements());
             for (ProxyElementRound inputRound : inputRounds) {
                 if (!inputRound.isFinished()) {
-                    Iterator<AnnotatedProxyElement> it = processedElements.iterator();
-                    while (it.hasNext()) {
-                        AnnotatedProxyElement processed = it.next();
-                        if (processed.element().equals(inputRound.element())) {
-                            it.remove();
-                            break;
-                        }
-                    }
+                    processedElements.remove(inputRound.element());
                 }
             }
             log("all processed elements: %s", processedElements);
@@ -282,7 +274,7 @@ public class ProxyRound extends EnvRound<ProxyRound> {
             Set<AnnotatedProxyElement> round
                     = buildSet(unprocessedElements, new Transformer<AnnotatedProxyElement, AnnotatedProxyElement>() {
                 @Override public AnnotatedProxyElement transform(AnnotatedProxyElement unprocessed) {
-                    for (ProxyType dependency : unprocessed.element().allDependencies()) {
+                    for (AnnotatedProxyType dependency : unprocessed.allAnnotatedDependencies()) {
                         if (dependencies.contains(dependency)) {
                             return null;
                         }
