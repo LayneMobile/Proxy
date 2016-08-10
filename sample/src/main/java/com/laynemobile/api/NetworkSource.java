@@ -16,11 +16,11 @@
 
 package com.laynemobile.api;
 
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
-import com.laynemobile.proxy.annotations.GenerateProxyFunction;
+import com.laynemobile.proxy.annotations.GenerateProxyHandler;
+import com.laynemobile.proxy.annotations.GenerateProxyHandlerFunction;
 
-@GenerateProxyBuilder(dependsOn = Source.class)
+@GenerateProxyHandler(dependsOn = Source.class)
 public interface NetworkSource<T, P extends Params> extends Source<T, P> {
-    @GenerateProxyFunction
+    @GenerateProxyHandlerFunction
     NetworkChecker networkChecker();
 }

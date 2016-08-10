@@ -21,7 +21,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util.Transformer;
-import com.laynemobile.proxy.annotations.GenerateProxyFunction;
+import com.laynemobile.proxy.annotations.GenerateProxyHandlerFunction;
 import com.laynemobile.proxy.cache.EnvCache;
 import com.laynemobile.proxy.cache.MultiAliasCache;
 import com.laynemobile.proxy.elements.AliasElements;
@@ -67,7 +67,7 @@ public class ProxyFunctionElement extends AbstractValueAlias<MethodElement> impl
     private ProxyFunctionElement(MethodElement source, Set<? extends ProxyFunctionElement> overrides, Env env) {
         super(source);
         ExecutableElement element = source.element();
-        GenerateProxyFunction function = element.getAnnotation(GenerateProxyFunction.class);
+        GenerateProxyHandlerFunction function = element.getAnnotation(GenerateProxyHandlerFunction.class);
         String name = function == null ? "" : function.value();
         if (name.isEmpty()) {
             name = element.getSimpleName().toString();

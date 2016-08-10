@@ -16,11 +16,11 @@
 
 package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
-import com.laynemobile.proxy.annotations.GenerateProxyFunction;
+import com.laynemobile.proxy.annotations.GenerateProxyHandler;
+import com.laynemobile.proxy.annotations.GenerateProxyHandlerFunction;
 
-@GenerateProxyBuilder(parent = true)
+@GenerateProxyHandler(parent = true)
 public interface TestInterface<T, R> {
-    @GenerateProxyFunction("source")
+    @GenerateProxyHandlerFunction("source")
     R call(T t);
 }

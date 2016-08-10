@@ -25,6 +25,6 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
-public @interface GenerateProxyFunction {
+public @interface GenerateProxyHandlerFunction {
     String value() default "";
 }

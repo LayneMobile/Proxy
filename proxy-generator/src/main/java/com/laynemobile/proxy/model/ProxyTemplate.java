@@ -17,7 +17,7 @@
 package com.laynemobile.proxy.model;
 
 import com.google.common.collect.ImmutableSet;
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.annotations.GenerateProxyHandler;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.annotations.ProxyFunctionImplementation;
 import com.laynemobile.proxy.internal.ProxyLog;
@@ -41,7 +41,7 @@ public class ProxyTemplate extends Template {
 
     @Override public Set<String> supportedAnnotationTypes() {
         return ImmutableSet.<String>builder()
-                .add(GenerateProxyBuilder.class.getCanonicalName())
+                .add(GenerateProxyHandler.class.getCanonicalName())
                 .add(Generated.class.getCanonicalName())
                 .add(ProxyFunctionImplementation.class.getCanonicalName())
                 .build();

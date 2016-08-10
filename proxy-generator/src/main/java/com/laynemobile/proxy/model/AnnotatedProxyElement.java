@@ -20,7 +20,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util.Transformer;
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.annotations.GenerateProxyHandler;
 import com.laynemobile.proxy.cache.ParameterizedCache;
 import com.laynemobile.proxy.elements.TypeElementAlias;
 import com.laynemobile.proxy.model.output.ProxyHandlerBuilderOutputStub;
@@ -42,7 +42,7 @@ import static com.laynemobile.proxy.Util.buildSet;
 
 public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement> {
     private final Env env;
-    private final GenerateProxyBuilder annotation;
+    private final GenerateProxyHandler annotation;
     private final ImmutableSet<AnnotatedProxyType> annotatedDirectDependencies;
     private final ImmutableSet<ProxyType> unannotatedDirectDependencies;
     private final ImmutableSet<AnnotatedProxyType> annotatedParamDependencies;
@@ -51,7 +51,7 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
     private final ImmutableSet<ProxyElement> unannotatedOverrides;
     private final ImmutableSet<ProxyFunctionElement> functions;
 
-    private AnnotatedProxyElement(ProxyElement element, GenerateProxyBuilder annotation, Env env) {
+    private AnnotatedProxyElement(ProxyElement element, GenerateProxyHandler annotation, Env env) {
         super(element);
         Set<ProxyElement> overrides = new HashSet<>(element.overrides());
         for (ProxyType dependency : unannotatedTypes(element.allDependencies(), env)) {
@@ -90,13 +90,13 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
     public static ImmutableSet<AnnotatedProxyElement> process(final Env env, RoundEnvironment roundEnv)
             throws IOException {
         try {
-            Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(GenerateProxyBuilder.class);
+            Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(GenerateProxyHandler.class);
             return buildSet(elements, new Transformer<AnnotatedProxyElement, Element>() {
                 @Override public AnnotatedProxyElement transform(Element element) {
                     // Ensure it is an interface element
                     if (element.getKind() != ElementKind.INTERFACE) {
                         env.error(element, "Only interfaces can be annotated with @%s",
-                                GenerateProxyBuilder.class.getSimpleName());
+                                GenerateProxyHandler.class.getSimpleName());
                         throw new RuntimeException("error");
                     }
                     return ElementCache.INSTANCE.parse(element, env);
@@ -111,7 +111,7 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
         return value();
     }
 
-    public GenerateProxyBuilder annotation() {
+    public GenerateProxyHandler annotation() {
         return annotation;
     }
 
@@ -254,11 +254,10 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
 
         private AnnotatedProxyElement create(ProxyElement proxyElement, Env env) {
             if (proxyElement != null) {
-                GenerateProxyBuilder annotation;
-                if ((annotation = proxyElement.element().getAnnotation(GenerateProxyBuilder.class)) != null) {
+                GenerateProxyHandler annotation;
+                if ((annotation = proxyElement.element().getAnnotation(GenerateProxyHandler.class)) != null) {
                     return new AnnotatedProxyElement(proxyElement, annotation, env);
-                }
-                if (ProxyHandlerBuilderOutputStub.exists(proxyElement, env)) {
+                } else if (ProxyHandlerBuilderOutputStub.exists(proxyElement, env)) {
                     env.log("returning existing AnnotatedProxyElement: %s", proxyElement);
                     return new AnnotatedProxyElement(proxyElement, null, env);
                 }

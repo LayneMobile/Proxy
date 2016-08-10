@@ -16,12 +16,12 @@
 
 package com.laynemobile.api;
 
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
-import com.laynemobile.proxy.annotations.GenerateProxyFunction;
+import com.laynemobile.proxy.annotations.GenerateProxyHandler;
+import com.laynemobile.proxy.annotations.GenerateProxyHandlerFunction;
 
-@GenerateProxyBuilder(parent = true)
+@GenerateProxyHandler(parent = true)
 public interface Retrofittable<S> {
-    @GenerateProxyFunction("service")
+    @GenerateProxyHandlerFunction("service")
     S getService();
 
 //    final class Builder<S> implements com.laynemobile.proxy.Builder<Retrofittable<S>> {

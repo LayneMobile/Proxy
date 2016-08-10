@@ -66,8 +66,8 @@ public class DefaultTypeElementStub implements TypeElementStub {
     }
 
     @Override public boolean elementExists(Env env) {
-        TypeElement element = element(env);
         TypeMirror type;
+        TypeElement element = element(env);
         if (element != null && (type = element.asType()) != null) {
             return type.getKind() != TypeKind.ERROR;
         }

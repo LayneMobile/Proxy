@@ -16,9 +16,9 @@
 
 package com.laynemobile.api;
 
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.annotations.GenerateProxyHandler;
 
-@GenerateProxyBuilder(replaces = Source.class)
+@GenerateProxyHandler(replaces = Source.class)
 public interface RetrofitSource<T, P extends Params, S> extends NetworkSource<T, P> {
     Retrofittable<S> getRetrofittable();
 }

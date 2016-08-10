@@ -16,13 +16,13 @@
 
 package com.laynemobile.api;
 
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
-import com.laynemobile.proxy.annotations.GenerateProxyFunction;
+import com.laynemobile.proxy.annotations.GenerateProxyHandler;
+import com.laynemobile.proxy.annotations.GenerateProxyHandlerFunction;
 
 import rx.Subscriber;
 
-@GenerateProxyBuilder(extendsFrom = Source.class)
+@GenerateProxyHandler(extendsFrom = Source.class)
 public interface SimpleSource<T> extends Source<T, NoParams> {
-    @GenerateProxyFunction("source")
+    @GenerateProxyHandlerFunction("source")
     @Override void call(NoParams ignored, Subscriber<? super T> subscriber);
 }

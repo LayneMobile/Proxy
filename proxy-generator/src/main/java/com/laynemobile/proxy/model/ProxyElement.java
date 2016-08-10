@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.Util.Collector;
-import com.laynemobile.proxy.annotations.GenerateProxyBuilder;
+import com.laynemobile.proxy.annotations.GenerateProxyHandler;
 import com.laynemobile.proxy.cache.AliasCache;
 import com.laynemobile.proxy.elements.AliasElements;
 import com.laynemobile.proxy.elements.AnnotationMirrorAlias;
@@ -260,7 +260,7 @@ public final class ProxyElement extends AbstractValueAlias<TypeElementAlias>
                 // TODO:
             }
 
-            final GenerateProxyBuilder annotation = source.getAnnotation(GenerateProxyBuilder.class);
+            final GenerateProxyHandler annotation = source.getAnnotation(GenerateProxyHandler.class);
             final boolean parent = annotation != null && annotation.parent();
             final List<TypeElementAlias> dependsOn = Util.parseAliasList(new Func0<Class<?>[]>() {
                 @Override public Class<?>[] call() {
