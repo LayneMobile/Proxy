@@ -138,7 +138,7 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
         if (typeNameArray.length == 0) {
             outputType = typeName();
         } else {
-            outputType = ParameterizedTypeName.get(typeName(), typeNameArray(typeVariableNames));
+            outputType = ParameterizedTypeName.get(typeName(), typeNameArray);
         }
 
         Set<FieldSpec> handlerFields = new HashSet<>();
