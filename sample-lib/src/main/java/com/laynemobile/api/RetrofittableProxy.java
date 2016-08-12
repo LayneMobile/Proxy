@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy;
+package com.laynemobile.api;
 
-import java.lang.reflect.Method;
+import com.laynemobile.proxy.annotations.ProxyType;
 
-public interface MethodHandler {
-    MethodHandler EMPTY = new MethodHandler() {
-        @Override
-        public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
-            return false;
-        }
-    };
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable;
+@Documented
+@Retention(RetentionPolicy.CLASS)
+@Target({ElementType.TYPE})
+@ProxyType(Retrofittable.class)
+public @interface RetrofittableProxy {
+    Class<? extends Retrofittable> value();
+
+    boolean simple() default true;
 }

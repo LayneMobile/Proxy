@@ -16,18 +16,24 @@
 
 package com.laynemobile.proxy;
 
+import com.google.common.base.Objects;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public final class ProxyHandler<T> {
-    final TypeToken<T> type;
-    final Map<String, List<MethodHandler>> handlers;
+    private final TypeToken<T> type;
+    private final Set<TypeToken<? super T>> superTypes;
+    private final Map<String, List<MethodHandler>> handlers;
 
     private ProxyHandler(Builder<T> builder) {
         this.type = builder.type;
+        this.superTypes = Collections.unmodifiableSet(builder.superTypes);
         this.handlers = Collections.unmodifiableMap(builder.handlers);
     }
 
@@ -43,24 +49,48 @@ public final class ProxyHandler<T> {
         return type;
     }
 
+    public Set<TypeToken<? super T>> superTypes() {
+        return superTypes;
+    }
+
+    public List<Class<?>> rawTypes() {
+        List<Class<?>> rawTypes = new ArrayList<>(superTypes.size() + 1);
+        rawTypes.add(type.getRawType());
+        for (TypeToken<? super T> superType : superTypes) {
+            rawTypes.add(superType.getRawType());
+        }
+        return rawTypes;
+    }
+
+    public Map<String, List<MethodHandler>> handlers() {
+        return handlers;
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ProxyHandler module = (ProxyHandler) o;
-        return type.equals(module.type);
+        if (!(o instanceof ProxyHandler)) return false;
+        ProxyHandler<?> that = (ProxyHandler<?>) o;
+        return Objects.equal(type, that.type) &&
+                Objects.equal(superTypes, that.superTypes);
     }
 
     @Override public int hashCode() {
-        return type.hashCode();
+        return Objects.hashCode(type, superTypes);
     }
 
     public static final class Builder<T> {
         private final TypeToken<T> type;
-        private final Map<String, List<MethodHandler>> handlers
-                = new HashMap<String, List<MethodHandler>>();
+        private final Set<TypeToken<? super T>> superTypes = new HashSet<>();
+        private final Map<String, List<MethodHandler>> handlers = new HashMap<>();
 
         private Builder(TypeToken<T> type) {
             this.type = type;
+        }
+
+        public Builder<T> addParent(ProxyHandler<? super T> parent) {
+            superTypes.add(parent.type);
+            handlers.putAll(parent.handlers);
+            return this;
         }
 
         public MethodBuilder<T> method(String methodName) {

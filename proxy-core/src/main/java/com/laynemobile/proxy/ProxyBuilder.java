@@ -17,35 +17,34 @@
 package com.laynemobile.proxy;
 
 import com.laynemobile.proxy.internal.ProxyLog;
-import com.laynemobile.proxy.internal.Util;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public final class ProxyBuilder<T> implements Builder<T> {
+public class ProxyBuilder<T> implements Builder<T> {
     private final TypeToken<T> type;
     private final List<ProxyHandler<? extends T>> handlers;
 
+    public ProxyBuilder(TypeToken<T> type) {
+        this.type = type;
+        this.handlers = new ArrayList<>();
+    }
+
     public ProxyBuilder(ProxyHandler<T> parent) {
-        List<ProxyHandler<? extends T>> handlers = new ArrayList<>();
+        this(parent.type());
         handlers.add(parent);
-        this.type = parent.type();
-        this.handlers = handlers;
     }
 
     public final ProxyBuilder<T> add(ProxyHandler<? extends T> handler) {
-        if (contains(handler.type)) {
-            String msg = String.format("handler type '%s' already defined", handler.type);
-            throw new IllegalStateException(msg);
-        }
+        throwIfContains(handler);
         this.handlers.add(handler);
         return this;
     }
@@ -66,7 +65,7 @@ public final class ProxyBuilder<T> implements Builder<T> {
 
     public final boolean contains(Class<?> type) {
         for (ProxyHandler<?> module : handlers) {
-            if (module.type.getRawType().equals(type)) {
+            if (module.rawTypes().contains(type)) {
                 return true;
             }
         }
@@ -90,7 +89,7 @@ public final class ProxyBuilder<T> implements Builder<T> {
         if (handlers.isEmpty()) {
             throw new IllegalStateException("no handlers");
         } else if (!contains(type.getRawType())) {
-            String msg = String.format(Locale.US, "must contain '%s' module", type);
+            String msg = String.format(Locale.US, "must contain '%s' handler", type);
             throw new IllegalStateException(msg);
         }
         return create(type, handlers);
@@ -98,11 +97,30 @@ public final class ProxyBuilder<T> implements Builder<T> {
 
     private boolean contains(TypeToken<?> type) {
         for (ProxyHandler<?> module : handlers) {
-            if (module.type.equals(type)) {
+            if (module.type().equals(type)) {
                 return true;
+            }
+            for (TypeToken<?> superType : module.superTypes()) {
+                if (superType.equals(type)) {
+                    return true;
+                }
             }
         }
         return false;
+    }
+
+    private void throwIfContains(TypeToken<?> type) {
+        if (contains(type)) {
+            String msg = String.format("handler type '%s' already defined", type);
+            throw new IllegalStateException(msg);
+        }
+    }
+
+    private void throwIfContains(ProxyHandler<?> handler) {
+        throwIfContains(handler.type());
+        for (TypeToken<?> superType : handler.superTypes()) {
+            throwIfContains(superType);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -110,8 +128,8 @@ public final class ProxyBuilder<T> implements Builder<T> {
         List<Class<?>> classes = new ArrayList<>(extensions.size());
         Map<String, List<MethodHandler>> handlers = new HashMap<>();
         for (ProxyHandler<? extends T> extension : extensions) {
-            classes.add(extension.type.getRawType());
-            for (Map.Entry<String, List<MethodHandler>> entry : extension.handlers.entrySet()) {
+            classes.addAll(extension.rawTypes());
+            for (Map.Entry<String, List<MethodHandler>> entry : extension.handlers().entrySet()) {
                 final String name = entry.getKey();
                 List<MethodHandler> current = handlers.get(name);
                 if (current == null) {
@@ -129,25 +147,64 @@ public final class ProxyBuilder<T> implements Builder<T> {
     private static class InvokeHandler implements InvocationHandler {
         private static final String TAG = InvokeHandler.class.getSimpleName();
 
-        private final Map<String, List<MethodHandler>> handlers;
+        private final ConcurrentHashMap<String, MethodHandler> handlers;
 
-        private InvokeHandler(Map<String, List<MethodHandler>> handlers) {
-            this.handlers = Collections.unmodifiableMap(handlers);
+        private InvokeHandler(Map<String, List<MethodHandler>> _handlers) {
+            ConcurrentHashMap<String, MethodHandler> handlers = new ConcurrentHashMap<>(_handlers.size(), 0.75f, 1);
+            for (Map.Entry<String, List<MethodHandler>> entry : _handlers.entrySet()) {
+                handlers.put(entry.getKey(), MethodHandlers.create(entry.getValue()));
+            }
+            this.handlers = handlers;
         }
 
         @Override public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             ProxyLog.d(TAG, "calling method: %s", method);
             MethodResult result = new MethodResult();
-            List<MethodHandler> handlers = this.handlers.get(method.getName());
-            for (MethodHandler handler : Util.nullSafe(handlers)) {
-                if (handler.handle(proxy, method, args, result)) {
-                    Object r = result.get();
-                    ProxyLog.d(TAG, "handled method: %s, result: %s", method, r);
-                    return r;
-                }
+            if (get(method).handle(proxy, method, args, result)) {
+                Object r = result.get();
+                ProxyLog.d(TAG, "handled method: %s, result: %s", method, r);
+                return r;
             }
             ProxyLog.w(TAG, "could not find handler for method: %s", method);
             return null;
+        }
+
+        private MethodHandler get(Method method) {
+            String name = method.getName();
+            MethodHandler handler = handlers.get(name);
+            if (handler == null) {
+                synchronized (handlers) {
+                    handlers.put(name, handler = MethodHandler.EMPTY);
+                }
+            }
+            return handler;
+        }
+    }
+
+    private static class MethodHandlers implements MethodHandler {
+        private final List<MethodHandler> handlers;
+
+        private MethodHandlers(List<MethodHandler> handlers) {
+            this.handlers = handlers;
+        }
+
+        private static MethodHandler create(List<MethodHandler> methodHandlers) {
+            if (methodHandlers == null || methodHandlers.size() == 0) {
+                return MethodHandler.EMPTY;
+            } else if (methodHandlers.size() == 1) {
+                return methodHandlers.get(0);
+            }
+            return new MethodHandlers(methodHandlers);
+        }
+
+        @Override
+        public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+            for (MethodHandler handler : handlers) {
+                if (handler.handle(proxy, method, args, result)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

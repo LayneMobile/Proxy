@@ -19,7 +19,6 @@ package com.laynemobile.proxy.model;
 import com.google.common.collect.ImmutableSet;
 import com.laynemobile.proxy.annotations.GenerateProxyHandler;
 import com.laynemobile.proxy.annotations.Generated;
-import com.laynemobile.proxy.annotations.ProxyFunctionImplementation;
 import com.laynemobile.proxy.internal.ProxyLog;
 
 import java.io.IOException;
@@ -43,7 +42,6 @@ public class ProxyTemplate extends Template {
         return ImmutableSet.<String>builder()
                 .add(GenerateProxyHandler.class.getCanonicalName())
                 .add(Generated.class.getCanonicalName())
-                .add(ProxyFunctionImplementation.class.getCanonicalName())
                 .build();
     }
 

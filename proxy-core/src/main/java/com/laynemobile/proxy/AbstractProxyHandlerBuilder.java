@@ -16,13 +16,12 @@
 
 package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.functions.Function;
 import com.laynemobile.proxy.functions.ProxyFunction;
 
 import java.util.Locale;
 
 public abstract class AbstractProxyHandlerBuilder<T> implements Builder<ProxyHandler<T>> {
-    protected static final <F extends Function> NamedMethodHandler handler(ProxyFunction<F> proxyFunction) {
+    protected static final NamedMethodHandler handler(ProxyFunction<?> proxyFunction) {
         if (proxyFunction == null) {
             throw new IllegalStateException("proxy function must not be null");
         }
