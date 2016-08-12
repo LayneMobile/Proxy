@@ -89,12 +89,13 @@ public final class ProxyHandler<T> {
 
         public Builder<T> addParent(ProxyHandler<? super T> parent) {
             superTypes.add(parent.type);
+            superTypes.addAll(parent.superTypes);
             handlers.putAll(parent.handlers);
             return this;
         }
 
         public MethodBuilder<T> method(String methodName) {
-            return new MethodBuilder<T>(this, methodName);
+            return new MethodBuilder<>(this, methodName);
         }
 
         public Builder<T> handle(NamedMethodHandler handler) {
@@ -110,13 +111,13 @@ public final class ProxyHandler<T> {
         }
 
         public ProxyHandler<T> build() {
-            return new ProxyHandler<T>(this);
+            return new ProxyHandler<>(this);
         }
 
         private Builder<T> add(MethodBuilder<T> builder) {
             List<MethodHandler> handlerList = this.handlers.get(builder.methodName);
             if (handlerList == null) {
-                handlerList = new ArrayList<MethodHandler>();
+                handlerList = new ArrayList<>();
                 this.handlers.put(builder.methodName, handlerList);
             }
             handlerList.add(builder.handler);
