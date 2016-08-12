@@ -133,7 +133,13 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
         });
         classBuilder.addTypeVariables(typeVariableNames);
 
-        TypeName outputType = ParameterizedTypeName.get(typeName(), typeNameArray(typeVariableNames));
+        TypeName outputType;
+        TypeName[] typeNameArray = typeNameArray(typeVariableNames);
+        if (typeNameArray.length == 0) {
+            outputType = typeName();
+        } else {
+            outputType = ParameterizedTypeName.get(typeName(), typeNameArray(typeVariableNames));
+        }
 
         Set<FieldSpec> handlerFields = new HashSet<>();
         for (ProxyFunctionOutput function : functions) {
