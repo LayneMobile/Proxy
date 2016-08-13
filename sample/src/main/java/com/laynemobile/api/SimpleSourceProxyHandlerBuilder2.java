@@ -17,7 +17,7 @@
 package com.laynemobile.api;
 
 import com.laynemobile.api.functions.SimpleSourceProxy_call__NoParams_Subscriber;
-import com.laynemobile.proxy.AbstractProxyHandlerBuilder;
+import com.laynemobile.proxy.AbstractProxyHandlerBuilder2;
 import com.laynemobile.proxy.ProxyHandler;
 import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.annotations.Generated;
@@ -29,10 +29,11 @@ import rx.Subscriber;
 
 @Generated
 @SourceProxy
-public class SimpleSourceProxyHandlerBuilder2<T> extends AbstractProxyHandlerBuilder<SimpleSource<T>> {
+public class SimpleSourceProxyHandlerBuilder2<T> extends AbstractProxyHandlerBuilder2<SimpleSource<T>> {
     private final SourceProxyHandlerBuilder<T, NoParams> source = new SourceProxyHandlerBuilder<>();
 
-    public SimpleSourceProxyHandlerBuilder2<T> setSource(SimpleSourceProxy_call__NoParams_Subscriber<? extends T> source) {
+    public SimpleSourceProxyHandlerBuilder2<T> setSource(
+            SimpleSourceProxy_call__NoParams_Subscriber<? extends T> source) {
         this.source.setSource(source);
         return this;
     }
@@ -52,8 +53,7 @@ public class SimpleSourceProxyHandlerBuilder2<T> extends AbstractProxyHandlerBui
         return this;
     }
 
-    @Override
-    public ProxyHandler<SimpleSource<T>> build() {
+    @Override public ProxyHandler<SimpleSource<T>> handler() {
         return ProxyHandler.builder(new TypeToken<SimpleSource<T>>() {})
                 .addParent(source.build())
                 .build();

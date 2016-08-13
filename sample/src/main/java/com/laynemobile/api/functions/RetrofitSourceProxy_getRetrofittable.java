@@ -24,7 +24,7 @@ import com.laynemobile.proxy.functions.Func0;
 
 @Generated
 public class RetrofitSourceProxy_getRetrofittable<T, P extends Params, S> extends AbstractRetrofitSourceProxy_getRetrofittable<T, P, S> {
-    public RetrofitSourceProxy_getRetrofittable(Func0<Retrofittable<S>> getRetrofittable) {
-        super(getRetrofittable);
+    public RetrofitSourceProxy_getRetrofittable(Func0<Retrofittable<S>> retrofittable) {
+        super(retrofittable);
     }
 }

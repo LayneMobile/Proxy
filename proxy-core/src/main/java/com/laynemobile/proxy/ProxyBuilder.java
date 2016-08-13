@@ -96,17 +96,7 @@ public class ProxyBuilder<T> implements Builder<T> {
     }
 
     private boolean contains(TypeToken<?> type) {
-        for (ProxyHandler<?> module : handlers) {
-            if (module.type().equals(type)) {
-                return true;
-            }
-            for (TypeToken<?> superType : module.superTypes()) {
-                if (superType.equals(type)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return contains(type.getRawType());
     }
 
     private void throwIfContains(TypeToken<?> type) {

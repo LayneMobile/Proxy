@@ -27,4 +27,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface GenerateProxyHandlerFunction {
     String value() default "";
+
+    String dependsOn() default "";
 }

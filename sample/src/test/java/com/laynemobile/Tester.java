@@ -17,10 +17,15 @@
 package com.laynemobile;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.laynemobile.api.NetworkChecker;
 import com.laynemobile.api.NetworkSource;
 import com.laynemobile.api.NetworkSourceProxyHandlerBuilder;
 import com.laynemobile.api.NoParams;
+import com.laynemobile.api.Params;
+import com.laynemobile.api.RetrofitSource;
+import com.laynemobile.api.RetrofitSourceProxyHandlerBuilder3;
+import com.laynemobile.api.Retrofittable;
 import com.laynemobile.api.SimpleSource;
 import com.laynemobile.api.SimpleSourceProxyHandlerBuilder2;
 import com.laynemobile.api.Source;
@@ -29,6 +34,7 @@ import com.laynemobile.proxy.ProxyBuilder;
 import com.laynemobile.proxy.ProxyHandler;
 import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.functions.Func0;
+import com.laynemobile.proxy.functions.Func2;
 import com.laynemobile.proxy.internal.ProxyLog;
 
 import org.junit.Test;
@@ -60,7 +66,7 @@ public class Tester {
                         return potato;
                     }
                 })
-                .build();
+                .handler();
 
         // Create network source handler
         ProxyHandler<NetworkSource<Potato, NoParams>> networkSourceHandler = new NetworkSourceProxyHandlerBuilder<Potato, NoParams>()
@@ -112,6 +118,65 @@ public class Tester {
         assertEquals(networkChecker, networkSource.networkChecker());
     }
 
+    @Test public void testRetrofitSourceProxy() throws Throwable {
+        final DefaultPotatoFactory potatoFactory = new DefaultPotatoFactory();
+        final NetworkChecker networkChecker = new SimpleNetworkChecker();
+
+        RetrofitSource<Potato, PotatoParams, PotatoFactory> source = new RetrofitSourceProxyHandlerBuilder3<Potato, PotatoParams, PotatoFactory>()
+                .setRetrofittable(new Func0<Retrofittable<PotatoFactory>>() {
+                    @Override public Retrofittable<PotatoFactory> call() {
+                        return potatoFactory;
+                    }
+                })
+                .setSource(new Func2<PotatoFactory, PotatoParams, Potato>() {
+                    @Override public Potato call(PotatoFactory potatoFactory, PotatoParams params) {
+                        return potatoFactory.newPotato(params);
+                    }
+                })
+                .setNetworkChecker(new Func0<NetworkChecker>() {
+                    @Override public NetworkChecker call() {
+                        return networkChecker;
+                    }
+                })
+                .build();
+
+        final PotatoParams params = new DefaultPotatoParams("russet");
+
+        final AtomicReference<Potato> onNext = new AtomicReference<>();
+        final AtomicBoolean onCompleted = new AtomicBoolean();
+        final AtomicReference<Throwable> onError = new AtomicReference<>();
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        source.call(params, new Subscriber<Potato>() {
+            @Override public void onNext(Potato potato) {
+                onNext.set(potato);
+                latch.countDown();
+            }
+
+            @Override public void onCompleted() {
+                onCompleted.set(true);
+                latch.countDown();
+            }
+
+            @Override public void onError(Throwable e) {
+                onError.set(e);
+                latch.countDown();
+            }
+        });
+        latch.await();
+
+        Throwable e = onError.get();
+        if (e != null) {
+            throw e;
+        }
+
+        assertEquals(potatoFactory, source.getRetrofittable());
+        assertEquals(new Potato(params.kind()), onNext.get());
+        assertTrue(onCompleted.get());
+        assertNull(onError.get());
+        assertEquals(networkChecker, source.networkChecker());
+    }
+
     private static final class Potato {
         private final String kind;
 
@@ -121,6 +186,58 @@ public class Tester {
 
         private String kind() {
             return kind;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Potato)) return false;
+            Potato potato = (Potato) o;
+            return Objects.equal(kind, potato.kind);
+        }
+
+        @Override public int hashCode() {
+            return Objects.hashCode(kind);
+        }
+    }
+
+    private interface PotatoParams extends Params {
+        String kind();
+    }
+
+    private static final class DefaultPotatoParams implements PotatoParams {
+        private final String kind;
+
+        private DefaultPotatoParams(String kind) {
+            this.kind = kind;
+        }
+
+        @Override public String kind() {
+            return kind;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof DefaultPotatoParams)) return false;
+            DefaultPotatoParams that = (DefaultPotatoParams) o;
+            return Objects.equal(kind, that.kind);
+        }
+
+        @Override public int hashCode() {
+            return Objects.hashCode(kind);
+        }
+    }
+
+    private interface PotatoFactory {
+        Potato newPotato(PotatoParams params);
+    }
+
+    private static final class DefaultPotatoFactory implements PotatoFactory, Retrofittable<PotatoFactory> {
+        @Override public Potato newPotato(PotatoParams params) {
+            return new Potato(params.kind());
+        }
+
+        @Override public PotatoFactory getService() {
+            return this;
         }
     }
 
