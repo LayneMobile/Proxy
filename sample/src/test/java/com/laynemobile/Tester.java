@@ -29,11 +29,14 @@ import com.laynemobile.api.Retrofittable;
 import com.laynemobile.api.SimpleSource;
 import com.laynemobile.api.SimpleSourceProxyHandlerBuilder2;
 import com.laynemobile.api.Source;
+import com.laynemobile.api.SourceProxyHandlerBuilder2;
 import com.laynemobile.proxy.ConsoleLogger;
 import com.laynemobile.proxy.ProxyBuilder;
+import com.laynemobile.proxy.ProxyCompleter;
 import com.laynemobile.proxy.ProxyHandler;
 import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.functions.Func0;
+import com.laynemobile.proxy.functions.Func1;
 import com.laynemobile.proxy.functions.Func2;
 import com.laynemobile.proxy.internal.ProxyLog;
 
@@ -46,6 +49,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import rx.Subscriber;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -55,6 +59,70 @@ public class Tester {
     }
 
     @Test public void testSourceProxy() throws Throwable {
+        final NetworkChecker networkChecker = new SimpleNetworkChecker();
+        final ProxyCompleter<Source<Potato, PotatoParams>> sourceCompleter;
+        Source<Potato, PotatoParams> source;
+        sourceCompleter = new SourceProxyHandlerBuilder2<Potato, PotatoParams>()
+                .setSource(new Func1<PotatoParams, Potato>() {
+                    @Override public Potato call(PotatoParams params) {
+                        return new Potato(params.kind());
+                    }
+                });
+        source = sourceCompleter.build();
+
+        final PotatoParams params = new DefaultPotatoParams("russet");
+        runPotatoSourceTest(source, params);
+        // assert source is not instance of network source
+        assertFalse(source instanceof NetworkSource);
+
+        // Now add network handler
+        final ProxyHandler<NetworkSource<Potato, PotatoParams>> networkHandler;
+        networkHandler = new NetworkSourceProxyHandlerBuilder<Potato, PotatoParams>()
+                .setNetworkChecker(new Func0<NetworkChecker>() {
+                    @Override public NetworkChecker call() {
+                        return networkChecker;
+                    }
+                })
+                .build();
+        // Adding network handler, allows for NetworkSource addition
+        source = sourceCompleter.add(networkHandler)
+                .build();
+
+        // Note: able to cast by adding NetworkSource proxy handler
+        NetworkSource<Potato, PotatoParams> networkSource = (NetworkSource<Potato, PotatoParams>) source;
+        assertEquals(networkChecker, networkSource.networkChecker());
+        runPotatoSourceTest(networkSource, params);
+    }
+
+    @Test public void testRetrofitSourceProxy() throws Throwable {
+        final DefaultPotatoFactory potatoFactory = new DefaultPotatoFactory();
+        final NetworkChecker networkChecker = new SimpleNetworkChecker();
+
+        RetrofitSource<Potato, PotatoParams, PotatoFactory> source = new RetrofitSourceProxyHandlerBuilder3<Potato, PotatoParams, PotatoFactory>()
+                .setRetrofittable(new Func0<Retrofittable<PotatoFactory>>() {
+                    @Override public Retrofittable<PotatoFactory> call() {
+                        return potatoFactory;
+                    }
+                })
+                .setSource(new Func2<PotatoFactory, PotatoParams, Potato>() {
+                    @Override public Potato call(PotatoFactory potatoFactory, PotatoParams params) {
+                        return potatoFactory.newPotato(params);
+                    }
+                })
+                .setNetworkChecker(new Func0<NetworkChecker>() {
+                    @Override public NetworkChecker call() {
+                        return networkChecker;
+                    }
+                })
+                .build();
+
+        final PotatoParams params = new DefaultPotatoParams("russet");
+        runPotatoSourceTest(source, params);
+        assertEquals(potatoFactory, source.getRetrofittable());
+        assertEquals(networkChecker, source.networkChecker());
+    }
+
+    @Test public void testSimpleSourceProxy() throws Throwable {
         final TypeToken<Source<Potato, NoParams>> type = new TypeToken<Source<Potato, NoParams>>() {};
         final Potato potato = new Potato("russet");
         final NetworkChecker networkChecker = new SimpleNetworkChecker();
@@ -118,30 +186,8 @@ public class Tester {
         assertEquals(networkChecker, networkSource.networkChecker());
     }
 
-    @Test public void testRetrofitSourceProxy() throws Throwable {
-        final DefaultPotatoFactory potatoFactory = new DefaultPotatoFactory();
-        final NetworkChecker networkChecker = new SimpleNetworkChecker();
-
-        RetrofitSource<Potato, PotatoParams, PotatoFactory> source = new RetrofitSourceProxyHandlerBuilder3<Potato, PotatoParams, PotatoFactory>()
-                .setRetrofittable(new Func0<Retrofittable<PotatoFactory>>() {
-                    @Override public Retrofittable<PotatoFactory> call() {
-                        return potatoFactory;
-                    }
-                })
-                .setSource(new Func2<PotatoFactory, PotatoParams, Potato>() {
-                    @Override public Potato call(PotatoFactory potatoFactory, PotatoParams params) {
-                        return potatoFactory.newPotato(params);
-                    }
-                })
-                .setNetworkChecker(new Func0<NetworkChecker>() {
-                    @Override public NetworkChecker call() {
-                        return networkChecker;
-                    }
-                })
-                .build();
-
-        final PotatoParams params = new DefaultPotatoParams("russet");
-
+    private static void runPotatoSourceTest(Source<Potato, PotatoParams> source, PotatoParams params)
+            throws Throwable {
         final AtomicReference<Potato> onNext = new AtomicReference<>();
         final AtomicBoolean onCompleted = new AtomicBoolean();
         final AtomicReference<Throwable> onError = new AtomicReference<>();
@@ -170,11 +216,9 @@ public class Tester {
             throw e;
         }
 
-        assertEquals(potatoFactory, source.getRetrofittable());
         assertEquals(new Potato(params.kind()), onNext.get());
         assertTrue(onCompleted.get());
         assertNull(onError.get());
-        assertEquals(networkChecker, source.networkChecker());
     }
 
     private static final class Potato {
