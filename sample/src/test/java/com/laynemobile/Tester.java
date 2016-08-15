@@ -83,7 +83,7 @@ public class Tester {
                         return networkChecker;
                     }
                 })
-                .build();
+                .proxyHandler();
         // Adding network handler, allows for NetworkSource addition
         source = sourceCompleter.add(networkHandler)
                 .build();
@@ -134,12 +134,12 @@ public class Tester {
                         return potato;
                     }
                 })
-                .handler();
+                .proxyHandler();
 
         // Create network source handler
         ProxyHandler<NetworkSource<Potato, NoParams>> networkSourceHandler = new NetworkSourceProxyHandlerBuilder<Potato, NoParams>()
                 .setNetworkChecker(networkChecker)
-                .build();
+                .proxyHandler();
 
         // Create the proxy
         Source<Potato, NoParams> _source = new ProxyBuilder<>(type)

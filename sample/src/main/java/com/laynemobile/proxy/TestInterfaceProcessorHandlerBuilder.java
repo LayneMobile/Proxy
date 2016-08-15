@@ -31,7 +31,7 @@ public class TestInterfaceProcessorHandlerBuilder<T, R> implements Builder<Proce
     }
 
     @Override public ProcessorHandler.Parent<T, R, TestInterface<T, R>> build() {
-        return build(builder.build());
+        return build(builder.proxyHandler());
     }
 
     private static <T, R> ProcessorHandler.Parent<T, R, TestInterface<T, R>> build(

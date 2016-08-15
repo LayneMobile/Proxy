@@ -37,9 +37,11 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.ExecutableElement;
@@ -141,10 +143,30 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
             outputType = ParameterizedTypeName.get(typeName(), typeNameArray);
         }
 
-        Set<FieldSpec> handlerFields = new HashSet<>();
+        int size = functions.size();
+        Set<String> names = new HashSet<>(size);
+        Map<String, Integer> duplicateNames = new HashMap<>(size);
+        for (ProxyFunctionOutput function : functions) {
+            String name = function.element().name();
+            if (names.contains(name)) {
+                duplicateNames.put(name, 1);
+            } else {
+                names.add(name);
+            }
+        }
+
+        Set<FieldSpec> handlerFields = new HashSet<>(size);
         for (ProxyFunctionOutput function : functions) {
             ProxyFunctionElement element = function.element();
-            String fieldName = element.name();
+            String fieldName;
+            String fieldParamName = element.name();
+            Integer count = duplicateNames.get(fieldParamName);
+            if (count == null) {
+                fieldName = fieldParamName;
+            } else {
+                fieldName = fieldParamName + count;
+                duplicateNames.put(fieldParamName, count + 1);
+            }
             String methodName = "set" +
                     fieldName.substring(0, 1).toUpperCase(Locale.US) +
                     fieldName.substring(1);
@@ -165,8 +187,8 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
             classBuilder.addMethod(MethodSpec.methodBuilder(methodName)
                     .addModifiers(Modifier.PUBLIC)
                     .returns(outputType)
-                    .addParameter(wildcardFieldTypeName, fieldName)
-                    .addStatement("this.$N = $L", fieldSpec, fieldName)
+                    .addParameter(wildcardFieldTypeName, fieldParamName)
+                    .addStatement("this.$N = $L", fieldSpec, fieldParamName)
                     .addStatement("return this")
                     .build());
 
@@ -181,8 +203,8 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
                 } else if (params.size() == 1) {
                     VariableElement param = params.get(0);
                     TypeName paramType = TypeName.get(param.asType());
-                    method.addParameter(paramType, fieldName)
-                            .addStatement("this.$N = new $T($L)", fieldSpec, fieldType, fieldName);
+                    method.addParameter(paramType, fieldParamName)
+                            .addStatement("this.$N = new $T($L)", fieldSpec, fieldType, fieldParamName);
                 } else {
                     List<String> paramNames = new ArrayList<>();
                     for (VariableElement parameter : params) {
@@ -215,26 +237,27 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
         DeclaredType typeTokenType = env.types().getDeclaredType(typeTokenElement, proxyType);
 
         // build function
-        TypeElement handlerElement = env.elements().getTypeElement("com.laynemobile.proxy.ProxyHandler");
-        DeclaredType handlerType = env.types().getDeclaredType(handlerElement, proxyType);
-        MethodSpec.Builder buildMethod = MethodSpec.methodBuilder("build")
+        TypeElement proxyHandlerElement = env.elements().getTypeElement("com.laynemobile.proxy.ProxyHandler");
+        DeclaredType proxyHandlerType = env.types().getDeclaredType(proxyHandlerElement, proxyType);
+        MethodSpec.Builder proxyHandlerMethod = MethodSpec.methodBuilder("proxyHandler")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .returns(TypeName.get(handlerType));
+                .returns(TypeName.get(proxyHandlerType));
 
         CodeBlock.Builder returnCode = CodeBlock.builder()
                 .add("$[")
-                .add("return $T.builder(new $T() {})\n", ClassName.get(handlerElement), TypeName.get(typeTokenType));
+                .add("return $T.builder(new $T() {})\n",
+                        ClassName.get(proxyHandlerElement), TypeName.get(typeTokenType));
 
         for (FieldSpec handlerField : handlerFields) {
             returnCode.add(".handle(handler($N))\n", handlerField);
         }
 
-        buildMethod.addCode(returnCode
+        proxyHandlerMethod.addCode(returnCode
                 .add(".build()")
                 .add(";\n$]")
                 .build());
-        return classBuilder.addMethod(buildMethod.build())
+        return classBuilder.addMethod(proxyHandlerMethod.build())
                 .build();
     }
 }

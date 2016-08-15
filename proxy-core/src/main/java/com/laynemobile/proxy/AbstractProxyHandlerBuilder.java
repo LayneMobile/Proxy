@@ -20,7 +20,7 @@ import com.laynemobile.proxy.functions.ProxyFunction;
 
 import java.util.Locale;
 
-public abstract class AbstractProxyHandlerBuilder<T> implements Builder<ProxyHandler<T>> {
+public abstract class AbstractProxyHandlerBuilder<T> implements Builder<T> {
     public static final NamedMethodHandler handler(ProxyFunction<?> proxyFunction) {
         if (proxyFunction == null) {
             throw new IllegalStateException("proxy function must not be null");
@@ -31,5 +31,16 @@ public abstract class AbstractProxyHandlerBuilder<T> implements Builder<ProxyHan
             throw new IllegalStateException(msg);
         }
         return handler;
+    }
+
+    public abstract ProxyHandler<T> proxyHandler();
+
+    public ProxyBuilder<T> builder() {
+        return new ProxyBuilder<>(proxyHandler());
+    }
+
+    @Override public T build() {
+        return builder()
+                .build();
     }
 }

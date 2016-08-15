@@ -61,7 +61,7 @@ public class RetrofitSourceProxyHandlerBuilder3<T, P extends Params, S> {
         }
 
         private NetworkSourceBuilder<T, P, S> next() {
-            return new NetworkSourceBuilder<>(source.build(), retrofittable.handler());
+            return new NetworkSourceBuilder<>(source.proxyHandler(), retrofittable.handler());
         }
     }
 
@@ -104,7 +104,7 @@ public class RetrofitSourceProxyHandlerBuilder3<T, P extends Params, S> {
         private ProxyHandler<RetrofitSource<T, P, S>> handler() {
             return ProxyHandler.builder(new TypeToken<RetrofitSource<T, P, S>>() {})
                     .addParent(sourceHandler)
-                    .addParent(networkSource.build())
+                    .addParent(networkSource.proxyHandler())
                     .handle(retrofittableHandler)
                     .build();
         }

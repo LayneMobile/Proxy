@@ -104,10 +104,10 @@ public class RetrofitSourceProxyHandlerBuilder2<T, P extends Params, S> extends 
     }
 
     @Override
-    public ProxyHandler<RetrofitSource<T, P, S>> build() {
+    public ProxyHandler<RetrofitSource<T, P, S>> proxyHandler() {
         return ProxyHandler.builder(new TypeToken<RetrofitSource<T, P, S>>() {})
-                .addParent(source.build())
-                .addParent(networkSource.build())
+                .addParent(source.proxyHandler())
+                .addParent(networkSource.proxyHandler())
                 .handle(handler(getRetrofittable))
                 .build();
     }
