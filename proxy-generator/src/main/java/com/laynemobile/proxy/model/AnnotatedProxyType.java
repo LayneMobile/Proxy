@@ -51,17 +51,17 @@ public class AnnotatedProxyType extends AbstractValueAlias<ProxyType> {
         private TypeCache() {}
 
         @Override public AnnotatedProxyType getOrCreate(ProxyType proxyType, Env env) {
-            AnnotatedProxyType cached;
-            if ((cached = getIfPresent(proxyType)) == null) {
-                AnnotatedProxyType created;
-                if ((created = create(proxyType, env)) != null && (cached = getIfPresent(proxyType)) == null) {
-                    synchronized (cache) {
+            Result<AnnotatedProxyType> cached = new Result<>();
+            if (!getIfPresent(proxyType, cached)) {
+                AnnotatedProxyType created = create(proxyType, env);
+                synchronized (cache) {
+                    if (!getIfPresent(proxyType, cached)) {
                         cache.put(proxyType, created);
                         return created;
                     }
                 }
             }
-            return cached;
+            return cached.get();
         }
 
         @Override public AnnotatedProxyType get(ProxyType proxyType) {
@@ -90,9 +90,19 @@ public class AnnotatedProxyType extends AbstractValueAlias<ProxyType> {
             return null;
         }
 
-        private AnnotatedProxyType getIfPresent(ProxyType proxyElement) {
+        private AnnotatedProxyType getIfPresent(ProxyType type) {
+            Result<AnnotatedProxyType> result = new Result<>();
+            getIfPresent(type, result);
+            return result.get();
+        }
+
+        private boolean getIfPresent(ProxyType type, Result<AnnotatedProxyType> out) {
             synchronized (cache) {
-                return cache.get(proxyElement);
+                if (cache.containsKey(type)) {
+                    out.set(cache.get(type));
+                    return true;
+                }
+                return false;
             }
         }
 

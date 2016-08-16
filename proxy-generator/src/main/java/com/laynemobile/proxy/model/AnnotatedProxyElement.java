@@ -223,17 +223,17 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
         private ElementCache() {}
 
         @Override public AnnotatedProxyElement getOrCreate(ProxyElement proxyElement, Env env) {
-            AnnotatedProxyElement cached;
-            if ((cached = getIfPresent(proxyElement)) == null) {
-                AnnotatedProxyElement created;
-                if ((created = create(proxyElement, env)) != null && (cached = getIfPresent(proxyElement)) == null) {
-                    synchronized (cache) {
+            Result<AnnotatedProxyElement> cached = new Result<>();
+            if (!getIfPresent(proxyElement, cached)) {
+                AnnotatedProxyElement created = create(proxyElement, env);
+                synchronized (cache) {
+                    if (!getIfPresent(proxyElement, cached)) {
                         cache.put(proxyElement, created);
                         return created;
                     }
                 }
             }
-            return cached;
+            return cached.get();
         }
 
         @Override public AnnotatedProxyElement get(ProxyElement proxyElement) {
@@ -265,9 +265,19 @@ public final class AnnotatedProxyElement extends AbstractValueAlias<ProxyElement
             return null;
         }
 
-        private AnnotatedProxyElement getIfPresent(ProxyElement proxyElement) {
+        private AnnotatedProxyElement getIfPresent(ProxyElement element) {
+            Result<AnnotatedProxyElement> result = new Result<>();
+            getIfPresent(element, result);
+            return result.get();
+        }
+
+        private boolean getIfPresent(ProxyElement proxyElement, Result<AnnotatedProxyElement> out) {
             synchronized (cache) {
-                return cache.get(proxyElement);
+                if (cache.containsKey(proxyElement)) {
+                    out.set(cache.get(proxyElement));
+                    return true;
+                }
+                return false;
             }
         }
 
