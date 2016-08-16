@@ -39,6 +39,7 @@ import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -155,7 +156,7 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
             }
         }
 
-        Set<FieldSpec> handlerFields = new HashSet<>(size);
+        Set<FieldSpec> handlerFields = new LinkedHashSet<>(size);
         for (ProxyFunctionOutput function : functions) {
             ProxyFunctionElement element = function.element();
             String fieldName;

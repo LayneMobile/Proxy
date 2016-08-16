@@ -56,8 +56,7 @@ public class Tester {
         runPotatoSourceTest(source, params);
     }
 
-    @Test
-    public void testAggregableProxy() throws Exception {
+    @Test public void testAggregableProxy() throws Exception {
         final Object key = new Object();
         Aggregable aggregable = new AggregableProxyHandlerBuilder2()
                 .setKey(new Func0<Object>() {

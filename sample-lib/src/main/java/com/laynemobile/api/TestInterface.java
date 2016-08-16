@@ -21,4 +21,6 @@ import com.laynemobile.proxy.annotations.GenerateProxyHandler;
 @GenerateProxyHandler
 public interface TestInterface<T, R> {
     R get(T t);
+
+    String fromInteger(int integer);
 }

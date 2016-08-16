@@ -29,7 +29,6 @@ import com.laynemobile.proxy.model.ProxyType;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
@@ -113,6 +112,22 @@ public class ProxyFunctionOutput {
         return typeOutputStub.writeTo(input.env());
     }
 
+    private static ProxyFunctionOutput output(ProxyFunctionElement element,
+            Map<AnnotatedProxyElement, ImmutableSet<ProxyFunctionOutput>> inputFunctions) {
+        ProxyElement parentElement = element.parent();
+        for (Map.Entry<AnnotatedProxyElement, ImmutableSet<ProxyFunctionOutput>> entry : inputFunctions.entrySet()) {
+            if (parentElement.equals(entry.getKey().element())) {
+                for (ProxyFunctionOutput functionOutput : entry.getValue()) {
+                    if (element.equals(functionOutput.element())) {
+                        return functionOutput;
+                    }
+                }
+                break;
+            }
+        }
+        return null;
+    }
+
     private TypeElementOutputStub firstOutputStub(ProxyRound.Input input,
             ProxyFunctionAbstractTypeOutputStub outputStub) {
         final ProxyEnv env = input.env();
@@ -120,46 +135,38 @@ public class ProxyFunctionOutput {
         final ImmutableMap<AnnotatedProxyElement, ImmutableSet<ProxyFunctionOutput>> inputFunctions = input.allInputFunctions();
         for (ProxyFunctionElement override : element.overrides()) {
             ProxyElement overrideParentElement = override.parent();
-            Set<ProxyFunctionOutput> set = null;
-            for (Map.Entry<AnnotatedProxyElement, ImmutableSet<ProxyFunctionOutput>> entry : inputFunctions.entrySet()) {
-                if (overrideParentElement.equals(entry.getKey().element())) {
-                    set = entry.getValue();
+            ProxyFunctionOutput functionOutput = output(override, inputFunctions);
+            if (functionOutput == null) {
+                continue;
+            }
+
+            ProxyType overrideParentType = null;
+            for (ProxyType test : parent.element().directDependencies()) {
+                if (test.element().equals(overrideParentElement)) {
+                    overrideParentType = test;
                     break;
                 }
             }
-            if (set == null) {
+            if (overrideParentType == null) {
                 continue;
             }
-            for (ProxyFunctionOutput functionOutput : set) {
-                ProxyFunctionTypeOutputStub generated = functionOutput.typeOutputStub;
-                env.log("say man");
-                env.log("%s -- writing override '%s' from '%s' -- %s", parent.toDebugString(),
-                        outputStub.qualifiedName(), override, generated);
-                env.log("say man");
 
-                ProxyType overrideParentType = null;
-                for (ProxyType test : parent.element().directDependencies()) {
-                    if (test.element().equals(overrideParentElement)) {
-                        overrideParentType = test;
-                        break;
-                    }
-                }
-                if (overrideParentType == null) {
-                    continue;
-                }
-
-                TypeMirror[] typeParams = typeMirrorArray(overrideParentType.type().actual().getTypeArguments());
-                final TypeElement superElement = generated.element(env);
-                env.log("super proxy element '%s', type parameters: '%s'", superElement,
-                        Arrays.toString(typeParams));
-                if (superElement == null) {
-                    continue;
-                }
-                DeclaredType superType = env.types()
-                        .getDeclaredType(superElement, typeParams);
-                env.log("super proxy type '%s'", superType);
-                return new ProxyFunctionTypeOutputStub(outputStub, superType, env);
+            ProxyFunctionTypeOutputStub generated = functionOutput.typeOutputStub;
+            TypeMirror[] typeParams = typeMirrorArray(overrideParentType.type().actual().getTypeArguments());
+            final TypeElement superElement = generated.element(env);
+            env.log("super proxy element '%s', type parameters: '%s'", superElement, Arrays.toString(typeParams));
+            if (superElement == null) {
+                continue;
             }
+
+            env.log("say man");
+            env.log("%s -- writing override '%s' from '%s' -- %s", parent.toDebugString(),
+                    outputStub.qualifiedName(), override, generated);
+
+            DeclaredType superType = env.types()
+                    .getDeclaredType(superElement, typeParams);
+            env.log("super proxy type '%s'", superType);
+            return new ProxyFunctionTypeOutputStub(outputStub, superType, env);
         }
         return outputStub;
     }
