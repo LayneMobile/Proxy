@@ -83,15 +83,18 @@ public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutp
         AnnotatedProxyElement parent = AnnotatedProxyElement.cache().get(function.parent());
         ExecutableElement element = function.element();
         String parammys = "";
-        for (TypeMirror paramType : function.boxedParamTypes()) {
+        for (TypeMirror paramType : function.alias().paramTypes()) {
             if (parammys.isEmpty()) {
                 parammys += "__";
             } else {
                 parammys += "_";
             }
-            if (paramType.getKind() == TypeKind.DECLARED) {
+            TypeKind kind = paramType.getKind();
+            if (kind.isPrimitive()) {
+                parammys += kind.name().toLowerCase(US);
+            } else if (kind == TypeKind.DECLARED) {
                 parammys += ((DeclaredType) paramType).asElement().getSimpleName();
-            } else if (paramType.getKind() == TypeKind.TYPEVAR) {
+            } else if (kind == TypeKind.TYPEVAR) {
                 parammys += ((TypeVariable) paramType).asElement().getSimpleName();
             } else {
                 throw new IllegalStateException("unknown param type: " + paramType);

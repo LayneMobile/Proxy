@@ -83,6 +83,49 @@ public class Tester {
         assertFalse(aggregable.keepAliveOnError());
     }
 
+    @Test public void testOverload() throws Exception {
+        TestInterfaceOverload<Long, String> overload = new TestInterfaceOverloadProxyHandlerBuilder<Long, String>()
+                .setGet__T(new Func1<Long, String>() {
+                    @Override public String call(Long aLong) {
+                        return Long.toString(aLong);
+                    }
+                })
+                .setGet__String(new Func1<String, String>() {
+                    @Override public String call(String s) {
+                        return s;
+                    }
+                })
+                .setFromInteger__int(new Func1<Integer, String>() {
+                    @Override public String call(Integer integer) {
+                        return Integer.toString(integer + 1);
+                    }
+                })
+                .setFromInteger__Integer(new Func1<Integer, String>() {
+                    @Override public String call(Integer integer) {
+                        return Integer.toString(integer + 2);
+                    }
+                })
+                .build();
+
+        String stringVal = "ok";
+        String expected = stringVal;
+        assertEquals(expected, overload.get(stringVal));
+
+        int intVal = 4;
+        expected = Integer.toString(intVal + 1);
+        assertEquals(expected, overload.fromInteger(intVal));
+
+        // TODO: Only works because of a handled ClassCastException
+        long longVal = 2L;
+        expected = Long.toString(longVal);
+        assertEquals(expected, overload.get(longVal));
+
+        // TODO: Doesn't work! fromInteger(int) implementation 'fromInteger1' is called instead of fromInteger(Integer)
+        Integer integerVal = 5;
+        expected = Integer.toString(integerVal + 2);
+        assertEquals(expected, overload.fromInteger(integerVal));
+    }
+
     private static void runPotatoSourceTest(Source<Potato, PotatoParams> source, PotatoParams params)
             throws Throwable {
         final AtomicReference<Potato> onNext = new AtomicReference<>();

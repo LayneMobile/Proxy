@@ -158,6 +158,7 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
 
         Set<FieldSpec> handlerFields = new LinkedHashSet<>(size);
         for (ProxyFunctionOutput function : functions) {
+            ProxyFunctionTypeOutputStub typeOutputStub = function.typeOutputStub();
             ProxyFunctionElement element = function.element();
             String fieldName;
             String fieldParamName = element.name();
@@ -165,14 +166,21 @@ public final class ProxyHandlerBuilderOutputStub extends DefaultTypeElementOutpu
             if (count == null) {
                 fieldName = fieldParamName;
             } else {
-                fieldName = fieldParamName + count;
-                duplicateNames.put(fieldParamName, count + 1);
+                // Find method part of name in typeOutputStub
+                String className = typeOutputStub.className();
+                int index;
+                if ((index = className.indexOf('_')) != -1) {
+                    fieldName = className.substring(index + 1);
+                } else {
+                    fieldName = fieldParamName + count;
+                    duplicateNames.put(fieldParamName, count + 1);
+                }
             }
             String methodName = "set" +
                     fieldName.substring(0, 1).toUpperCase(Locale.US) +
                     fieldName.substring(1);
 
-            TypeElement fieldElement = function.typeOutputStub().element(env);
+            TypeElement fieldElement = typeOutputStub.element(env);
             DeclaredType fieldType = env.types().getDeclaredType(fieldElement, typeParams);
             DeclaredType wildcardFieldType = env.types().getDeclaredType(fieldElement, wildcardTypeParams);
             TypeName wildcardFieldTypeName = TypeName.get(wildcardFieldType);

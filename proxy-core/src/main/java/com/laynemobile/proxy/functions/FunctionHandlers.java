@@ -18,6 +18,7 @@ package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.MethodHandler;
 import com.laynemobile.proxy.MethodResult;
+import com.laynemobile.proxy.internal.ProxyLog;
 
 import java.lang.reflect.Method;
 
@@ -121,6 +122,7 @@ public final class FunctionHandlers {
             try {
                 return tryHandle(proxy, method, method.getParameterTypes(), args, result);
             } catch (ClassCastException e) {
+                ProxyLog.e("FunctionHandlers", "error handling", e);
                 return false;
             }
         }
