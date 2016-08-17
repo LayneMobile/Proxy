@@ -20,19 +20,23 @@ import com.google.common.base.Objects;
 import com.laynemobile.proxy.functions.FunctionDef;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableSortedSet;
 
 class ConcreteTypeDef<T> implements TypeDef<T> {
     private final TypeToken<T> type;
-    private final List<? extends TypeDef<? super T>> superTypes;
+    private final SortedSet<? extends TypeDef<? super T>> superTypes;
     private final List<? extends FunctionDef<?>> functions;
 
-    ConcreteTypeDef(TypeToken<T> type, List<? extends TypeDef<? super T>> superTypes,
-            List<? extends FunctionDef<?>> functions) {
+    ConcreteTypeDef(TypeToken<T> type, Collection<? extends TypeDef<? super T>> superTypes,
+            Collection<? extends FunctionDef<?>> functions) {
         this.type = type;
-        this.superTypes = unmodifiableList(new ArrayList<>(superTypes));
+        this.superTypes = unmodifiableSortedSet(new TreeSet<>(superTypes));
         this.functions = unmodifiableList(new ArrayList<>(functions));
     }
 
@@ -44,7 +48,7 @@ class ConcreteTypeDef<T> implements TypeDef<T> {
         return type;
     }
 
-    @Override public final List<? extends TypeDef<? super T>> superTypes() {
+    @Override public final SortedSet<? extends TypeDef<? super T>> superTypes() {
         return superTypes;
     }
 
@@ -63,5 +67,31 @@ class ConcreteTypeDef<T> implements TypeDef<T> {
 
     @Override public int hashCode() {
         return Objects.hashCode(type, superTypes, functions);
+    }
+
+    @Override public int compareTo(TypeDef<?> o) {
+        if (equals(o)) {
+            return 0;
+        } else if (dependsOn(o, this)) {
+            return -1;
+        } else if (dependsOn(this, o)) {
+            return 1;
+        }
+        return name(this).compareTo(name(o));
+    }
+
+    private static boolean dependsOn(TypeDef<?> type, TypeDef<?> test) {
+        for (TypeDef<?> superType : type.superTypes()) {
+            if (superType.equals(test)) {
+                return true;
+            } else if (dependsOn(superType, test)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String name(TypeDef<?> o) {
+        return o.type().getRawType().getSimpleName();
     }
 }

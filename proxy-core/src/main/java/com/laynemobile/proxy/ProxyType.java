@@ -19,11 +19,15 @@ package com.laynemobile.proxy;
 import com.laynemobile.proxy.functions.ProxyFunction;
 
 import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
 
 public interface ProxyType<T> extends TypeDef<T> {
     TypeDef<T> definition();
 
-    @Override List<? extends ProxyType<? super T>> superTypes();
+    @Override SortedSet<? extends ProxyType<? super T>> superTypes();
 
     @Override List<? extends ProxyFunction<?, ?>> functions();
+
+    Set<? extends ProxyFunction<?, ?>> allFunctions();
 }

@@ -19,11 +19,12 @@ package com.laynemobile.proxy;
 import com.laynemobile.proxy.functions.FunctionDef;
 
 import java.util.List;
+import java.util.SortedSet;
 
 public interface TypeDef<T> extends Comparable<TypeDef<?>> {
     TypeToken<T> type();
 
-    List<? extends TypeDef<? super T>> superTypes();
+    SortedSet<? extends TypeDef<? super T>> superTypes();
 
     List<? extends FunctionDef<?>> functions();
 }
