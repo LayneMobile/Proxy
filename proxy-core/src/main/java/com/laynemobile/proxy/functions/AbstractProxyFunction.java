@@ -34,22 +34,22 @@ public abstract class AbstractProxyFunction<F extends Function, R> extends BaseP
         this.funcN = proxyFunction.funcN;
     }
 
-    protected AbstractProxyFunction(FunctionDef<F, R> functionDef) {
-        super(functionDef);
-        this.funcN = toFuncN(function());
+    protected AbstractProxyFunction(FunctionDef<R> functionDef, F function) {
+        super(functionDef, function);
+        this.funcN = toFuncN(function);
     }
 
     protected AbstractProxyFunction(String name, F function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
         super(name, function, returnType, paramTypes);
-        this.funcN = toFuncN(function());
+        this.funcN = toFuncN(function);
     }
 
     protected abstract FuncN<R> toFuncN(F function);
 
     @Override
     public final boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
-        int length = paramCount();
         List<TypeToken<?>> paramTypes = paramTypes();
+        int length = paramTypes.size();
         Class<?>[] parameterTypes = method.getParameterTypes();
         ProxyLog.d(TAG, "method parameterTypes: %s", Arrays.toString(parameterTypes));
         if (length != parameterTypes.length) {

@@ -18,17 +18,26 @@ package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.TypeToken;
 
-abstract class BaseProxyFunction<F extends Function, R> extends DefaultFunctionDef<F, R>
+abstract class BaseProxyFunction<F extends Function, R> extends DefaultFunctionDef<R>
         implements ProxyFunction<F, R> {
+    private final F function;
+
     protected BaseProxyFunction(ProxyFunction<F, R> proxyFunction) {
         super(proxyFunction);
+        this.function = proxyFunction.function();
     }
 
-    protected BaseProxyFunction(FunctionDef<F, R> functionDef) {
+    protected BaseProxyFunction(FunctionDef<R> functionDef, F function) {
         super(functionDef);
+        this.function = function;
     }
 
     protected BaseProxyFunction(String name, F function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
-        super(name, function, returnType, paramTypes);
+        super(name, returnType, paramTypes);
+        this.function = function;
+    }
+
+    @Override public final F function() {
+        return function;
     }
 }

@@ -19,5 +19,7 @@ package com.laynemobile.proxy.functions;
 import com.laynemobile.proxy.NamedMethodHandler;
 
 public interface ProxyFunction<F extends Function, R>
-        extends FunctionDef<F, R>,
-        NamedMethodHandler {}
+        extends FunctionDef<R>,
+        NamedMethodHandler {
+    F function();
+}

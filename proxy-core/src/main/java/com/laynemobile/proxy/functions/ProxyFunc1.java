@@ -19,8 +19,8 @@ package com.laynemobile.proxy.functions;
 import com.laynemobile.proxy.TypeToken;
 
 public class ProxyFunc1<T, R> extends AbstractProxyFunction<Func1<T, R>, R> {
-    public ProxyFunc1(FunctionDef<Func1<T, R>, R> functionDef) {
-        super(functionDef);
+    public ProxyFunc1(FunctionDef<R> functionDef, Func1<T, R> function) {
+        super(functionDef, function);
     }
 
     public ProxyFunc1(String name, Func1<T, R> function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {

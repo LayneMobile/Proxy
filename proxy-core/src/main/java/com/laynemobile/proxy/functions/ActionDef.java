@@ -18,6 +18,6 @@ package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.TypeToken;
 
-public interface ActionDef<A extends Action> extends FunctionDef<A, Void> {
+public interface ActionDef extends FunctionDef<Void> {
     TypeToken<Void> VOID_TYPE = TypeToken.get(Void.TYPE);
 }

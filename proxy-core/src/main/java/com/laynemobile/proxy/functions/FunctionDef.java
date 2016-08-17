@@ -20,14 +20,10 @@ import com.laynemobile.proxy.TypeToken;
 
 import java.util.List;
 
-public interface FunctionDef<F extends Function, R> {
+public interface FunctionDef<R> {
     String name();
-
-    F function();
 
     TypeToken<R> returnType();
 
     List<TypeToken<?>> paramTypes();
-
-    int paramCount();
 }
