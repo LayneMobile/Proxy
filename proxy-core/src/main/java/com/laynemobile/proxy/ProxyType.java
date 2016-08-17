@@ -16,14 +16,14 @@
 
 package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.functions.FunctionDef;
+import com.laynemobile.proxy.functions.ProxyFunction;
 
 import java.util.List;
 
-public interface ProxyDef<T> {
-    TypeToken<T> type();
+public interface ProxyType<T> extends TypeDef<T> {
+    TypeDef<T> definition();
 
-    List<? extends ProxyDef<? super T>> superTypes();
+    @Override List<? extends ProxyType<? super T>> superTypes();
 
-    List<? extends FunctionDef<?>> functions();
+    @Override List<? extends ProxyFunction<?, ?>> functions();
 }

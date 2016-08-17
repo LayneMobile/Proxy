@@ -18,26 +18,20 @@ package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.TypeToken;
 
-abstract class BaseProxyFunction<F extends Function, R> extends ConcreteFunctionDef<R>
-        implements ProxyFunction<F, R> {
-    private final F function;
-
-    protected BaseProxyFunction(ProxyFunction<F, R> proxyFunction) {
-        super(proxyFunction);
-        this.function = proxyFunction.function();
+class ConcreteActionDef extends ConcreteFunctionDef<Void> implements ActionDef {
+    ConcreteActionDef(ActionDef actionInfo) {
+        super(actionInfo);
     }
 
-    protected BaseProxyFunction(FunctionDef<R> functionDef, F function) {
+    ConcreteActionDef(FunctionDef<Void> functionDef) {
         super(functionDef);
-        this.function = function;
     }
 
-    protected BaseProxyFunction(String name, F function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
-        super(name, returnType, paramTypes);
-        this.function = function;
+    ConcreteActionDef(String name, TypeToken<?>[] paramTypes) {
+        super(name, VOID_TYPE, paramTypes);
     }
 
-    @Override public final F function() {
-        return function;
+    static ActionDef create(String name, TypeToken<?>[] paramTypes) {
+        return new ConcreteActionDef(name, paramTypes);
     }
 }

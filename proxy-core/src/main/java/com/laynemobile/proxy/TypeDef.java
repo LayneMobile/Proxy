@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.functions;
+package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.functions.FunctionDef;
 
-class DefaultActionDef extends DefaultFunctionDef<Void> implements ActionDef {
-    DefaultActionDef(ActionDef actionInfo) {
-        super(actionInfo);
-    }
+import java.util.List;
 
-    DefaultActionDef(FunctionDef<Void> functionDef) {
-        super(functionDef);
-    }
+public interface TypeDef<T> extends Comparable<TypeDef<?>> {
+    TypeToken<T> type();
 
-    DefaultActionDef(String name, TypeToken<?>[] paramTypes) {
-        super(name, VOID_TYPE, paramTypes);
-    }
+    List<? extends TypeDef<? super T>> superTypes();
 
-    static ActionDef create(String name, TypeToken<?>[] paramTypes) {
-        return new DefaultActionDef(name, paramTypes);
-    }
+    List<? extends FunctionDef<?>> functions();
 }
