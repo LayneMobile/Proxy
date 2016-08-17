@@ -17,15 +17,17 @@
 package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.MethodResult;
+import com.laynemobile.proxy.TypeToken;
 
 import java.lang.reflect.Method;
 
-public class ProxyAction0 extends BaseProxyFunction<Void, Action0> {
+public class ProxyAction0 extends BaseProxyFunction<Action0, Void> implements ProxyAction<Action0> {
     public ProxyAction0(String name, Action0 function) {
-        super(name, function, AbstractProxyAction.VOID_TYPE);
+        super(name, function, AbstractProxyAction.VOID_TYPE, new TypeToken<?>[0]);
     }
 
-    @Override public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+    @Override
+    public final boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
         if (args == null || args.length == 0) {
             function().call();
             result.set(null);

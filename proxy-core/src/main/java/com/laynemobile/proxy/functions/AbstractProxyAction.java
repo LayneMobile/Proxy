@@ -18,10 +18,18 @@ package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.TypeToken;
 
-public abstract class AbstractProxyAction<A extends Action> extends AbstractProxyFunction<Void, A> {
-    static final TypeToken<Void> VOID_TYPE = TypeToken.get(Void.TYPE);
+public abstract class AbstractProxyAction<A extends Action> extends AbstractProxyFunction<A, Void>
+        implements ProxyAction<A> {
+    protected AbstractProxyAction(AbstractProxyFunction<A, Void> proxyFunction) {
+        super(proxyFunction);
+    }
+
+    protected AbstractProxyAction(FunctionInfo<A, Void> functionInfo) {
+        super(functionInfo);
+    }
 
     protected AbstractProxyAction(String name, A action, TypeToken<?>[] paramTypes) {
         super(name, action, VOID_TYPE, paramTypes);
     }
 }
+

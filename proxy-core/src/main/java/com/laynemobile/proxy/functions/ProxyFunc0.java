@@ -21,12 +21,13 @@ import com.laynemobile.proxy.TypeToken;
 
 import java.lang.reflect.Method;
 
-public class ProxyFunc0<R> extends BaseProxyFunction<R, Func0<R>> {
+public class ProxyFunc0<R> extends BaseProxyFunction<Func0<R>, R> {
     public ProxyFunc0(String name, Func0<R> function, TypeToken<R> returnType) {
-        super(name, function, returnType);
+        super(name, function, returnType, new TypeToken<?>[0]);
     }
 
-    @Override public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+    @Override
+    public final boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
         if (args == null || args.length == 0) {
             R r = function().call();
             result.set(r);

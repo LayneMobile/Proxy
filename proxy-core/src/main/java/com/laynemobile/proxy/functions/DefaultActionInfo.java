@@ -18,17 +18,21 @@ package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.TypeToken;
 
-abstract class BaseProxyFunction<F extends Function, R> extends DefaultFunctionInfo<F, R>
-        implements ProxyFunction<F, R> {
-    protected BaseProxyFunction(ProxyFunction<F, R> proxyFunction) {
-        super(proxyFunction);
+class DefaultActionInfo<A extends Action> extends DefaultFunctionInfo<A, Void>
+        implements ActionInfo<A> {
+    DefaultActionInfo(ActionInfo<A> actionInfo) {
+        super(actionInfo);
     }
 
-    protected BaseProxyFunction(FunctionInfo<F, R> functionInfo) {
+    DefaultActionInfo(FunctionInfo<A, Void> functionInfo) {
         super(functionInfo);
     }
 
-    protected BaseProxyFunction(String name, F function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
-        super(name, function, returnType, paramTypes);
+    DefaultActionInfo(String name, A action, TypeToken<?>[] paramTypes) {
+        super(name, action, VOID_TYPE, paramTypes);
+    }
+
+    static <A extends Action> ActionInfo<A> create(String name, A action, TypeToken<?>[] paramTypes) {
+        return new DefaultActionInfo<>(name, action, paramTypes);
     }
 }

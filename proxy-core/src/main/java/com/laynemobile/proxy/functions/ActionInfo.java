@@ -16,8 +16,8 @@
 
 package com.laynemobile.proxy.functions;
 
-import com.laynemobile.proxy.NamedMethodHandler;
+import com.laynemobile.proxy.TypeToken;
 
-public interface ProxyFunction<F extends Function, R>
-        extends FunctionInfo<F, R>,
-        NamedMethodHandler {}
+public interface ActionInfo<A extends Action> extends FunctionInfo<A, Void> {
+    TypeToken<Void> VOID_TYPE = TypeToken.get(Void.TYPE);
+}

@@ -22,25 +22,34 @@ import com.laynemobile.proxy.internal.ProxyLog;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 
-public abstract class AbstractProxyFunction<R, F extends Function> extends BaseProxyFunction<R, F> {
+public abstract class AbstractProxyFunction<F extends Function, R> extends BaseProxyFunction<F, R> {
     private static final String TAG = AbstractProxyFunction.class.getSimpleName();
 
     private final FuncN<R> funcN;
-    private final TypeToken<?>[] paramTypes;
-    private final int length;
+
+    protected AbstractProxyFunction(AbstractProxyFunction<F, R> proxyFunction) {
+        super(proxyFunction);
+        this.funcN = proxyFunction.funcN;
+    }
+
+    protected AbstractProxyFunction(FunctionInfo<F, R> functionInfo) {
+        super(functionInfo);
+        this.funcN = toFuncN(function());
+    }
 
     protected AbstractProxyFunction(String name, F function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
-        super(name, function, returnType);
-        this.paramTypes = paramTypes;
-        this.length = paramTypes.length;
-        this.funcN = toFuncN(function);
+        super(name, function, returnType, paramTypes);
+        this.funcN = toFuncN(function());
     }
 
     protected abstract FuncN<R> toFuncN(F function);
 
     @Override
     public final boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+        int length = paramCount();
+        List<TypeToken<?>> paramTypes = paramTypes();
         Class<?>[] parameterTypes = method.getParameterTypes();
         ProxyLog.d(TAG, "method parameterTypes: %s", Arrays.toString(parameterTypes));
         if (length != parameterTypes.length) {
@@ -48,7 +57,7 @@ public abstract class AbstractProxyFunction<R, F extends Function> extends BaseP
         }
 
         for (int i = 0; i < length; i++) {
-            TypeToken<?> type = paramTypes[i];
+            TypeToken<?> type = paramTypes.get(i);
             Class<?> clazz = parameterTypes[i];
             if (!clazz.isAssignableFrom(type.getRawType())) {
                 ProxyLog.w(TAG, "param type '%s' not assignable from handler type '%s'", clazz, type.getRawType());
