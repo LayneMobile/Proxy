@@ -16,8 +16,28 @@
 
 package com.laynemobile.proxy.functions;
 
-import com.laynemobile.proxy.NamedMethodHandler;
+import com.laynemobile.proxy.TypeToken;
 
-public interface ProxyFunction<F extends Function> extends NamedMethodHandler {
-    F function();
+abstract class BaseProxyFunction<R, F extends Function> implements ProxyFunction<F> {
+    private final String name;
+    private final F function;
+    private final TypeToken<R> returnType;
+
+    BaseProxyFunction(String name, F function, TypeToken<R> returnType) {
+        this.name = name;
+        this.function = function;
+        this.returnType = returnType;
+    }
+
+    @Override public final String name() {
+        return name;
+    }
+
+    @Override public final F function() {
+        return function;
+    }
+
+    public final TypeToken<R> returnType() {
+        return returnType;
+    }
 }

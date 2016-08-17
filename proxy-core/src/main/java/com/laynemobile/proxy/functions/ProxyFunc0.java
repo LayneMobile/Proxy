@@ -16,8 +16,22 @@
 
 package com.laynemobile.proxy.functions;
 
-import com.laynemobile.proxy.NamedMethodHandler;
+import com.laynemobile.proxy.MethodResult;
+import com.laynemobile.proxy.TypeToken;
 
-public interface ProxyFunction<F extends Function> extends NamedMethodHandler {
-    F function();
+import java.lang.reflect.Method;
+
+public class ProxyFunc0<R> extends BaseProxyFunction<R, Func0<R>> {
+    public ProxyFunc0(String name, Func0<R> function, TypeToken<R> returnType) {
+        super(name, function, returnType);
+    }
+
+    @Override public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+        if (args == null || args.length == 0) {
+            R r = function().call();
+            result.set(r);
+            return true;
+        }
+        return false;
+    }
 }

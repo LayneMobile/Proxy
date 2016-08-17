@@ -16,14 +16,51 @@
 
 package com.laynemobile.proxy.functions;
 
-public abstract class AbstractProxyFunction<F extends Function> implements ProxyFunction<F> {
-    private final F f;
+import com.laynemobile.proxy.MethodResult;
+import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.internal.ProxyLog;
 
-    protected AbstractProxyFunction(F f) {
-        this.f = f;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+
+public abstract class AbstractProxyFunction<R, F extends Function> extends BaseProxyFunction<R, F> {
+    private static final String TAG = AbstractProxyFunction.class.getSimpleName();
+
+    private final FuncN<R> funcN;
+    private final TypeToken<?>[] paramTypes;
+    private final int length;
+
+    protected AbstractProxyFunction(String name, F function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
+        super(name, function, returnType);
+        this.paramTypes = paramTypes;
+        this.length = paramTypes.length;
+        this.funcN = toFuncN(function);
     }
 
-    @Override public final F function() {
-        return f;
+    protected abstract FuncN<R> toFuncN(F function);
+
+    @Override
+    public final boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        ProxyLog.d(TAG, "method parameterTypes: %s", Arrays.toString(parameterTypes));
+        if (length != parameterTypes.length) {
+            return false;
+        }
+
+        for (int i = 0; i < length; i++) {
+            TypeToken<?> type = paramTypes[i];
+            Class<?> clazz = parameterTypes[i];
+            if (!clazz.isAssignableFrom(type.getRawType())) {
+                ProxyLog.w(TAG, "param type '%s' not assignable from handler type '%s'", clazz, type.getRawType());
+                return false;
+            }
+        }
+
+        result.set(funcN.call(args));
+        return true;
+    }
+
+    public final FuncN<R> funcN() {
+        return funcN;
     }
 }
