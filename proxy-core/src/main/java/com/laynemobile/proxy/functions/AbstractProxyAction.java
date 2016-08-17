@@ -24,8 +24,8 @@ public abstract class AbstractProxyAction<A extends Action> extends AbstractProx
         super(proxyFunction);
     }
 
-    protected AbstractProxyAction(FunctionInfo<A, Void> functionInfo) {
-        super(functionInfo);
+    protected AbstractProxyAction(FunctionDef<A, Void> functionDef) {
+        super(functionDef);
     }
 
     protected AbstractProxyAction(String name, A action, TypeToken<?>[] paramTypes) {

@@ -20,7 +20,7 @@ import com.laynemobile.proxy.TypeToken;
 
 import java.util.List;
 
-public interface FunctionInfo<F extends Function, R> {
+public interface FunctionDef<F extends Function, R> {
     String name();
 
     F function();

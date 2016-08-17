@@ -22,22 +22,22 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-class DefaultFunctionInfo<F extends Function, R> implements FunctionInfo<F, R> {
+class DefaultFunctionDef<F extends Function, R> implements FunctionDef<F, R> {
     private final String name;
     private final F function;
     private final TypeToken<R> returnType;
     private final List<TypeToken<?>> paramTypes;
     private final int paramCount;
 
-    DefaultFunctionInfo(FunctionInfo<F, R> functionInfo) {
-        this.name = functionInfo.name();
-        this.function = functionInfo.function();
-        this.returnType = functionInfo.returnType();
-        this.paramTypes = functionInfo.paramTypes();
-        this.paramCount = functionInfo.paramCount();
+    DefaultFunctionDef(FunctionDef<F, R> functionDef) {
+        this.name = functionDef.name();
+        this.function = functionDef.function();
+        this.returnType = functionDef.returnType();
+        this.paramTypes = functionDef.paramTypes();
+        this.paramCount = functionDef.paramCount();
     }
 
-    DefaultFunctionInfo(String name, F function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
+    DefaultFunctionDef(String name, F function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
         List<? extends TypeToken<?>> paramTypesList = Arrays.asList(paramTypes.clone());
         this.name = name;
         this.function = function;
@@ -46,9 +46,9 @@ class DefaultFunctionInfo<F extends Function, R> implements FunctionInfo<F, R> {
         this.paramCount = paramTypes.length;
     }
 
-    static <F extends Function, R> DefaultFunctionInfo<F, R> create(String name, F function, TypeToken<R> returnType,
+    static <F extends Function, R> DefaultFunctionDef<F, R> create(String name, F function, TypeToken<R> returnType,
             TypeToken<?>[] paramTypes) {
-        return new DefaultFunctionInfo<>(name, function, returnType, paramTypes);
+        return new DefaultFunctionDef<>(name, function, returnType, paramTypes);
     }
 
     @Override public final String name() {

@@ -34,8 +34,8 @@ public abstract class AbstractProxyFunction<F extends Function, R> extends BaseP
         this.funcN = proxyFunction.funcN;
     }
 
-    protected AbstractProxyFunction(FunctionInfo<F, R> functionInfo) {
-        super(functionInfo);
+    protected AbstractProxyFunction(FunctionDef<F, R> functionDef) {
+        super(functionDef);
         this.funcN = toFuncN(function());
     }
 
