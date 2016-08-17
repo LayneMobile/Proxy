@@ -16,6 +16,7 @@
 
 package com.laynemobile.proxy.model.output;
 
+import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.Util;
 import com.laynemobile.proxy.elements.TypeParameterElementAlias;
 import com.laynemobile.proxy.model.AnnotatedProxyElement;
@@ -23,12 +24,16 @@ import com.laynemobile.proxy.model.ProxyFunctionElement;
 import com.laynemobile.proxy.types.AliasTypes;
 import com.laynemobile.proxy.types.TypeMirrorAlias;
 import com.laynemobile.proxy.types.TypeVariableAlias;
+import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import com.squareup.javapoet.WildcardTypeName;
 
 import java.util.List;
 
@@ -160,6 +165,53 @@ public class ProxyFunctionAbstractTypeOutputStub extends AbstractTypeElementOutp
         }
 
         String name = function.name();
+
+        // param types field
+        ClassName typeTokenType = ClassName.get(TypeToken.class);
+        TypeName typeTokenWildcardType = ParameterizedTypeName.get(typeTokenType,
+                WildcardTypeName.subtypeOf(ClassName.get(Object.class)));
+        TypeName fieldType = ArrayTypeName.of(typeTokenWildcardType);
+        FieldSpec.Builder paramTypesField = FieldSpec.builder(fieldType, "paramTypes")
+                .addModifiers(Modifier.PROTECTED, Modifier.FINAL);
+        CodeBlock.Builder initializer = CodeBlock.builder()
+                .add("$[")
+                .add("new $T[] {", typeTokenWildcardType);
+
+        boolean first = true;
+        for (TypeMirrorAlias paramType : function.alias().paramTypes()) {
+            if (first) {
+                initializer.add("\n");
+            } else {
+                initializer.add(",\n");
+            }
+            first = false;
+
+            TypeMirror type = paramType.actual();
+            TypeKind kind = type.getKind();
+            if (kind == TypeKind.TYPEVAR) {
+                type = ((TypeVariable) type).getUpperBound();
+                kind = type.getKind();
+            }
+
+            if (kind.isPrimitive()) {
+                String kindName = kind.name().toLowerCase(US);
+                initializer.add("$T.get($L.class)", typeTokenType, kindName);
+            } else if (kind == TypeKind.DECLARED && ((DeclaredType) type).getTypeArguments().isEmpty()) {
+                initializer.add("$T.get($T.class)", typeTokenType, type);
+            } else {
+                TypeName typeName = ParameterizedTypeName.get(typeTokenType, TypeName.get(type));
+                initializer.add("new $T() {}", typeName);
+            }
+        }
+        initializer.add("$]");
+        if (!first) {
+            initializer.add("\n");
+        }
+        initializer.add("}");
+
+        classBuilder.addField(paramTypesField
+                .initializer(initializer.build())
+                .build());
 
         // Constructor
         classBuilder.addMethod(MethodSpec.constructorBuilder()

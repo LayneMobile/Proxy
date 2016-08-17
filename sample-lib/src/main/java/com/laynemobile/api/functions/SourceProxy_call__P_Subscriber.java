@@ -18,11 +18,17 @@ package com.laynemobile.api.functions;
 
 import com.laynemobile.api.Params;
 import com.laynemobile.api.functions.parent.AbstractSourceProxy_call__P_Subscriber;
+import com.laynemobile.proxy.NamedMethodHandler;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Action1;
 import com.laynemobile.proxy.functions.Action2;
+import com.laynemobile.proxy.functions.Actions;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.functions.Func1;
+import com.laynemobile.proxy.functions.Func2;
+import com.laynemobile.proxy.functions.FuncN;
+import com.laynemobile.proxy.functions.FuncNHandler;
+import com.laynemobile.proxy.functions.Functions;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -87,5 +93,18 @@ public class SourceProxy_call__P_Subscriber<T, P extends Params> extends Abstrac
                 });
             }
         });
+    }
+
+    @Override
+    public NamedMethodHandler handler() {
+        return new NamedMethodHandler.Builder()
+                .setName("call")
+                .setMethodHandler(new FuncNHandler(toFuncN(function()), paramTypes))
+                .build();
+    }
+
+    private static <T, P extends Params> FuncN<Void> toFuncN(Action2<P, Subscriber<? super T>> source) {
+        Func2<P, Subscriber<? super T>, Void> func2 = Actions.toFunc(source);
+        return Functions.fromFunc(func2);
     }
 }

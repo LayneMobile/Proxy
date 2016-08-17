@@ -19,6 +19,7 @@ package com.laynemobile.api;
 import com.google.common.base.Objects;
 import com.laynemobile.proxy.ConsoleLogger;
 import com.laynemobile.proxy.ProxyCompleter;
+import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.functions.Func1;
 import com.laynemobile.proxy.internal.ProxyLog;
@@ -33,12 +34,20 @@ import rx.Subscriber;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class Tester {
     static {
         ProxyLog.setLogger(new ConsoleLogger());
+    }
+
+    @Test public void testPrimitiveTypeToken() throws Exception {
+        TypeToken<Integer> intType = TypeToken.get(int.class);
+        TypeToken<Integer> integerType = TypeToken.get(Integer.class);
+        assertNotEquals(intType, integerType);
+        assertNotEquals(intType.getRawType(), integerType.getRawType());
     }
 
     @Test public void testSourceProxy() throws Throwable {

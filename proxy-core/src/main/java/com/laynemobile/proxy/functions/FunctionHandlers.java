@@ -21,6 +21,7 @@ import com.laynemobile.proxy.MethodResult;
 import com.laynemobile.proxy.internal.ProxyLog;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 public final class FunctionHandlers {
     private FunctionHandlers() { throw new AssertionError("no instances"); }
@@ -108,6 +109,8 @@ public final class FunctionHandlers {
     }
 
     private static abstract class AbstractFunctionHandler<F extends Function> implements MethodHandler {
+        private static final String TAG = AbstractFunctionHandler.class.getSimpleName();
+
         protected final F function;
 
         protected AbstractFunctionHandler(F function) {
@@ -120,7 +123,9 @@ public final class FunctionHandlers {
         @Override
         public final boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
             try {
-                return tryHandle(proxy, method, method.getParameterTypes(), args, result);
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                ProxyLog.d(TAG, "method parameterTypes: %s", Arrays.toString(parameterTypes));
+                return tryHandle(proxy, method, parameterTypes, args, result);
             } catch (ClassCastException e) {
                 ProxyLog.e("FunctionHandlers", "error handling", e);
                 return false;
