@@ -16,20 +16,13 @@
 
 package com.laynemobile.proxy.functions;
 
-import com.laynemobile.proxy.TypeToken;
+public class FunctionTransform<F extends Function> implements Function {
+    protected final F function;
 
-public abstract class AbstractProxyAction<A extends ActionTransform<?>> extends AbstractProxyFunction<A, Void>
-        implements ProxyAction<A> {
-    protected AbstractProxyAction(AbstractProxyFunction<A, Void> proxyFunction) {
-        super(proxyFunction);
-    }
-
-    protected AbstractProxyAction(FunctionDef<Void> functionDef, A action) {
-        super(functionDef, action);
-    }
-
-    protected AbstractProxyAction(String name, A action, TypeToken<?>[] paramTypes) {
-        super(name, action, VOID_TYPE, paramTypes);
+    public FunctionTransform(F function) {
+        if (function == null) {
+            throw new NullPointerException("function is null");
+        }
+        this.function = function;
     }
 }
-

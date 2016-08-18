@@ -18,7 +18,7 @@ package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.TypeToken;
 
-abstract class BaseProxyFunction<F extends Function, R> extends ConcreteFunctionDef<R>
+abstract class BaseProxyFunction<F extends FunctionTransform<?>, R> extends ConcreteFunctionDef<R>
         implements ProxyFunction<F, R> {
     private final F function;
 

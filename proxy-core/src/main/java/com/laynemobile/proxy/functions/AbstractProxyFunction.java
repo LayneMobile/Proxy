@@ -24,7 +24,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class AbstractProxyFunction<F extends Function, R> extends BaseProxyFunction<F, R> {
+public abstract class AbstractProxyFunction<F extends FunctionTransform<?>, R> extends BaseProxyFunction<F, R> {
     private static final String TAG = AbstractProxyFunction.class.getSimpleName();
 
     private final FuncN<R> funcN;

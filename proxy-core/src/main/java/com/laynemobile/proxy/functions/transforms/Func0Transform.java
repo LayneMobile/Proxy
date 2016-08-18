@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.functions;
+package com.laynemobile.proxy.functions.transforms;
 
-import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.functions.Func0;
+import com.laynemobile.proxy.functions.FunctionTransform;
 
-public abstract class AbstractProxyAction<A extends ActionTransform<?>> extends AbstractProxyFunction<A, Void>
-        implements ProxyAction<A> {
-    protected AbstractProxyAction(AbstractProxyFunction<A, Void> proxyFunction) {
-        super(proxyFunction);
+import static com.laynemobile.proxy.functions.Functions.toFunc0;
+
+public class Func0Transform<R>
+        extends FunctionTransform<Func0<? extends R>>
+        implements Func0<R> {
+
+    public Func0Transform(Func0<? extends R> function) {
+        super(function);
     }
 
-    protected AbstractProxyAction(FunctionDef<Void> functionDef, A action) {
-        super(functionDef, action);
+    public Func0Transform(final R value) {
+        super(toFunc0(value));
     }
 
-    protected AbstractProxyAction(String name, A action, TypeToken<?>[] paramTypes) {
-        super(name, action, VOID_TYPE, paramTypes);
+    @Override public final R call() {
+        return function.call();
     }
 }
-

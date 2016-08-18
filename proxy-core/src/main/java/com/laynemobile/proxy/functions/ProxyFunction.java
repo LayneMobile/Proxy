@@ -18,11 +18,11 @@ package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.NamedMethodHandler;
 
-public interface ProxyFunction<F extends Function, R>
+public interface ProxyFunction<F extends FunctionTransform<?>, R>
         extends FunctionDef<R>,
         // TODO: implement InvocationHandler instead of this
         NamedMethodHandler {
-    ProxyFunction<Action0, Void> EMPTY = new ProxyAction0("no_op", Actions.empty());
+//    ProxyFunction<Action0Transform, Void> EMPTY = new ProxyAction0("no_op", new Action0Transform());
 
     F function();
 }

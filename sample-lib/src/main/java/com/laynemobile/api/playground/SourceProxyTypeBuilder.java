@@ -31,41 +31,40 @@ import rx.Subscriber;
 
 @Generated
 public class SourceProxyTypeBuilder<T, P extends Params> extends AbstractProxyTypeBuilder<Source<T, P>> {
-    private final SourceDef<T, P> sourceDef = new SourceDef<>();
-    private SourceProxy_call__P_Subscriber<? extends T, ? extends P> source;
+    private Source_call__P_Subscriber<? extends T, ? extends P> source;
 
-    public SourceProxyTypeBuilder<T, P> setSource(SourceProxy_call__P_Subscriber<? extends T, ? extends P> source) {
+    public SourceProxyTypeBuilder<T, P> setSource(Source_call__P_Subscriber<? extends T, ? extends P> source) {
         this.source = source;
         return this;
     }
 
-    public SourceProxyTypeBuilder<T, P> setSource(Action2<P, Subscriber<? super T>> source) {
-        this.source = new SourceProxy_call__P_Subscriber<T, P>(source);
+    public SourceProxyTypeBuilder<T, P> setSource(Action2<? super P, ? super Subscriber<? super T>> source) {
+        this.source = new Source_call__P_Subscriber<T, P>(new SourceTransform_call__P_Subscriber<T, P>(source));
         return this;
     }
 
-    public SourceProxyTypeBuilder<T, P> setSource(Action1<Subscriber<? super T>> source) {
-        this.source = new SourceProxy_call__P_Subscriber<T, P>(source);
+    public SourceProxyTypeBuilder<T, P> setSource(Action1<? super Subscriber<? super T>> source) {
+        this.source = new Source_call__P_Subscriber<T, P>(new SourceTransform_call__P_Subscriber<T, P>(source));
         return this;
     }
 
-    public SourceProxyTypeBuilder<T, P> setSource(Func1<P, T> source) {
-        this.source = new SourceProxy_call__P_Subscriber<T, P>(source);
+    public SourceProxyTypeBuilder<T, P> setSource(Func1<? super P, ? extends T> source) {
+        this.source = new Source_call__P_Subscriber<T, P>(new SourceTransform_call__P_Subscriber<T, P>(source));
         return this;
     }
 
-    public SourceProxyTypeBuilder<T, P> setSource(Func0<T> source) {
-        this.source = new SourceProxy_call__P_Subscriber<T, P>(source);
+    public SourceProxyTypeBuilder<T, P> setSource(Func0<? extends T> source) {
+        this.source = new Source_call__P_Subscriber<T, P>(new SourceTransform_call__P_Subscriber<T, P>(source));
         return this;
     }
 
-    public SourceProxyTypeBuilder<T, P> setSource(Observable<T> source) {
-        this.source = new SourceProxy_call__P_Subscriber<T, P>(source);
+    public SourceProxyTypeBuilder<T, P> setSource(Observable<? extends T> source) {
+        this.source = new Source_call__P_Subscriber<T, P>(new SourceTransform_call__P_Subscriber<T, P>(source));
         return this;
     }
 
     @Override public ProxyType<Source<T, P>> proxyType() {
-        return sourceDef.typeDef().newProxyBuilder()
+        return new SourceDef<T, P>().typeDef().newProxyBuilder()
                 .addFunction(source)
                 .build();
     }

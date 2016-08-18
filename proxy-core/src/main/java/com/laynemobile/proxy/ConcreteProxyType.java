@@ -60,8 +60,8 @@ final class ConcreteProxyType<T> extends AbstractTypeDef<T, ProxyType<? super T>
         return (Set<? extends ProxyFunction<?, ?>>) super.allFunctions();
     }
 
-    @Override public Builder<T> newProxyBuilder() {
-        return new Builder<>(this);
+    @Override public ProxyType.Builder<T> newProxyBuilder() {
+        return new ProxyType.Builder<>(this);
     }
 
     @Override public int compareTo(TypeDef<?> o) {

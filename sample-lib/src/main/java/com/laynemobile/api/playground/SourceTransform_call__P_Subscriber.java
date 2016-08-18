@@ -18,6 +18,7 @@ package com.laynemobile.api.playground;
 
 import com.laynemobile.api.Params;
 import com.laynemobile.proxy.annotations.Generated;
+import com.laynemobile.proxy.functions.Action0;
 import com.laynemobile.proxy.functions.Action1;
 import com.laynemobile.proxy.functions.Action2;
 import com.laynemobile.proxy.functions.Func0;
@@ -26,18 +27,19 @@ import com.laynemobile.proxy.functions.Func1;
 import rx.Observable;
 import rx.Subscriber;
 
+// TODO: annotate
+// @FunctionTransformer(SourceDef_call__P_Subscriber.Transform.class)
 @Generated
-public class SourceProxy_call__P_Subscriber<T, P extends Params> extends AbstractSourceProxy_call__P_Subscriber<T, P> {
-    public SourceProxy_call__P_Subscriber(SourceDef_call__P_Subscriber<? extends T, ? extends P> functionDef,
-            Action2<P, Subscriber<? super T>> action) {
-        super(functionDef, action);
+public class SourceTransform_call__P_Subscriber<T, P extends Params> extends Source_call__P_Subscriber.Transform<T, P> {
+    public SourceTransform_call__P_Subscriber(Action2<? super P, ? super Subscriber<? super T>> action) {
+        super(action);
     }
 
-    public SourceProxy_call__P_Subscriber(Action2<P, Subscriber<? super T>> source) {
-        super(source);
+    public SourceTransform_call__P_Subscriber(Action0 action) {
+        super(action);
     }
 
-    public SourceProxy_call__P_Subscriber(final Action1<Subscriber<? super T>> source) {
+    public SourceTransform_call__P_Subscriber(final Action1<? super Subscriber<? super T>> source) {
         super(new Action2<P, Subscriber<? super T>>() {
             @Override public void call(P p, Subscriber<? super T> subscriber) {
                 source.call(subscriber);
@@ -45,7 +47,7 @@ public class SourceProxy_call__P_Subscriber<T, P extends Params> extends Abstrac
         });
     }
 
-    public SourceProxy_call__P_Subscriber(final Func1<P, T> source) {
+    public SourceTransform_call__P_Subscriber(final Func1<? super P, ? extends T> source) {
         super(new Action2<P, Subscriber<? super T>>() {
             @Override public void call(P p, Subscriber<? super T> subscriber) {
                 try {
@@ -59,7 +61,7 @@ public class SourceProxy_call__P_Subscriber<T, P extends Params> extends Abstrac
         });
     }
 
-    public SourceProxy_call__P_Subscriber(final Func0<T> source) {
+    public SourceTransform_call__P_Subscriber(final Func0<? extends T> source) {
         this(new Func1<P, T>() {
             @Override public T call(P p) {
                 return source.call();
@@ -67,7 +69,7 @@ public class SourceProxy_call__P_Subscriber<T, P extends Params> extends Abstrac
         });
     }
 
-    public SourceProxy_call__P_Subscriber(final Observable<T> source) {
+    public SourceTransform_call__P_Subscriber(final Observable<? extends T> source) {
         super(new Action2<P, Subscriber<? super T>>() {
             @Override public void call(P p, final Subscriber<? super T> child) {
                 source.unsafeSubscribe(new Subscriber<T>(child) {

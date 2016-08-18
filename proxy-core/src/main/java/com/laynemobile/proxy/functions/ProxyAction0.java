@@ -18,12 +18,17 @@ package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.MethodResult;
 import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.functions.transforms.Action0Transform;
 
 import java.lang.reflect.Method;
 
-public class ProxyAction0 extends BaseProxyFunction<Action0, Void> implements ProxyAction<Action0> {
-    public ProxyAction0(String name, Action0 function) {
+public class ProxyAction0 extends BaseProxyFunction<Action0Transform, Void> implements ProxyAction<Action0Transform> {
+    public ProxyAction0(String name, Action0Transform function) {
         super(name, function, AbstractProxyAction.VOID_TYPE, new TypeToken<?>[0]);
+    }
+
+    public ProxyAction0(String name, Action0 function) {
+        this(name, new Action0Transform(function));
     }
 
     @Override

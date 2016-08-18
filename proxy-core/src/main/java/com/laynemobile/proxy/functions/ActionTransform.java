@@ -16,20 +16,8 @@
 
 package com.laynemobile.proxy.functions;
 
-import com.laynemobile.proxy.TypeToken;
-
-public abstract class AbstractProxyAction<A extends ActionTransform<?>> extends AbstractProxyFunction<A, Void>
-        implements ProxyAction<A> {
-    protected AbstractProxyAction(AbstractProxyFunction<A, Void> proxyFunction) {
-        super(proxyFunction);
-    }
-
-    protected AbstractProxyAction(FunctionDef<Void> functionDef, A action) {
-        super(functionDef, action);
-    }
-
-    protected AbstractProxyAction(String name, A action, TypeToken<?>[] paramTypes) {
-        super(name, action, VOID_TYPE, paramTypes);
+public class ActionTransform<A extends Action> extends FunctionTransform<A> implements Action {
+    public ActionTransform(A action) {
+        super(action);
     }
 }
-

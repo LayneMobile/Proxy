@@ -24,7 +24,7 @@ import com.laynemobile.proxy.TypeToken;
 public class SourceDef<T, P extends Params> {
     private final TypeToken<Source<T, P>> type = new TypeToken<Source<T, P>>() {};
     private final TypeDef<Source<T, P>> typeDef = new TypeDef.Builder<>(type)
-            .addFunction(new SourceDef_call__P_Subscriber<>())
+            .addFunction(new Source_call__P_Subscriber.Def<>())
             .build();
 
     public TypeDef<Source<T, P>> typeDef() {
