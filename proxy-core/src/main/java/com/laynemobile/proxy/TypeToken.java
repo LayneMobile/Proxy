@@ -287,4 +287,13 @@ public class TypeToken<T> {
     public static <T> TypeToken<T> get(Class<T> type) {
         return new TypeToken<T>(type);
     }
+
+    public static <T> TypeToken<? extends T> get(T t) {
+        if (t == null) {
+            throw new NullPointerException("t is null");
+        }
+        @SuppressWarnings("unchecked")
+        Class<? extends T> clazz = (Class<? extends T>) t.getClass();
+        return get(clazz);
+    }
 }

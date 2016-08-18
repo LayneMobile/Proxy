@@ -20,6 +20,9 @@ import com.laynemobile.proxy.NamedMethodHandler;
 
 public interface ProxyFunction<F extends Function, R>
         extends FunctionDef<R>,
+        // TODO: implement InvocationHandler instead of this
         NamedMethodHandler {
+    ProxyFunction<Action0, Void> EMPTY = new ProxyAction0("no_op", Actions.empty());
+
     F function();
 }

@@ -18,6 +18,8 @@ package com.laynemobile.proxy;
 
 import com.laynemobile.proxy.functions.ProxyFunction;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -27,7 +29,48 @@ public interface ProxyType<T> extends TypeDef<T> {
 
     @Override SortedSet<? extends ProxyType<? super T>> superTypes();
 
+    Set<Class<?>> rawTypes();
+
     @Override List<? extends ProxyFunction<?, ?>> functions();
 
-    Set<? extends ProxyFunction<?, ?>> allFunctions();
+    @Override Set<? extends ProxyFunction<?, ?>> allFunctions();
+
+    final class Builder<T> implements com.laynemobile.proxy.Builder<ProxyType<T>> {
+        private final TypeDef<T> typeDef;
+        private final Set<ProxyType<? super T>> superTypes = new HashSet<>();
+        private final LinkedHashSet<ProxyFunction<?, ?>> functions = new LinkedHashSet<>();
+
+        Builder(TypeDef<T> typeDef) {
+            if (typeDef == null) {
+                throw new NullPointerException("typeDef is null");
+            }
+            this.typeDef = typeDef;
+        }
+
+        Builder(ProxyType<T> proxyType) {
+            this(proxyType.definition());
+            superTypes.addAll(proxyType.superTypes());
+            functions.addAll(proxyType.functions());
+        }
+
+        public Builder<T> addSuperType(ProxyType<? super T> superType) {
+            if (superType == null) {
+                throw new NullPointerException("superType is null");
+            }
+            superTypes.add(superType);
+            return this;
+        }
+
+        public Builder<T> addFunction(ProxyFunction<?, ?> function) {
+            if (function == null) {
+                throw new NullPointerException("function is null");
+            }
+            functions.add(function);
+            return this;
+        }
+
+        @Override public ProxyType<T> build() {
+            return new ConcreteProxyType<>(typeDef, superTypes, functions);
+        }
+    }
 }

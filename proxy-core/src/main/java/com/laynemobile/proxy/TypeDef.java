@@ -18,7 +18,10 @@ package com.laynemobile.proxy;
 
 import com.laynemobile.proxy.functions.FunctionDef;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 
 public interface TypeDef<T> extends Comparable<TypeDef<?>> {
@@ -27,4 +30,41 @@ public interface TypeDef<T> extends Comparable<TypeDef<?>> {
     SortedSet<? extends TypeDef<? super T>> superTypes();
 
     List<? extends FunctionDef<?>> functions();
+
+    Set<? extends FunctionDef<?>> allFunctions();
+
+    ProxyType.Builder<T> newProxyBuilder();
+
+    final class Builder<T> implements com.laynemobile.proxy.Builder<TypeDef<T>> {
+        private final TypeToken<T> type;
+        private final Set<TypeDef<? super T>> superTypes = new HashSet<>();
+        private final LinkedHashSet<FunctionDef<?>> functions = new LinkedHashSet<>();
+
+        public Builder(TypeToken<T> type) {
+            this.type = type;
+        }
+
+        public Builder<T> addSuperType(TypeDef<? super T> superType) {
+            if (superType instanceof ProxyType) {
+                @SuppressWarnings("unchecked")
+                ProxyType<? super T> proxyType = (ProxyType<? super T>) superType;
+                return addSuperType(proxyType);
+            }
+            superTypes.add(superType);
+            return this;
+        }
+
+        public Builder<T> addSuperType(ProxyType<? super T> superType) {
+            return addSuperType(superType.definition());
+        }
+
+        public Builder<T> addFunction(FunctionDef<?> function) {
+            functions.add(function);
+            return this;
+        }
+
+        @Override public TypeDef<T> build() {
+            return new ConcreteTypeDef<>(type, superTypes, functions);
+        }
+    }
 }

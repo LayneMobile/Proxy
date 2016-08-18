@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.functions;
+package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.TypeToken;
+public abstract class AbstractProxyTypeBuilder<T> implements Builder<T> {
+    public abstract ProxyType<T> proxyType();
 
-public class ConcreteActionDef extends ConcreteFunctionDef<Void> implements ActionDef {
-    protected ConcreteActionDef(ActionDef actionInfo) {
-        super(actionInfo);
+    public ProxyBuilder2<T> builder() {
+        return new ProxyBuilder2<>(proxyType());
     }
 
-    protected ConcreteActionDef(FunctionDef<Void> functionDef) {
-        super(functionDef);
-    }
-
-    protected ConcreteActionDef(String name, TypeToken<?>[] paramTypes) {
-        super(name, VOID_TYPE, paramTypes);
-    }
-
-    static ActionDef create(String name, TypeToken<?>[] paramTypes) {
-        return new ConcreteActionDef(name, paramTypes);
+    @Override public T build() {
+        return builder()
+                .build();
     }
 }

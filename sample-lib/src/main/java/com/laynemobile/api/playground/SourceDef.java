@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.functions;
+package com.laynemobile.api.playground;
 
+import com.laynemobile.api.Params;
+import com.laynemobile.api.Source;
+import com.laynemobile.proxy.TypeDef;
 import com.laynemobile.proxy.TypeToken;
 
-public class ConcreteActionDef extends ConcreteFunctionDef<Void> implements ActionDef {
-    protected ConcreteActionDef(ActionDef actionInfo) {
-        super(actionInfo);
-    }
+public class SourceDef<T, P extends Params> {
+    private final TypeToken<Source<T, P>> type = new TypeToken<Source<T, P>>() {};
+    private final TypeDef<Source<T, P>> typeDef = new TypeDef.Builder<>(type)
+            .addFunction(new SourceDef_call__P_Subscriber<>())
+            .build();
 
-    protected ConcreteActionDef(FunctionDef<Void> functionDef) {
-        super(functionDef);
-    }
-
-    protected ConcreteActionDef(String name, TypeToken<?>[] paramTypes) {
-        super(name, VOID_TYPE, paramTypes);
-    }
-
-    static ActionDef create(String name, TypeToken<?>[] paramTypes) {
-        return new ConcreteActionDef(name, paramTypes);
+    public TypeDef<Source<T, P>> typeDef() {
+        return typeDef;
     }
 }

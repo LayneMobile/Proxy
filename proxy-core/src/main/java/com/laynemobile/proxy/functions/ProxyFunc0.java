@@ -21,9 +21,15 @@ import com.laynemobile.proxy.TypeToken;
 
 import java.lang.reflect.Method;
 
+import static com.laynemobile.proxy.functions.Functions.toFunc0;
+
 public class ProxyFunc0<R> extends BaseProxyFunction<Func0<R>, R> {
     public ProxyFunc0(String name, Func0<R> function, TypeToken<R> returnType) {
         super(name, function, returnType, new TypeToken<?>[0]);
+    }
+
+    public ProxyFunc0(String name, R r, TypeToken<R> returnType) {
+        this(name, toFunc0(r), returnType);
     }
 
     @Override

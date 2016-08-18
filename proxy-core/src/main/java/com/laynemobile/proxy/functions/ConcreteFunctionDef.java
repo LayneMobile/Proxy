@@ -24,18 +24,18 @@ import java.util.List;
 
 import static java.util.Collections.unmodifiableList;
 
-class ConcreteFunctionDef<R> implements FunctionDef<R> {
+public class ConcreteFunctionDef<R> implements FunctionDef<R> {
     private final String name;
     private final TypeToken<R> returnType;
     private final List<TypeToken<?>> paramTypes;
 
-    ConcreteFunctionDef(FunctionDef<R> functionDef) {
+    protected ConcreteFunctionDef(FunctionDef<R> functionDef) {
         this.name = functionDef.name();
         this.returnType = functionDef.returnType();
         this.paramTypes = functionDef.paramTypes();
     }
 
-    ConcreteFunctionDef(String name, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
+    protected ConcreteFunctionDef(String name, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
         List<? extends TypeToken<?>> paramTypesList = Arrays.asList(paramTypes.clone());
         this.name = name;
         this.returnType = returnType;
