@@ -23,6 +23,10 @@ import com.laynemobile.proxy.functions.transforms.Func0Transform;
 import java.lang.reflect.Method;
 
 public class ProxyFunc0<R> extends BaseProxyFunction<Func0Transform<R>, R> {
+    public ProxyFunc0(FunctionDef<R> functionDef, Func0Transform<R> function) {
+        super(functionDef, function);
+    }
+
     public ProxyFunc0(String name, Func0Transform<R> function, TypeToken<R> returnType) {
         super(name, function, returnType, new TypeToken<?>[0]);
     }
@@ -35,5 +39,11 @@ public class ProxyFunc0<R> extends BaseProxyFunction<Func0Transform<R>, R> {
             return true;
         }
         return false;
+    }
+
+    public static class Def<R> extends ConcreteFunctionDef<R> {
+        public Def(String name, TypeToken<R> returnType) {
+            super(name, returnType, new TypeToken<?>[0]);
+        }
     }
 }

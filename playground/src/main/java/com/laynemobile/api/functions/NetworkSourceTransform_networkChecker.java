@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy;
+package com.laynemobile.api.functions;
 
-public abstract class AbstractProxyTypeBuilder<T> implements Builder<T> {
-    public abstract ProxyType<T> buildProxyType();
+import com.laynemobile.api.NetworkChecker;
+import com.laynemobile.proxy.functions.Func0;
 
-    public ProxyBuilder<T> proxyBuilder() {
-        return new ProxyBuilder<>(buildProxyType());
+public class NetworkSourceTransform_networkChecker extends NetworkSource_networkChecker.Transform {
+    public NetworkSourceTransform_networkChecker(Func0<? extends NetworkChecker> function) {
+        super(function);
     }
 
-    public ProxyCompleter<T> proxyCompleter() {
-        return new ProxyCompleter<>(buildProxyType());
+    public NetworkSourceTransform_networkChecker(NetworkChecker networkChecker) {
+        super(networkChecker);
     }
 
-    @Override public T build() {
-        return proxyBuilder()
-                .build();
+    public NetworkSourceTransform_networkChecker() {
+        // TODO: plugin for default implementation
+        super(NetworkChecker.ALWAYS_AVAILABLE);
     }
 }

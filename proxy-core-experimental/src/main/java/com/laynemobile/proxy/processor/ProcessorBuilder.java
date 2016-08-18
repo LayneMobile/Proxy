@@ -31,7 +31,7 @@ public final class ProcessorBuilder<T, R, PROXY> implements Builder<Processor<T,
         if (parent == null) {
             throw new IllegalArgumentException("parent cannot be null");
         }
-        this.proxyBuilder = new ProxyBuilder<>(parent.proxyHandler());
+        this.proxyBuilder = new ProxyBuilder<>(parent.proxyType());
         this.parent = parent;
     }
 
@@ -40,7 +40,7 @@ public final class ProcessorBuilder<T, R, PROXY> implements Builder<Processor<T,
     }
 
     public ProcessorBuilder<T, R, PROXY> add(ProcessorHandler<T, R, ? extends PROXY> handler) {
-        proxyBuilder.add(handler.proxyHandler());
+        proxyBuilder.add(handler.proxyType());
         if (handler instanceof ProcessorHandler.Parent) {
             throw new IllegalArgumentException("can only have one parent");
         } else {

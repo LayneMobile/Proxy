@@ -17,14 +17,14 @@
 package com.laynemobile.proxy;
 
 public class ProxyCompleter<T> extends ProxyBuilder<T> {
-    private final ProxyHandler<T> handler;
+    private final ProxyType<T> proxyType;
 
-    public ProxyCompleter(ProxyHandler<T> handler) {
-        super(handler);
-        this.handler = handler;
+    public ProxyCompleter(ProxyType<T> proxyType) {
+        super(proxyType);
+        this.proxyType = proxyType;
     }
 
-    public final ProxyHandler<T> handler() {
-        return handler;
+    public final ProxyType<T> proxyType() {
+        return proxyType;
     }
 }

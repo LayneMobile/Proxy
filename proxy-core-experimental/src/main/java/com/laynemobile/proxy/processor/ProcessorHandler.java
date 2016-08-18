@@ -16,10 +16,10 @@
 
 package com.laynemobile.proxy.processor;
 
-import com.laynemobile.proxy.ProxyHandler;
+import com.laynemobile.proxy.ProxyType;
 
 public interface ProcessorHandler<T, R, PROXY> {
-    ProxyHandler<PROXY> proxyHandler();
+    ProxyType<PROXY> proxyType();
 
     Processor.Extension<T, R> extension(PROXY proxy);
 
