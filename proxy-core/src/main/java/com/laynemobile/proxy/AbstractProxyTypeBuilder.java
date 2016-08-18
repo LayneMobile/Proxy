@@ -17,14 +17,14 @@
 package com.laynemobile.proxy;
 
 public abstract class AbstractProxyTypeBuilder<T> implements Builder<T> {
-    public abstract ProxyType<T> proxyType();
+    public abstract ProxyType<T> buildProxyType();
 
-    public ProxyBuilder2<T> builder() {
-        return new ProxyBuilder2<>(proxyType());
+    public ProxyBuilder2<T> proxyBuilder() {
+        return new ProxyBuilder2<>(buildProxyType());
     }
 
     @Override public T build() {
-        return builder()
+        return proxyBuilder()
                 .build();
     }
 }

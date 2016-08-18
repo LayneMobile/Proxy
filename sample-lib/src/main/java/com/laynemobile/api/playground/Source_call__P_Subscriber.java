@@ -29,7 +29,7 @@ import com.laynemobile.proxy.functions.transforms.Action2Transform;
 
 import rx.Subscriber;
 
-public class Source_call__P_Subscriber<T, P extends Params> extends AbstractProxyAction<Source_call__P_Subscriber.Transform<T, P>> {
+public class Source_call__P_Subscriber<T, P extends Params> extends AbstractProxyAction<Action2Transform<P, Subscriber<? super T>>> {
     public Source_call__P_Subscriber(Source_call__P_Subscriber<T, P> proxyFunction) {
         super(proxyFunction);
     }
@@ -42,7 +42,7 @@ public class Source_call__P_Subscriber<T, P extends Params> extends AbstractProx
         super(new Def<>(), action);
     }
 
-    @Override protected FuncN<Void> toFuncN(Transform<T, P> function) {
+    @Override protected FuncN<Void> toFuncN(Action2Transform<P, Subscriber<? super T>> function) {
         return Functions.fromFunc(Actions.toFunc(function));
     }
 

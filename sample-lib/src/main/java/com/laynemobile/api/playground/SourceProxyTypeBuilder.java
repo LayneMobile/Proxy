@@ -38,32 +38,31 @@ public class SourceProxyTypeBuilder<T, P extends Params> extends AbstractProxyTy
         return this;
     }
 
+    public SourceProxyTypeBuilder<T, P> setSource(SourceTransform_call__P_Subscriber<T, P> source) {
+        return setSource(new Source_call__P_Subscriber<T, P>(source));
+    }
+
     public SourceProxyTypeBuilder<T, P> setSource(Action2<? super P, ? super Subscriber<? super T>> source) {
-        this.source = new Source_call__P_Subscriber<T, P>(new SourceTransform_call__P_Subscriber<T, P>(source));
-        return this;
+        return setSource(new SourceTransform_call__P_Subscriber<T, P>(source));
     }
 
     public SourceProxyTypeBuilder<T, P> setSource(Action1<? super Subscriber<? super T>> source) {
-        this.source = new Source_call__P_Subscriber<T, P>(new SourceTransform_call__P_Subscriber<T, P>(source));
-        return this;
+        return setSource(new SourceTransform_call__P_Subscriber<T, P>(source));
     }
 
     public SourceProxyTypeBuilder<T, P> setSource(Func1<? super P, ? extends T> source) {
-        this.source = new Source_call__P_Subscriber<T, P>(new SourceTransform_call__P_Subscriber<T, P>(source));
-        return this;
+        return setSource(new SourceTransform_call__P_Subscriber<T, P>(source));
     }
 
     public SourceProxyTypeBuilder<T, P> setSource(Func0<? extends T> source) {
-        this.source = new Source_call__P_Subscriber<T, P>(new SourceTransform_call__P_Subscriber<T, P>(source));
-        return this;
+        return setSource(new SourceTransform_call__P_Subscriber<T, P>(source));
     }
 
     public SourceProxyTypeBuilder<T, P> setSource(Observable<? extends T> source) {
-        this.source = new Source_call__P_Subscriber<T, P>(new SourceTransform_call__P_Subscriber<T, P>(source));
-        return this;
+        return setSource(new SourceTransform_call__P_Subscriber<T, P>(source));
     }
 
-    @Override public ProxyType<Source<T, P>> proxyType() {
+    @Override public ProxyType<Source<T, P>> buildProxyType() {
         return new SourceDef<T, P>().typeDef().newProxyBuilder()
                 .addFunction(source)
                 .build();
