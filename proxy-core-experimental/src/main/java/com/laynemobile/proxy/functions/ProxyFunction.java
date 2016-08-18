@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.functions;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.laynemobile.proxy.NamedMethodHandler;
+
+public interface ProxyFunction<F extends FunctionTransform<?>, R>
+        extends FunctionDef<R>,
+        // TODO: implement InvocationHandler instead of this
+        NamedMethodHandler {
+//    ProxyFunction<Action0Transform, Void> EMPTY = new ProxyAction0("no_op", new Action0Transform());
+
+    F function();
+}

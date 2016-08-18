@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy;
 
-rootProject.name = 'com.laynemobile.proxy'
+import java.lang.reflect.Method;
+
+public interface MethodHandler {
+    MethodHandler EMPTY = new MethodHandler() {
+        @Override
+        public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+            return false;
+        }
+    };
+
+    boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable;
+}

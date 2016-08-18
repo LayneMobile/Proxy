@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.api;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.laynemobile.proxy.annotations.ProxyType;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Documented
+@Retention(RetentionPolicy.CLASS)
+@Target({ElementType.TYPE})
+@ProxyType(Source.class)
+public @interface SourceProxy {}

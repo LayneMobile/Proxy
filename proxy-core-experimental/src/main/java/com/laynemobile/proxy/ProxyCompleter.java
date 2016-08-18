@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy;
 
-rootProject.name = 'com.laynemobile.proxy'
+public class ProxyCompleter<T> extends ProxyBuilder<T> {
+    private final ProxyHandler<T> handler;
+
+    public ProxyCompleter(ProxyHandler<T> handler) {
+        super(handler);
+        this.handler = handler;
+    }
+
+    public final ProxyHandler<T> handler() {
+        return handler;
+    }
+}

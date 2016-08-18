@@ -16,29 +16,40 @@
 
 package com.laynemobile.proxy.functions;
 
-import com.laynemobile.proxy.MethodHandler;
 import com.laynemobile.proxy.MethodResult;
 import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.internal.ProxyLog;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 
-public final class FuncNHandler implements MethodHandler {
-    private static final String TAG = FuncNHandler.class.getSimpleName();
+public abstract class AbstractProxyFunction<F extends FunctionTransform<?>, R> extends BaseProxyFunction<F, R> {
+    private static final String TAG = AbstractProxyFunction.class.getSimpleName();
 
-    private final FuncN<?> function;
-    private final TypeToken<?>[] paramTypes;
-    private final int length;
+    private final FuncN<R> funcN;
 
-    public FuncNHandler(FuncN<?> function, TypeToken<?>[] paramTypes) {
-        this.function = function;
-        this.paramTypes = paramTypes;
-        this.length = paramTypes.length;
+    protected AbstractProxyFunction(AbstractProxyFunction<F, R> proxyFunction) {
+        super(proxyFunction);
+        this.funcN = proxyFunction.funcN;
     }
 
+    protected AbstractProxyFunction(FunctionDef<R> functionDef, F function) {
+        super(functionDef, function);
+        this.funcN = toFuncN(function);
+    }
+
+    protected AbstractProxyFunction(String name, F function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
+        super(name, function, returnType, paramTypes);
+        this.funcN = toFuncN(function);
+    }
+
+    protected abstract FuncN<R> toFuncN(F function);
+
     @Override
-    public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+    public final boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+        List<TypeToken<?>> paramTypes = paramTypes();
+        int length = paramTypes.size();
         Class<?>[] parameterTypes = method.getParameterTypes();
         ProxyLog.d(TAG, "method parameterTypes: %s", Arrays.toString(parameterTypes));
         if (length != parameterTypes.length) {
@@ -46,7 +57,7 @@ public final class FuncNHandler implements MethodHandler {
         }
 
         for (int i = 0; i < length; i++) {
-            TypeToken<?> type = paramTypes[i];
+            TypeToken<?> type = paramTypes.get(i);
             Class<?> clazz = parameterTypes[i];
             if (!clazz.isAssignableFrom(type.getRawType())) {
                 ProxyLog.w(TAG, "param type '%s' not assignable from handler type '%s'", clazz, type.getRawType());
@@ -54,7 +65,11 @@ public final class FuncNHandler implements MethodHandler {
             }
         }
 
-        result.set(function.call(args));
+        result.set(funcN.call(args));
         return true;
+    }
+
+    public final FuncN<R> funcN() {
+        return funcN;
     }
 }

@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.processor;
 
-rootProject.name = 'com.laynemobile.proxy'
+public interface ErrorHandler<T> {
+    T onError(Throwable throwable);
+}

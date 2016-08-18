@@ -24,21 +24,21 @@ import com.laynemobile.proxy.internal.ProxyLog;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-public final class FuncNHandler implements MethodHandler {
+public class FuncNHandler implements MethodHandler {
     private static final String TAG = FuncNHandler.class.getSimpleName();
 
-    private final FuncN<?> function;
+    private final FuncN<?> funcN;
     private final TypeToken<?>[] paramTypes;
     private final int length;
 
-    public FuncNHandler(FuncN<?> function, TypeToken<?>[] paramTypes) {
-        this.function = function;
+    public FuncNHandler(FuncN<?> funcN, TypeToken<?>[] paramTypes) {
+        this.funcN = funcN;
         this.paramTypes = paramTypes;
         this.length = paramTypes.length;
     }
 
     @Override
-    public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+    public final boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
         Class<?>[] parameterTypes = method.getParameterTypes();
         ProxyLog.d(TAG, "method parameterTypes: %s", Arrays.toString(parameterTypes));
         if (length != parameterTypes.length) {
@@ -54,7 +54,7 @@ public final class FuncNHandler implements MethodHandler {
             }
         }
 
-        result.set(function.call(args));
+        result.set(funcN.call(args));
         return true;
     }
 }

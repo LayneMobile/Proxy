@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.api;
 
-rootProject.name = 'com.laynemobile.proxy'
+public final class NoParams implements Params {
+    private static final NoParams INSTANCE = new NoParams();
+
+    private NoParams() {}
+
+    public static NoParams instance() {
+        return INSTANCE;
+    }
+}

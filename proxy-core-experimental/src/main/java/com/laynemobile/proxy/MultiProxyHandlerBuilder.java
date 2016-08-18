@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy;
 
-rootProject.name = 'com.laynemobile.proxy'
+public abstract class MultiProxyHandlerBuilder<T> implements Builder<ProxyHandler<T>> {
+    public abstract ProxyHandler<T>[] buildModules();
+
+    @Override public final ProxyHandler<T> build() {
+        ProxyHandler<T>[] modules = buildModules();
+        if (modules.length == 1) {
+            return modules[0];
+        }
+        throw new UnsupportedOperationException("this class builds more than one module");
+    }
+}

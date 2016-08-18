@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy;
+package com.laynemobile.proxy.internal;
 
 import com.laynemobile.proxy.internal.ProxyLog;
 import com.laynemobile.proxy.util.Logger;

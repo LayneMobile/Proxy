@@ -48,22 +48,23 @@ public class Source_call__P_Subscriber<T, P extends Params> extends AbstractProx
 
     public static class Def<T, P extends Params> extends ConcreteActionDef {
         public Def() {
-            this(defaultParamTypes());
+            this(new ParamTypes<P, Subscriber<? super T>>() {});
         }
 
-        protected Def(TypeToken<? extends P> p, TypeToken<? extends Subscriber<? super T>> subscriber) {
-            this(new TypeToken<?>[]{p, subscriber});
+        public Def(ParamTypes<P, Subscriber<? super T>> types) {
+            this(types.paramTypes);
         }
 
         private Def(TypeToken<?>[] paramTypes) {
             super("call", paramTypes);
         }
+    }
 
-        private static <T> TypeToken<?>[] defaultParamTypes() {
-            return new TypeToken<?>[]{
-                    TypeToken.get(Params.class),
-                    new TypeToken<Subscriber<? super T>>() {}
-            };
+    public static class ParamTypes<P, S> {
+        private final TypeToken<?>[] paramTypes;
+
+        protected ParamTypes() {
+            this.paramTypes = TypeToken.getTypeParameters(getClass());
         }
     }
 

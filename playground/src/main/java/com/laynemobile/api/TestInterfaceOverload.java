@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.api;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.laynemobile.proxy.annotations.GenerateProxyHandler;
+
+@GenerateProxyHandler
+public interface TestInterfaceOverload<T, R> extends TestInterface<T, R> {
+    @Override R get(T t);
+
+    R get(String string);
+
+    @Override String fromInteger(int integer);
+
+    String fromInteger(Integer integer);
+}

@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.api.playground;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.laynemobile.api.Params;
+import com.laynemobile.api.Source;
+import com.laynemobile.proxy.TypeDef;
+
+public class SourceDef<T, P extends Params> {
+    private final TypeDef<Source<T, P>> typeDef = new TypeDef.Builder<Source<T, P>>() {}
+            .addFunction(new Source_call__P_Subscriber.Def<>())
+            .build();
+
+    public TypeDef<Source<T, P>> typeDef() {
+        return typeDef;
+    }
+}

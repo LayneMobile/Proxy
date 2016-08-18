@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-package com.laynemobile.api.playground;
+package com.laynemobile.proxy;
 
-import com.laynemobile.api.Params;
-import com.laynemobile.api.Source;
-import com.laynemobile.proxy.TypeDef;
-import com.laynemobile.proxy.TypeToken;
-
-public class SourceDef<T, P extends Params> {
-    private final TypeToken<Source<T, P>> type = new TypeToken<Source<T, P>>() {};
-    private final TypeDef<Source<T, P>> typeDef = new TypeDef.Builder<>(type)
-            .addFunction(new Source_call__P_Subscriber.Def<>())
-            .build();
-
-    public TypeDef<Source<T, P>> typeDef() {
-        return typeDef;
-    }
+public interface Builder<T> {
+    T build();
 }

@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy;
 
-rootProject.name = 'com.laynemobile.proxy'
+public final class MethodResult {
+    private Object result;
+
+    public MethodResult() {}
+
+    public void set(Object result) {
+        this.result = result;
+    }
+
+    public Object get() {
+        return result;
+    }
+}

@@ -35,10 +35,14 @@ public interface TypeDef<T> extends Comparable<TypeDef<?>> {
 
     ProxyType.Builder<T> newProxyBuilder();
 
-    final class Builder<T> implements com.laynemobile.proxy.Builder<TypeDef<T>> {
+    class Builder<T> implements com.laynemobile.proxy.Builder<TypeDef<T>> {
         private final TypeToken<T> type;
         private final Set<TypeDef<? super T>> superTypes = new HashSet<>();
         private final LinkedHashSet<FunctionDef<?>> functions = new LinkedHashSet<>();
+
+        protected Builder() {
+            this.type = TypeToken.getTypeParameter(getClass());
+        }
 
         public Builder(TypeToken<T> type) {
             this.type = type;

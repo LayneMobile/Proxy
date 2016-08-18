@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.api;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.laynemobile.proxy.annotations.GenerateProxyHandler;
+import com.laynemobile.proxy.annotations.GenerateProxyHandlerFunction;
+
+import rx.Subscriber;
+
+@GenerateProxyHandler(extendsFrom = Source.class)
+public interface SimpleSource<T> extends Source<T, NoParams> {
+    @GenerateProxyHandlerFunction("source")
+    @Override void call(NoParams ignored, Subscriber<? super T> subscriber);
+}

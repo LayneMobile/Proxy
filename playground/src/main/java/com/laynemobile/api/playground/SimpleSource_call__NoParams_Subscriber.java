@@ -17,7 +17,6 @@
 package com.laynemobile.api.playground;
 
 import com.laynemobile.api.NoParams;
-import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.functions.Action0;
 import com.laynemobile.proxy.functions.Action1;
 import com.laynemobile.proxy.functions.Action2;
@@ -43,11 +42,11 @@ public class SimpleSource_call__NoParams_Subscriber<T> extends Source_call__P_Su
 
     public static class Def<T> extends Source_call__P_Subscriber.Def<T, NoParams> {
         public Def() {
-            this(new TypeToken<Subscriber<? super T>>() {});
+            super(new ParamTypes<NoParams, Subscriber<? super T>>() {});
         }
 
-        protected Def(TypeToken<? extends Subscriber<? super T>> subscriber) {
-            super(TypeToken.get(NoParams.class), subscriber);
+        public Def(ParamTypes<NoParams, Subscriber<? super T>> types) {
+            super(types);
         }
     }
 

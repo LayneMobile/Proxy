@@ -14,16 +14,32 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.functions;
+package com.laynemobile.proxy.processor;
 
-public abstract class AbstractProxyFunction<F extends Function> implements ProxyFunction<F> {
-    private final F f;
+public interface Processor<T, R> {
 
-    protected AbstractProxyFunction(F f) {
-        this.f = f;
+    R call(T t);
+
+    // Marker interface
+    interface Extension<T, R> {}
+
+    interface Parent<T, R> extends Extension<T, R>, ErrorHandlerProcessor<T, R> {}
+
+    interface Checker<T, R> extends Extension<T, R> {
+        void check(T t) throws Exception;
     }
 
-    @Override public final F function() {
-        return f;
+    interface Modifier<T, R> extends Extension<T, R> {
+        R modify(T t, R r);
+    }
+
+    interface Interceptor<T, R> extends Extension<T, R> {
+        R intercept(Chain<T, R> chain);
+
+        interface Chain<T, R> {
+            T value();
+
+            R proceed(T t);
+        }
     }
 }

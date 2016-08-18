@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.processor;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.laynemobile.proxy.ProxyHandler;
+
+public interface ProcessorHandler<T, R, PROXY> {
+    ProxyHandler<PROXY> proxyHandler();
+
+    Processor.Extension<T, R> extension(PROXY proxy);
+
+    interface Parent<T, R, PROXY> extends ProcessorHandler<T, R, PROXY> {
+        @Override Processor.Parent<T, R> extension(PROXY proxy);
+    }
+}

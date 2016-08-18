@@ -79,6 +79,31 @@ public class TypeToken<T> {
         return $Proxy$Types.canonicalize(parameterized.getActualTypeArguments()[0]);
     }
 
+    public static TypeToken<?>[] getTypeParameters(Class<?> clazz) {
+        Type superclass = clazz.getGenericSuperclass();
+        if (superclass instanceof Class) {
+            throw new RuntimeException("Missing type parameter.");
+        }
+        ParameterizedType parameterized = (ParameterizedType) superclass;
+        Type[] typeArguments = parameterized.getActualTypeArguments();
+        int length = typeArguments.length;
+        TypeToken<?>[] tokens = new TypeToken<?>[length];
+        for (int i = 0; i < length; i++) {
+            Type type = $Proxy$Types.canonicalize(typeArguments[i]);
+            tokens[i] = get(type);
+        }
+        return tokens;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> TypeToken<T> getTypeParameter(Class<?> clazz) {
+        TypeToken<?>[] typeParameters = getTypeParameters(clazz);
+        if (typeParameters.length != 1) {
+            throw new IllegalArgumentException("more than one type parameter");
+        }
+        return (TypeToken<T>) typeParameters[0];
+    }
+
     /**
      * Returns the raw (non-generic) type for this type.
      */
@@ -286,5 +311,14 @@ public class TypeToken<T> {
      */
     public static <T> TypeToken<T> get(Class<T> type) {
         return new TypeToken<T>(type);
+    }
+
+    public static <T> TypeToken<? extends T> get(T t) {
+        if (t == null) {
+            throw new NullPointerException("t is null");
+        }
+        @SuppressWarnings("unchecked")
+        Class<? extends T> clazz = (Class<? extends T>) t.getClass();
+        return get(clazz);
     }
 }
