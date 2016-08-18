@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.laynemobile.api.playground;
+package com.laynemobile.api;
 
-import com.laynemobile.api.NoParams;
-import com.laynemobile.api.SimpleSource;
-import com.laynemobile.api.SourceProxy;
+import com.laynemobile.api.functions.SimpleSourceTransform_call__NoParams_Subscriber;
+import com.laynemobile.api.functions.SimpleSource_call__NoParams_Subscriber;
 import com.laynemobile.proxy.AbstractProxyTypeBuilder;
 import com.laynemobile.proxy.ProxyType;
 import com.laynemobile.proxy.annotations.Generated;

@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package com.laynemobile.api.playground;
+package com.laynemobile.api;
 
-import com.laynemobile.api.NoParams;
-import com.laynemobile.api.SimpleSource;
+import com.laynemobile.api.functions.Source_call__P_Subscriber;
 import com.laynemobile.proxy.TypeDef;
-import com.laynemobile.proxy.TypeToken;
 
-public class SimpleSourceDef<T> {
-    private final TypeToken<SimpleSource<T>> type = new TypeToken<SimpleSource<T>>() {};
-    private final TypeDef<SimpleSource<T>> typeDef = new TypeDef.Builder<>(type)
-            .addSuperType(new SourceDef<T, NoParams>().typeDef())
-            .addFunction(new SimpleSource_call__NoParams_Subscriber.Def<>())
+public class SourceDef<T, P extends Params> {
+    private final TypeDef<Source<T, P>> typeDef = new TypeDef.Builder<Source<T, P>>() {}
+            .addFunction(new Source_call__P_Subscriber.Def<>())
             .build();
 
-    public TypeDef<SimpleSource<T>> typeDef() {
+    public TypeDef<Source<T, P>> typeDef() {
         return typeDef;
     }
 }

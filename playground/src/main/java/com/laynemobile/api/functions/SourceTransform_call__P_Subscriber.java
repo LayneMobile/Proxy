@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.api.playground;
+package com.laynemobile.api.functions;
 
 import com.laynemobile.api.Params;
 import com.laynemobile.proxy.annotations.Generated;

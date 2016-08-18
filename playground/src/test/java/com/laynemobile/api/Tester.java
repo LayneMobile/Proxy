@@ -17,7 +17,6 @@
 package com.laynemobile.api;
 
 import com.google.common.base.Objects;
-import com.laynemobile.api.playground.SourceProxyTypeBuilder;
 import com.laynemobile.proxy.ProxyCompleter;
 import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.functions.Func1;

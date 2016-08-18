@@ -16,7 +16,6 @@
 
 package com.laynemobile.proxy.internal;
 
-import com.laynemobile.proxy.internal.ProxyLog;
 import com.laynemobile.proxy.util.Logger;
 
 public class ConsoleLogger implements Logger {

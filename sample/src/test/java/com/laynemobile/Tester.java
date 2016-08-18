@@ -30,7 +30,6 @@ import com.laynemobile.api.SimpleSource;
 import com.laynemobile.api.SimpleSourceProxyHandlerBuilder2;
 import com.laynemobile.api.Source;
 import com.laynemobile.api.SourceProxyHandlerBuilder2;
-import com.laynemobile.proxy.internal.ConsoleLogger;
 import com.laynemobile.proxy.ProxyBuilder;
 import com.laynemobile.proxy.ProxyCompleter;
 import com.laynemobile.proxy.ProxyHandler;
@@ -38,6 +37,7 @@ import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.functions.Func1;
 import com.laynemobile.proxy.functions.Func2;
+import com.laynemobile.proxy.internal.ConsoleLogger;
 import com.laynemobile.proxy.internal.ProxyLog;
 
 import org.junit.Test;

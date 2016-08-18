@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.api.playground;
+package com.laynemobile.api.functions;
 
 import com.laynemobile.api.NoParams;
 import com.laynemobile.proxy.functions.Action0;

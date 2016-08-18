@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.model.output;
+package com.laynemobile.api;
 
-public interface TypeElementGenerator {
-    TypeElementOutputStub outputStub();
+public interface NetworkChecker {
+    // TODO: default implementation
+    NetworkChecker ALWAYS_AVAILABLE = new NetworkChecker() {
+        @Override public boolean isNetworkAvailable() {
+            return true;
+        }
+    };
+
+    boolean isNetworkAvailable();
 }

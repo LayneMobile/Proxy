@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.model.output;
+package com.laynemobile.api;
 
-public interface TypeElementGenerator {
-    TypeElementOutputStub outputStub();
+public interface StashableProcessor<T, P extends Params> {
+    Stashable<T> getStashable(P p);
 }

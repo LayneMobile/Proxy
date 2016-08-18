@@ -17,11 +17,11 @@
 package com.laynemobile.api;
 
 import com.google.common.base.Objects;
-import com.laynemobile.proxy.internal.ConsoleLogger;
 import com.laynemobile.proxy.ProxyCompleter;
 import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.functions.Func1;
+import com.laynemobile.proxy.internal.ConsoleLogger;
 import com.laynemobile.proxy.internal.ProxyLog;
 
 import org.junit.Test;

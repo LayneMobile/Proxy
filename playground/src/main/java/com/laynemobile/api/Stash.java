@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.model.output;
+package com.laynemobile.api;
 
-public interface TypeElementGenerator {
-    TypeElementOutputStub outputStub();
-}
+public class Stash<T> {}

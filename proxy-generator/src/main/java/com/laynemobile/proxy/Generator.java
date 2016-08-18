@@ -18,7 +18,8 @@ package com.laynemobile.proxy;
 
 import com.google.auto.service.AutoService;
 import com.laynemobile.proxy.annotations.GenerateProcessorBuilder;
-import com.laynemobile.proxy.internal.*;
+import com.laynemobile.proxy.internal.ConsoleLogger;
+import com.laynemobile.proxy.internal.ProxyLog;
 
 import java.io.IOException;
 import java.util.Set;

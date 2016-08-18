@@ -87,12 +87,13 @@ public final class Actions {
         public void call(Object... args) {
         }
     }
-    
+
     /**
      * Converts an {@link Action0} to a function that calls the action and returns {@code null}.
-     * 
+     *
      * @param action
-     *            the {@link Action0} to convert
+     *         the {@link Action0} to convert
+     *
      * @return a {@link Func0} that calls {@code action} and returns {@code null}
      */
     public static Func0<Void> toFunc(final Action0 action) {
@@ -101,9 +102,10 @@ public final class Actions {
 
     /**
      * Converts an {@link Action1} to a function that calls the action and returns {@code null}.
-     * 
+     *
      * @param action
-     *            the {@link Action1} to convert
+     *         the {@link Action1} to convert
+     *
      * @return a {@link Func1} that calls {@code action} and returns {@code null}
      */
     public static <T1> Func1<T1, Void> toFunc(final Action1<T1> action) {
@@ -112,9 +114,10 @@ public final class Actions {
 
     /**
      * Converts an {@link Action2} to a function that calls the action and returns {@code null}.
-     * 
+     *
      * @param action
-     *            the {@link Action2} to convert
+     *         the {@link Action2} to convert
+     *
      * @return a {@link Func2} that calls {@code action} and returns {@code null}
      */
     public static <T1, T2> Func2<T1, T2, Void> toFunc(final Action2<T1, T2> action) {
@@ -123,9 +126,10 @@ public final class Actions {
 
     /**
      * Converts an {@link Action3} to a function that calls the action and returns {@code null}.
-     * 
+     *
      * @param action
-     *            the {@link Action3} to convert
+     *         the {@link Action3} to convert
+     *
      * @return a {@link Func3} that calls {@code action} and returns {@code null}
      */
     public static <T1, T2, T3> Func3<T1, T2, T3, Void> toFunc(final Action3<T1, T2, T3> action) {
@@ -134,9 +138,10 @@ public final class Actions {
 
     /**
      * Converts an {@link Action4} to a function that calls the action and returns {@code null}.
-     * 
+     *
      * @param action
-     *            the {@link Action4} to convert
+     *         the {@link Action4} to convert
+     *
      * @return a {@link Func4} that calls {@code action} and returns {@code null}
      */
     public static <T1, T2, T3, T4> Func4<T1, T2, T3, T4, Void> toFunc(final Action4<T1, T2, T3, T4> action) {
@@ -145,9 +150,10 @@ public final class Actions {
 
     /**
      * Converts an {@link Action5} to a function that calls the action and returns {@code null}.
-     * 
+     *
      * @param action
-     *            the {@link Action5} to convert
+     *         the {@link Action5} to convert
+     *
      * @return a {@link Func5} that calls {@code action} and returns {@code null}
      */
     public static <T1, T2, T3, T4, T5> Func5<T1, T2, T3, T4, T5, Void> toFunc(
@@ -157,9 +163,10 @@ public final class Actions {
 
     /**
      * Converts an {@link Action6} to a function that calls the action and returns {@code null}.
-     * 
+     *
      * @param action
-     *            the {@link Action6} to convert
+     *         the {@link Action6} to convert
+     *
      * @return a {@link Func6} that calls {@code action} and returns {@code null}
      */
     public static <T1, T2, T3, T4, T5, T6> Func6<T1, T2, T3, T4, T5, T6, Void> toFunc(
@@ -169,9 +176,10 @@ public final class Actions {
 
     /**
      * Converts an {@link Action7} to a function that calls the action and returns {@code null}.
-     * 
+     *
      * @param action
-     *            the {@link Action7} to convert
+     *         the {@link Action7} to convert
+     *
      * @return a {@link Func7} that calls {@code action} and returns {@code null}
      */
     public static <T1, T2, T3, T4, T5, T6, T7> Func7<T1, T2, T3, T4, T5, T6, T7, Void> toFunc(
@@ -181,9 +189,10 @@ public final class Actions {
 
     /**
      * Converts an {@link Action8} to a function that calls the action and returns {@code null}.
-     * 
+     *
      * @param action
-     *            the {@link Action8} to convert
+     *         the {@link Action8} to convert
+     *
      * @return a {@link Func8} that calls {@code action} and returns {@code null}
      */
     public static <T1, T2, T3, T4, T5, T6, T7, T8> Func8<T1, T2, T3, T4, T5, T6, T7, T8, Void> toFunc(
@@ -193,9 +202,10 @@ public final class Actions {
 
     /**
      * Converts an {@link Action9} to a function that calls the action and returns {@code null}.
-     * 
+     *
      * @param action
-     *            the {@link Action9} to convert
+     *         the {@link Action9} to convert
+     *
      * @return a {@link Func9} that calls {@code action} and returns {@code null}
      */
     public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> Func9<T1, T2, T3, T4, T5, T6, T7, T8, T9, Void> toFunc(
@@ -205,9 +215,10 @@ public final class Actions {
 
     /**
      * Converts an {@link ActionN} to a function that calls the action and returns {@code null}.
-     * 
+     *
      * @param action
-     *            the {@link ActionN} to convert
+     *         the {@link ActionN} to convert
+     *
      * @return a {@link FuncN} that calls {@code action} and returns {@code null}
      */
     public static FuncN<Void> toFunc(
@@ -217,11 +228,12 @@ public final class Actions {
 
     /**
      * Converts an {@link Action0} to a function that calls the action and returns a specified value.
-     * 
+     *
      * @param action
-     *            the {@link Action0} to convert
+     *         the {@link Action0} to convert
      * @param result
-     *            the value to return from the function call
+     *         the value to return from the function call
+     *
      * @return a {@link Func0} that calls {@code action} and returns {@code result}
      */
     public static <R> Func0<R> toFunc(final Action0 action, final R result) {
@@ -236,11 +248,12 @@ public final class Actions {
 
     /**
      * Converts an {@link Action1} to a function that calls the action and returns a specified value.
-     * 
+     *
      * @param action
-     *            the {@link Action1} to convert
+     *         the {@link Action1} to convert
      * @param result
-     *            the value to return from the function call
+     *         the value to return from the function call
+     *
      * @return a {@link Func1} that calls {@code action} and returns {@code result}
      */
     public static <T1, R> Func1<T1, R> toFunc(final Action1<T1> action, final R result) {
@@ -255,11 +268,12 @@ public final class Actions {
 
     /**
      * Converts an {@link Action2} to a function that calls the action and returns a specified value.
-     * 
+     *
      * @param action
-     *            the {@link Action2} to convert
+     *         the {@link Action2} to convert
      * @param result
-     *            the value to return from the function call
+     *         the value to return from the function call
+     *
      * @return a {@link Func2} that calls {@code action} and returns {@code result}
      */
     public static <T1, T2, R> Func2<T1, T2, R> toFunc(final Action2<T1, T2> action, final R result) {
@@ -274,11 +288,12 @@ public final class Actions {
 
     /**
      * Converts an {@link Action3} to a function that calls the action and returns a specified value.
-     * 
+     *
      * @param action
-     *            the {@link Action3} to convert
+     *         the {@link Action3} to convert
      * @param result
-     *            the value to return from the function call
+     *         the value to return from the function call
+     *
      * @return a {@link Func3} that calls {@code action} and returns {@code result}
      */
     public static <T1, T2, T3, R> Func3<T1, T2, T3, R> toFunc(final Action3<T1, T2, T3> action, final R result) {
@@ -293,14 +308,16 @@ public final class Actions {
 
     /**
      * Converts an {@link Action4} to a function that calls the action and returns a specified value.
-     * 
+     *
      * @param action
-     *            the {@link Action4} to convert
+     *         the {@link Action4} to convert
      * @param result
-     *            the value to return from the function call
+     *         the value to return from the function call
+     *
      * @return a {@link Func4} that calls {@code action} and returns {@code result}
      */
-    public static <T1, T2, T3, T4, R> Func4<T1, T2, T3, T4, R> toFunc(final Action4<T1, T2, T3, T4> action, final R result) {
+    public static <T1, T2, T3, T4, R> Func4<T1, T2, T3, T4, R> toFunc(final Action4<T1, T2, T3, T4> action,
+            final R result) {
         return new Func4<T1, T2, T3, T4, R>() {
             @Override
             public R call(T1 t1, T2 t2, T3 t3, T4 t4) {
@@ -312,11 +329,12 @@ public final class Actions {
 
     /**
      * Converts an {@link Action5} to a function that calls the action and returns a specified value.
-     * 
+     *
      * @param action
-     *            the {@link Action5} to convert
+     *         the {@link Action5} to convert
      * @param result
-     *            the value to return from the function call
+     *         the value to return from the function call
+     *
      * @return a {@link Func5} that calls {@code action} and returns {@code result}
      */
     public static <T1, T2, T3, T4, T5, R> Func5<T1, T2, T3, T4, T5, R> toFunc(
@@ -332,11 +350,12 @@ public final class Actions {
 
     /**
      * Converts an {@link Action6} to a function that calls the action and returns a specified value.
-     * 
+     *
      * @param action
-     *            the {@link Action6} to convert
+     *         the {@link Action6} to convert
      * @param result
-     *            the value to return from the function call
+     *         the value to return from the function call
+     *
      * @return a {@link Func6} that calls {@code action} and returns {@code result}
      */
     public static <T1, T2, T3, T4, T5, T6, R> Func6<T1, T2, T3, T4, T5, T6, R> toFunc(
@@ -352,11 +371,12 @@ public final class Actions {
 
     /**
      * Converts an {@link Action7} to a function that calls the action and returns a specified value.
-     * 
+     *
      * @param action
-     *            the {@link Action7} to convert
+     *         the {@link Action7} to convert
      * @param result
-     *            the value to return from the function call
+     *         the value to return from the function call
+     *
      * @return a {@link Func7} that calls {@code action} and returns {@code result}
      */
     public static <T1, T2, T3, T4, T5, T6, T7, R> Func7<T1, T2, T3, T4, T5, T6, T7, R> toFunc(
@@ -372,11 +392,12 @@ public final class Actions {
 
     /**
      * Converts an {@link Action8} to a function that calls the action and returns a specified value.
-     * 
+     *
      * @param action
-     *            the {@link Action8} to convert
+     *         the {@link Action8} to convert
      * @param result
-     *            the value to return from the function call
+     *         the value to return from the function call
+     *
      * @return a {@link Func8} that calls {@code action} and returns {@code result}
      */
     public static <T1, T2, T3, T4, T5, T6, T7, T8, R> Func8<T1, T2, T3, T4, T5, T6, T7, T8, R> toFunc(
@@ -392,11 +413,12 @@ public final class Actions {
 
     /**
      * Converts an {@link Action9} to a function that calls the action and returns a specified value.
-     * 
+     *
      * @param action
-     *            the {@link Action9} to convert
+     *         the {@link Action9} to convert
      * @param result
-     *            the value to return from the function call
+     *         the value to return from the function call
+     *
      * @return a {@link Func9} that calls {@code action} and returns {@code result}
      */
     public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, R> Func9<T1, T2, T3, T4, T5, T6, T7, T8, T9, R> toFunc(
@@ -412,11 +434,12 @@ public final class Actions {
 
     /**
      * Converts an {@link ActionN} to a function that calls the action and returns a specified value.
-     * 
+     *
      * @param action
-     *            the {@link ActionN} to convert
+     *         the {@link ActionN} to convert
      * @param result
-     *            the value to return from the function call
+     *         the value to return from the function call
+     *
      * @return a {@link FuncN} that calls {@code action} and returns {@code result}
      */
     public static <R> FuncN<R> toFunc(

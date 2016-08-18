@@ -17,7 +17,8 @@
 package com.laynemobile.proxy;
 
 import com.google.auto.service.AutoService;
-import com.laynemobile.proxy.internal.*;
+import com.laynemobile.proxy.internal.ConsoleLogger;
+import com.laynemobile.proxy.internal.ProxyLog;
 import com.laynemobile.proxy.model.ProxyTemplate;
 
 import javax.annotation.processing.Processor;

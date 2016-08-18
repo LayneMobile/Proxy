@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package com.laynemobile.api.playground;
+package com.laynemobile.api;
 
-import com.laynemobile.api.Params;
-import com.laynemobile.api.Source;
-import com.laynemobile.proxy.TypeDef;
+public enum StashPolicy {
+    STASH_ONLY_NO_SOURCE(0),
+    STASH_UNLESS_EXPIRED(1),
+    STASH_THEN_SOURCE(2),
+    STASH_THEN_SOURCE_IF_EXPIRED(3),
+    SOURCE(4),
+    SOURCE_UNLESS_ERROR(5),
+    SOURCE_ONLY_NO_STASH(6);
 
-public class SourceDef<T, P extends Params> {
-    private final TypeDef<Source<T, P>> typeDef = new TypeDef.Builder<Source<T, P>>() {}
-            .addFunction(new Source_call__P_Subscriber.Def<>())
-            .build();
+    public static final StashPolicy DEFAULT = STASH_THEN_SOURCE_IF_EXPIRED;
 
-    public TypeDef<Source<T, P>> typeDef() {
-        return typeDef;
+    private final int id;
+
+    StashPolicy(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
     }
 }

@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.model.output;
+package com.laynemobile.api;
 
-public interface TypeElementGenerator {
-    TypeElementOutputStub outputStub();
+import com.laynemobile.proxy.annotations.GenerateProxyHandler;
+import com.laynemobile.proxy.annotations.GenerateProxyHandlerFunction;
+
+@GenerateProxyHandler(dependsOn = Source.class)
+public interface NetworkSource<T, P extends Params> extends Source<T, P> {
+    @GenerateProxyHandlerFunction
+    NetworkChecker networkChecker();
 }
