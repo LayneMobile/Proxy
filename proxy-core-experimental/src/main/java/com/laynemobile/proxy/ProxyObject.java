@@ -16,8 +16,6 @@
 
 package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.processor.Style;
-
 import org.immutables.value.Value;
 
 import java.util.List;

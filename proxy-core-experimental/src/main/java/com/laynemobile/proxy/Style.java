@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.processor;
+package com.laynemobile.proxy;
 
 import org.immutables.value.Value;
 
@@ -33,5 +33,6 @@ import static org.immutables.value.Value.Style.ImplementationVisibility.PUBLIC;
         instance = "instance",
         deepImmutablesDetection = true,
         builderVisibility = Value.Style.BuilderVisibility.PUBLIC,
-        visibility = PUBLIC) // Generated class will be the same
-public @interface Style {}
+        visibility = PUBLIC)
+        // Generated class will be the same
+@interface Style {}
