@@ -29,8 +29,13 @@ abstract class AbstractFunc<R> extends AbstractFunction<R> {
 
     @SuppressWarnings("unchecked") AbstractFunc() {
         Class<?> clazz = getClass();
-        if (AbstractFunc.class.equals(clazz.getSuperclass())) {
-            throw new IllegalStateException("must use this class directly");
+        Class<?> superClass = clazz.getSuperclass();
+        if (AbstractFunc.class.equals(superClass)) {
+            throw new IllegalStateException("must not use this class directly");
+        }
+        superClass = superClass.getSuperclass();
+        if (!AbstractFunc.class.equals(superClass)) {
+            throw new IllegalStateException("Cannot subclass " + superClass);
         }
         TypeToken<?>[] typeArgs = TypeToken.getTypeParameters(clazz);
         int length = typeArgs.length;

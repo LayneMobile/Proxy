@@ -30,6 +30,7 @@ import rx.Subscriber;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.fail;
 
 public class TypeTokenTest {
     private static final String TAG = TypeTokenTest.class.getSimpleName();
@@ -76,4 +77,19 @@ public class TypeTokenTest {
         assertEquals(expectedReturnType, action.returnType());
         assertEquals(expectedParamTypes, action.paramTypes());
     }
+
+    @Test public void test_func2ExtShouldFail() throws Exception {
+        try {
+            new Func2Ext<Long, Subscriber<? super String>, String>() {
+                @Override public String call(Long num, Subscriber<? super String> subscriber) {
+                    return num.toString();
+                }
+            };
+            fail("should throw");
+        } catch (IllegalStateException expected) {
+            // passed
+        }
+    }
+
+    static abstract class Func2Ext<T1, T2, R> extends AbstractFunc2<T1, T2, R> {}
 }

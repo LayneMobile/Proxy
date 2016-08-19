@@ -30,8 +30,13 @@ abstract class AbstractAction extends AbstractFunction<Void> {
 
     AbstractAction() {
         Class<?> clazz = getClass();
-        if (AbstractAction.class.equals(clazz.getSuperclass())) {
-            throw new IllegalStateException("must use this class directly");
+        Class<?> superClass = clazz.getSuperclass();
+        if (AbstractAction.class.equals(superClass)) {
+            throw new IllegalStateException("must not use this class directly");
+        }
+        superClass = superClass.getSuperclass();
+        if (!AbstractAction.class.equals(superClass)) {
+            throw new IllegalStateException("Cannot subclass " + superClass);
         }
         TypeToken<?>[] paramTypes = TypeToken.getTypeParameters(clazz);
         this.paramTypes = unmodifiableList(asList(paramTypes));
