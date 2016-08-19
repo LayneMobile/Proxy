@@ -20,7 +20,6 @@ import com.laynemobile.proxy.functions.FunctionDef;
 import com.laynemobile.proxy.functions.ProxyFunction;
 import com.laynemobile.proxy.internal.ProxyLog;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,7 +29,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ProxyBuilder<T> implements Builder<T> {
     private final TypeToken<T> type;
@@ -95,7 +93,7 @@ public class ProxyBuilder<T> implements Builder<T> {
             String msg = String.format(Locale.US, "must contain '%s' handler", type);
             throw new IllegalStateException(msg);
         }
-        return create(type, handlers);
+        return build(type, handlers);
     }
 
     private boolean contains(TypeToken<?> type) {
@@ -117,25 +115,26 @@ public class ProxyBuilder<T> implements Builder<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T create(TypeToken<T> baseType, SortedSet<ProxyType<? extends T>> proxyTypes) {
+    private static <T> T build(TypeToken<T> baseType, SortedSet<ProxyType<? extends T>> proxyTypes) {
         List<Class<?>> classes = new ArrayList<>(proxyTypes.size());
         Map<String, List<ProxyFunction<?, ?>>> handlers = new HashMap<>();
         for (ProxyType<? extends T> proxyType : proxyTypes) {
-            add(proxyType, classes, handlers);
+            addProxyType(proxyType, classes, handlers);
         }
 
         // Verify we have every method implemented
         verifyFunctionsImplemented(proxyTypes, handlers);
 
         // Add ProxyObject interface
-        addProxyObject(proxyTypes, classes, handlers);
+        ProxyType<ProxyObject> proxyObjectType = buildProxyObjectType(proxyTypes);
+        addProxyType(proxyObjectType, classes, handlers);
 
         ClassLoader cl = baseType.getRawType().getClassLoader();
         Class[] ca = classes.toArray(new Class[classes.size()]);
-        return (T) Proxy.newProxyInstance(cl, ca, new InvokeHandler(handlers));
+        return (T) Proxy.newProxyInstance(cl, ca, new ProxyInvocationHandler(handlers));
     }
 
-    private static <T> void add(ProxyType<? extends T> proxyType, List<Class<?>> classes,
+    private static <T> void addProxyType(ProxyType<? extends T> proxyType, List<Class<?>> classes,
             Map<String, List<ProxyFunction<?, ?>>> handlers) {
         ProxyLog.d("ProxyBuilder", "proxyType: %s", proxyType.type());
         classes.addAll(proxyType.rawTypes());
@@ -151,16 +150,14 @@ public class ProxyBuilder<T> implements Builder<T> {
         }
     }
 
-    private static <T> void addProxyObject(Collection<ProxyType<? extends T>> proxyTypes, List<Class<?>> classes,
-            Map<String, List<ProxyFunction<?, ?>>> handlers) {
+    private static <T> ProxyType<ProxyObject> buildProxyObjectType(Collection<ProxyType<? extends T>> proxyTypes) {
         final ProxyObject temp = ImmutableProxyObject.builder()
                 .setProxyTypes(proxyTypes)
                 .build();
-        final ProxyType<ProxyObject> proxyType = new ProxyObjectProxyTypeBuilder()
+        return new ProxyObjectProxyTypeBuilder()
                 .setProxyTypes(temp.proxyTypes())
                 .setToString(temp.toString())
                 .buildProxyType();
-        add(proxyType, classes, handlers);
     }
 
     private static <T> void verifyFunctionsImplemented(Collection<ProxyType<? extends T>> proxyTypes,
@@ -177,78 +174,6 @@ public class ProxyBuilder<T> implements Builder<T> {
                     throw new IllegalStateException("must implement " + functionDef);
                 }
             }
-        }
-    }
-
-    private static class InvokeHandler extends AbstractInvocationHandler {
-        private static final String TAG = InvokeHandler.class.getSimpleName();
-
-        private final ConcurrentHashMap<String, MethodHandler> handlers;
-
-        private InvokeHandler(Map<String, List<ProxyFunction<?, ?>>> _handlers) {
-            ConcurrentHashMap<String, MethodHandler> handlers = new ConcurrentHashMap<>(_handlers.size(), 0.75f, 1);
-            for (Map.Entry<String, List<ProxyFunction<?, ?>>> entry : _handlers.entrySet()) {
-                handlers.put(entry.getKey(), MethodHandlers.create(entry.getValue()));
-            }
-            this.handlers = handlers;
-        }
-
-        @Override
-        public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
-            ProxyLog.d(TAG, "calling method: %s", method);
-            if (get(method).handle(proxy, method, args, result)) {
-                Object r = result.get();
-                ProxyLog.d(TAG, "handled method: %s, result: %s", method, r);
-                return true;
-            }
-            return false;
-        }
-
-        private MethodHandler get(Method method) {
-            String name = method.getName();
-            MethodHandler handler = handlers.get(name);
-            if (handler == null) {
-                synchronized (handlers) {
-                    handlers.put(name, handler = MethodHandler.EMPTY);
-                }
-            }
-            return handler;
-        }
-    }
-
-    private static class MethodHandlers implements MethodHandler {
-        private final List<ProxyFunction<?, ?>> handlers;
-        private final ConcurrentHashMap<Method, ProxyFunction<?, ?>> cache;
-
-        private MethodHandlers(List<ProxyFunction<?, ?>> handlers) {
-            this.handlers = handlers;
-            this.cache = new ConcurrentHashMap<>(handlers.size(), 0.75f, 1);
-        }
-
-        private static MethodHandler create(List<ProxyFunction<?, ?>> methodHandlers) {
-            if (methodHandlers == null || methodHandlers.size() == 0) {
-                return MethodHandler.EMPTY;
-            } else if (methodHandlers.size() == 1) {
-                return methodHandlers.get(0);
-            }
-            return new MethodHandlers(methodHandlers);
-        }
-
-        @Override
-        public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
-            ProxyFunction<?, ?> cached = cache.get(method);
-            if (cached != null) {
-                return cached.handle(proxy, method, args, result);
-            }
-            for (ProxyFunction<?, ?> handler : handlers) {
-                if (handler.handle(proxy, method, args, result)) {
-                    synchronized (cache) {
-                        cache.put(method, handler);
-                    }
-                    return true;
-                }
-            }
-            return false;
         }
     }
 }

@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 import static java.lang.String.format;
 import static java.util.Locale.US;
 
-public abstract class AbstractInvocationHandler implements InvocationHandler, MethodHandler {
+abstract class AbstractInvocationHandler implements InvocationHandler, MethodHandler {
     private static final ThreadLocal<MethodResult> localMethodResult = new ThreadLocal<MethodResult>() {
         @Override protected MethodResult initialValue() {
             return new MethodResult();
