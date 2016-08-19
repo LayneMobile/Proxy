@@ -16,6 +16,7 @@
 
 package com.laynemobile.proxy;
 
+import com.laynemobile.proxy.internal.ProxyLog;
 import com.laynemobile.proxy.internal.Util;
 
 import java.lang.reflect.GenericArrayType;
@@ -42,6 +43,8 @@ import java.util.Map;
  * @author Jesse Wilson
  */
 public class TypeToken<T> {
+    private static final String TAG = TypeToken.class.getSimpleName();
+
     final Class<? super T> rawType;
     final Type type;
     final int hashCode;
@@ -80,19 +83,73 @@ public class TypeToken<T> {
     }
 
     public static TypeToken<?>[] getTypeParameters(Class<?> clazz) {
-        Type superclass = clazz.getGenericSuperclass();
-        if (superclass instanceof Class) {
-            throw new RuntimeException("Missing type parameter.");
+        return getTypeParameters(clazz.getGenericSuperclass());
+    }
+
+    public static TypeToken<?>[] getTypeParameters(TypeToken<?> typeToken) {
+        return getTypeParameters(typeToken.getType());
+    }
+
+    public static TypeToken<?>[] getSuperInterfaceTypeParameters(Class<?> clazz, Class<?> superInterfaceType) {
+        for (Type test : clazz.getGenericInterfaces()) {
+            ProxyLog.d(TAG, "interface type: %s", test);
+            if (test instanceof Class) {
+                log(test);
+                continue;
+            }
+            ParameterizedType parameterized = (ParameterizedType) test;
+            ProxyLog.d(TAG, "interface parameterizedType: %s", parameterized);
+            Type rawType = parameterized.getRawType();
+            if (rawType.equals(superInterfaceType)) {
+                return getTypeParameters(parameterized);
+            }
         }
-        ParameterizedType parameterized = (ParameterizedType) superclass;
-        Type[] typeArguments = parameterized.getActualTypeArguments();
-        int length = typeArguments.length;
-        TypeToken<?>[] tokens = new TypeToken<?>[length];
-        for (int i = 0; i < length; i++) {
-            Type type = $Proxy$Types.canonicalize(typeArguments[i]);
-            tokens[i] = get(type);
+        return new TypeToken<?>[0];
+    }
+
+    private static void log(Type type) {
+        if (type instanceof Class<?>) {
+            log(null, (Class<?>) type);
+        } else {
+            log(type, type.getClass());
         }
-        return tokens;
+    }
+
+    private static void log(Object instance, Class<?> clazz) {
+//        ProxyLog.d(TAG, "class: %s, instance: %s", clazz, instance);
+//        for (Field field : clazz.getDeclaredFields()) {
+//            if (!field.isAccessible()) {
+//                field.setAccessible(true);
+//            }
+//            try {
+//                Object value = field.get(instance);
+//                ProxyLog.d(TAG, "class: %s, field: %s, value: %s", clazz, field, value);
+//            } catch (Throwable e) {
+//                ProxyLog.d(TAG, "class: %s, field: %s", clazz, field);
+//            }
+//        }
+//        Class<?> superClass = clazz.getSuperclass();
+//        if (superClass != null && !Object.class.equals(superClass)) {
+//            log(instance, superClass);
+//        }
+    }
+
+    public static TypeToken<?>[] getSuperTypeParameters(Class<?> clazz, Class<?> superType) {
+        Type test = clazz.getGenericSuperclass();
+        while (!(test instanceof Class)) {
+            ParameterizedType parameterized = (ParameterizedType) test;
+            ProxyLog.d(TAG, "super parameterizedType: %s", parameterized);
+            Type superClass = parameterized.getRawType();
+            if (!(superClass instanceof Class)) {
+                throw new IllegalArgumentException("unknown rawType: " + superClass);
+            }
+            if (superClass.equals(superType)) {
+                return getTypeParameters(parameterized);
+            }
+            test = ((Class<?>) superClass).getGenericSuperclass();
+        }
+        log(test);
+        return new TypeToken<?>[0];
     }
 
     @SuppressWarnings("unchecked")
@@ -102,6 +159,35 @@ public class TypeToken<T> {
             throw new IllegalArgumentException("more than one type parameter");
         }
         return (TypeToken<T>) typeParameters[0];
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> TypeToken<T> getSuperTypeParameter(Class<?> clazz, Class<?> superType) {
+        TypeToken<?>[] typeParameters = getSuperTypeParameters(clazz, superType);
+        if (typeParameters.length != 1) {
+            throw new IllegalArgumentException("more than one type parameter");
+        }
+        return (TypeToken<T>) typeParameters[0];
+    }
+
+    private static TypeToken<?>[] getTypeParameters(Type type) {
+        if (type instanceof Class) {
+            log(type);
+            return new TypeToken<?>[0];
+        }
+        return getTypeParameters((ParameterizedType) type);
+    }
+
+    private static TypeToken<?>[] getTypeParameters(ParameterizedType parameterized) {
+        log(parameterized);
+        Type[] typeArguments = parameterized.getActualTypeArguments();
+        int length = typeArguments.length;
+        TypeToken<?>[] tokens = new TypeToken<?>[length];
+        for (int i = 0; i < length; i++) {
+            Type type = $Proxy$Types.canonicalize(typeArguments[i]);
+            tokens[i] = get(type);
+        }
+        return tokens;
     }
 
     /**

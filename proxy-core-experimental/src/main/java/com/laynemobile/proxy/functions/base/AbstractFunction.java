@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-apply from: "${rootDir}/gradle/java-library.gradle"
+package com.laynemobile.proxy.functions.base;
 
-dependencies {
-    compile project(':proxy-functions')
-    compile "com.google.guava:guava:${appGuavaVersion}"
-    provided "org.immutables:value:${appImmutablesVersion}"
+import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.functions.Function;
 
-    testCompile "io.reactivex:rxjava:${appRxJavaVersion}"
+import java.util.List;
+
+abstract class AbstractFunction<R> implements Function {
+    AbstractFunction() {}
+
+    public abstract TypeToken<R> returnType();
+
+    public abstract List<TypeToken<?>> paramTypes();
 }
