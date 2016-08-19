@@ -54,7 +54,7 @@ public class SimpleSourceProxyTypeBuilder<T> extends AbstractProxyTypeBuilder<Si
     }
 
     @Override public ProxyType<SimpleSource<T>> buildProxyType() {
-        return new SimpleSourceDef<T>().typeDef().newProxyBuilder()
+        return new SimpleSourceDef<T>().newProxyBuilder()
                 .addSuperType(source.buildProxyType())
                 .build();
     }

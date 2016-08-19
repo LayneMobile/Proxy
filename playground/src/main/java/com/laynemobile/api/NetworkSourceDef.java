@@ -17,17 +17,18 @@
 package com.laynemobile.api;
 
 import com.laynemobile.api.functions.NetworkSource_networkChecker;
+import com.laynemobile.proxy.AbstractProxyDef;
 import com.laynemobile.proxy.TypeDef;
 import com.laynemobile.proxy.TypeToken;
 
-public class NetworkSourceDef<T, P extends Params> {
+public class NetworkSourceDef<T, P extends Params> extends AbstractProxyDef<NetworkSource<T, P>> {
     private final TypeToken<NetworkSource<T, P>> type = new TypeToken<NetworkSource<T, P>>() {};
     private final TypeDef<NetworkSource<T, P>> typeDef = new TypeDef.Builder<>(type)
             .addSuperType(new SourceDef<T, P>().typeDef())
             .addFunction(new NetworkSource_networkChecker.Def())
             .build();
 
-    public TypeDef<NetworkSource<T, P>> typeDef() {
+    @Override public TypeDef<NetworkSource<T, P>> typeDef() {
         return typeDef;
     }
 }

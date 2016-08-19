@@ -50,7 +50,7 @@ public class NetworkSourceProxyTypeBuilder<T, P extends Params> extends Abstract
     }
 
     @Override public ProxyType<NetworkSource<T, P>> buildProxyType() {
-        return new NetworkSourceDef<T, P>().typeDef().newProxyBuilder()
+        return new NetworkSourceDef<T, P>().newProxyBuilder()
                 .addFunction(networkChecker)
                 .build();
     }

@@ -52,31 +52,16 @@ public class Tester {
         ProxyLog.setLogger(new ConsoleLogger());
     }
 
-//    @Test public void testSourceProxy() throws Throwable {
-//        Source<Potato, PotatoParams> source = new SourceProxyTypeBuilder<Potato, PotatoParams>()
-//                .setSource(new Func1<PotatoParams, Potato>() {
-//                    @Override public Potato call(PotatoParams params) {
-//                        return new Potato(params.kind());
-//                    }
-//                })
-//                .build();
-//
-//        final PotatoParams params = new DefaultPotatoParams("russet");
-//        assertPotatoSource(source, params);
-//    }
-
     @Test public void testSourceProxy() throws Throwable {
         final NetworkChecker networkChecker = new SimpleNetworkChecker();
-        final ProxyCompleter<Source<Potato, PotatoParams>> sourceCompleter;
-        Source<Potato, PotatoParams> source;
-        sourceCompleter = new SourceProxyTypeBuilder<Potato, PotatoParams>()
+        final ProxyCompleter<Source<Potato, PotatoParams>> sourceCompleter = new SourceProxyTypeBuilder<Potato, PotatoParams>()
                 .setSource(new Func1<PotatoParams, Potato>() {
                     @Override public Potato call(PotatoParams params) {
                         return new Potato(params.kind());
                     }
                 })
                 .proxyCompleter();
-        source = sourceCompleter.build();
+        Source<Potato, PotatoParams> source = sourceCompleter.build();
 
         assertProxyObject(source, Source.class);
 

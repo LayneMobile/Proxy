@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package com.laynemobile.api;
+package com.laynemobile.proxy;
 
-import com.laynemobile.api.functions.Source_call__P_Subscriber;
-import com.laynemobile.proxy.AbstractProxyDef;
-import com.laynemobile.proxy.TypeDef;
+public interface ProxyDef<T> {
+    TypeDef<T> typeDef();
 
-public class SourceDef<T, P extends Params> extends AbstractProxyDef<Source<T, P>> {
-    private final TypeDef<Source<T, P>> typeDef = new TypeDef.Builder<Source<T, P>>() {}
-            .addFunction(new Source_call__P_Subscriber.Def<>())
-            .build();
-
-    @Override public TypeDef<Source<T, P>> typeDef() {
-        return typeDef;
-    }
+    ProxyType.Builder<T> newProxyBuilder();
 }

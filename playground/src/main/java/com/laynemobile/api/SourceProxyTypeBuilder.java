@@ -63,7 +63,7 @@ public class SourceProxyTypeBuilder<T, P extends Params> extends AbstractProxyTy
     }
 
     @Override public ProxyType<Source<T, P>> buildProxyType() {
-        return new SourceDef<T, P>().typeDef().newProxyBuilder()
+        return new SourceDef<T, P>().newProxyBuilder()
                 .addFunction(source)
                 .build();
     }
