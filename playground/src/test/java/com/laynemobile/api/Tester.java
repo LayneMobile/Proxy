@@ -20,6 +20,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.laynemobile.proxy.ProxyBuilder;
 import com.laynemobile.proxy.ProxyCompleter;
+import com.laynemobile.proxy.ProxyObject;
 import com.laynemobile.proxy.ProxyType;
 import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.functions.Func0;
@@ -29,16 +30,20 @@ import com.laynemobile.proxy.internal.ProxyLog;
 
 import org.junit.Test;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import rx.Subscriber;
 
+import static java.lang.String.format;
+import static java.util.Locale.US;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class Tester {
     private static final String TAG = Tester.class.getSimpleName();
@@ -57,7 +62,7 @@ public class Tester {
 //                .build();
 //
 //        final PotatoParams params = new DefaultPotatoParams("russet");
-//        runPotatoSourceTest(source, params);
+//        assertPotatoSource(source, params);
 //    }
 
     @Test public void testSourceProxy() throws Throwable {
@@ -73,8 +78,10 @@ public class Tester {
                 .proxyCompleter();
         source = sourceCompleter.build();
 
+        assertProxyObject(source, Source.class);
+
         final PotatoParams params = new DefaultPotatoParams("russet");
-        runPotatoSourceTest(source, params);
+        assertPotatoSource(source, params);
         // assert source is not instance of network source
         assertFalse(source instanceof NetworkSource);
 
@@ -87,10 +94,12 @@ public class Tester {
         source = sourceCompleter.add(networkHandler)
                 .build();
 
+        assertProxyObject(source, Source.class, NetworkSource.class);
+
         // Note: able to cast by adding NetworkSource proxy handler
         NetworkSource<Potato, PotatoParams> networkSource = (NetworkSource<Potato, PotatoParams>) source;
         assertEquals(networkChecker, networkSource.networkChecker());
-        runPotatoSourceTest(networkSource, params);
+        assertPotatoSource(networkSource, params);
 
         ProxyLog.d(TAG, "networkSource.toString() -> %s", networkSource.toString());
     }
@@ -118,7 +127,7 @@ public class Tester {
 //                .build();
 //
 //        final PotatoParams params = new DefaultPotatoParams("russet");
-//        runPotatoSourceTest(source, params);
+//        assertPotatoSource(source, params);
 //        assertEquals(potatoFactory, source.getRetrofittable());
 //        assertEquals(networkChecker, source.networkChecker());
 //    }
@@ -148,55 +157,42 @@ public class Tester {
                 .add(networkSourceHandler)
                 .build();
 
+        assertProxyObject(_source, Source.class, SimpleSource.class, NetworkSource.class);
+
         // Note: able to cast by adding SimpleSource proxy handler
         SimpleSource<Potato> simpleSource = (SimpleSource<Potato>) _source;
+        assertSimpleSource(simpleSource, potato);
+
         // Note: able to cast by adding NetworkSource proxy handler
         NetworkSource<Potato, NoParams> networkSource = (NetworkSource<Potato, NoParams>) _source;
-
-        final AtomicReference<Potato> onNext = new AtomicReference<>();
-        final AtomicBoolean onCompleted = new AtomicBoolean();
-        final AtomicReference<Throwable> onError = new AtomicReference<>();
-
-        final CountDownLatch latch = new CountDownLatch(1);
-        simpleSource.call(NoParams.instance(), new Subscriber<Potato>() {
-            @Override public void onNext(Potato potato) {
-                onNext.set(potato);
-                latch.countDown();
-            }
-
-            @Override public void onCompleted() {
-                onCompleted.set(true);
-                latch.countDown();
-            }
-
-            @Override public void onError(Throwable e) {
-                onError.set(e);
-                latch.countDown();
-            }
-        });
-        latch.await();
-
-        Throwable e = onError.get();
-        if (e != null) {
-            throw e;
-        }
-
-        assertEquals(potato, onNext.get());
-        assertTrue(onCompleted.get());
-        assertNull(onError.get());
         assertEquals(networkChecker, networkSource.networkChecker());
     }
 
-    private static void runPotatoSourceTest(Source<Potato, PotatoParams> source, PotatoParams params)
-            throws Throwable {
-        final AtomicReference<Potato> onNext = new AtomicReference<>();
+    private static void assertProxyObject(Object proxy, Class<?>... expectedTypes) {
+        assertTrue("object " + proxy + "not instance of ProxyObject", proxy instanceof ProxyObject);
+        ProxyObject proxyObject = (ProxyObject) proxy;
+        ProxyLog.d(TAG, "runTest proxyObject: %s", proxyObject);
+        List<ProxyType<?>> proxyTypes = proxyObject.proxyTypes();
+        FOUND:
+        for (Class<?> expectedType : expectedTypes) {
+            for (ProxyType<?> proxyType : proxyTypes) {
+                if (proxyType.rawTypes().contains(expectedType)) {
+                    continue FOUND;
+                }
+            }
+            fail(format(US, "didn't find expected ProxyType '%s' in ProxyObject: '%s'", expectedType, proxyObject));
+        }
+    }
+
+    private static <T, P extends Params> void assertSource(Source<T, P> source, P params, T expected) throws Throwable {
+        final AtomicReference<T> onNext = new AtomicReference<>();
         final AtomicBoolean onCompleted = new AtomicBoolean();
         final AtomicReference<Throwable> onError = new AtomicReference<>();
 
         final CountDownLatch latch = new CountDownLatch(1);
-        source.call(params, new Subscriber<Potato>() {
-            @Override public void onNext(Potato potato) {
-                onNext.set(potato);
+        source.call(params, new Subscriber<T>() {
+            @Override public void onNext(T t) {
+                onNext.set(t);
                 latch.countDown();
             }
 
@@ -217,9 +213,17 @@ public class Tester {
             throw e;
         }
 
-        assertEquals(new Potato(params.kind()), onNext.get());
+        assertEquals(expected, onNext.get());
         assertTrue(onCompleted.get());
         assertNull(onError.get());
+    }
+
+    private static <T> void assertSimpleSource(SimpleSource<T> source, T expected) throws Throwable {
+        assertSource(source, NoParams.instance(), expected);
+    }
+
+    private static void assertPotatoSource(Source<Potato, PotatoParams> source, PotatoParams params) throws Throwable {
+        assertSource(source, params, new Potato(params.kind()));
     }
 
     private static final class Potato {
