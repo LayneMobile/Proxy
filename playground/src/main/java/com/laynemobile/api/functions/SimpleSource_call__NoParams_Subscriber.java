@@ -41,13 +41,7 @@ public class SimpleSource_call__NoParams_Subscriber<T> extends Source_call__P_Su
     }
 
     public static class Def<T> extends Source_call__P_Subscriber.Def<T, NoParams> {
-        public Def() {
-            super(new ParamTypes<NoParams, Subscriber<? super T>>() {});
-        }
-
-        public Def(ParamTypes<NoParams, Subscriber<? super T>> types) {
-            super(types);
-        }
+        public Def() {}
     }
 
     public static class Transform<T> extends SourceTransform_call__P_Subscriber<T, NoParams> {

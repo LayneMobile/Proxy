@@ -41,6 +41,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class Tester {
+    private static final String TAG = Tester.class.getSimpleName();
+
     static {
         ProxyLog.setLogger(new ConsoleLogger());
     }
@@ -89,6 +91,8 @@ public class Tester {
         NetworkSource<Potato, PotatoParams> networkSource = (NetworkSource<Potato, PotatoParams>) source;
         assertEquals(networkChecker, networkSource.networkChecker());
         runPotatoSourceTest(networkSource, params);
+
+        ProxyLog.d(TAG, "networkSource.toString() -> %s", networkSource.toString());
     }
 
 //    @Test public void testRetrofitSourceProxy() throws Throwable {

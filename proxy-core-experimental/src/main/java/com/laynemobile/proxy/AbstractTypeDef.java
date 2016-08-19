@@ -16,6 +16,7 @@
 
 package com.laynemobile.proxy;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.laynemobile.proxy.functions.FunctionDef;
 
@@ -69,6 +70,12 @@ public abstract class AbstractTypeDef<T, S extends TypeDef<? super T>, F extends
 
     @Override public int hashCode() {
         return Objects.hashCode(type, superTypes);
+    }
+
+    @Override public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("type", type)
+                .toString();
     }
 
     @Override public int compareTo(TypeDef<?> o) {

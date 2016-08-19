@@ -48,21 +48,30 @@ public abstract class AbstractProxyFunction<F extends FunctionTransform<?>, R> e
 
     @Override
     public final boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
-        List<TypeToken<?>> paramTypes = paramTypes();
-        int length = paramTypes.size();
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        ProxyLog.d(TAG, "method parameterTypes: %s", Arrays.toString(parameterTypes));
-        if (length != parameterTypes.length) {
+        List<TypeToken<?>> handlerParamTypes = paramTypes();
+        int length = handlerParamTypes.size();
+        Class<?>[] paramTypes = method.getParameterTypes();
+        ProxyLog.v(TAG, "method parameterTypes: %s", Arrays.toString(paramTypes));
+        if (length != paramTypes.length) {
             return false;
         }
 
+        Class<?> handlerReturnType = returnType().getRawType();
+        Class<?> returnType = method.getReturnType();
+        if (!handlerReturnType.isAssignableFrom(returnType)) {
+            ProxyLog.w(TAG, "return type '%s' not instance of handler return type '%s'", returnType, handlerReturnType);
+            return false;
+        }
+        ProxyLog.v(TAG, "return type '%s' instance of handler return type '%s'", returnType, handlerReturnType);
+
         for (int i = 0; i < length; i++) {
-            TypeToken<?> type = paramTypes.get(i);
-            Class<?> clazz = parameterTypes[i];
-            if (!clazz.isAssignableFrom(type.getRawType())) {
-                ProxyLog.w(TAG, "param type '%s' not assignable from handler type '%s'", clazz, type.getRawType());
+            Class<?> handlerParamType = handlerParamTypes.get(i).getRawType();
+            Class<?> paramType = paramTypes[i];
+            if (!handlerParamType.isAssignableFrom(paramType)) {
+                ProxyLog.w(TAG, "param type '%s' not instance of handler type '%s'", paramType, handlerParamType);
                 return false;
             }
+            ProxyLog.v(TAG, "param type '%s' instance of handler type '%s'", paramType, handlerParamType);
         }
 
         result.set(funcN.call(args));
