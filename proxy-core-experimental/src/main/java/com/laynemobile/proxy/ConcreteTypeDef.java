@@ -24,7 +24,7 @@ import java.util.List;
 
 import static java.util.Collections.unmodifiableList;
 
-class ConcreteTypeDef<T> extends AbstractTypeDef<T, TypeDef<? super T>, FunctionDef<?>> {
+final class ConcreteTypeDef<T> extends AbstractTypeDef<T, TypeDef<? super T>, FunctionDef<?>> {
     private final List<? extends FunctionDef<?>> functions;
 
     ConcreteTypeDef(TypeToken<T> type, Collection<? extends TypeDef<? super T>> superTypes,

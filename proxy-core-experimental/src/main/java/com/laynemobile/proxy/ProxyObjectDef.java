@@ -16,9 +16,6 @@
 
 package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.functions.ProxyObject_proxyTypes;
-import com.laynemobile.proxy.functions.ProxyObject_toString;
-
 final class ProxyObjectDef extends AbstractProxyDef<ProxyObject> {
     private final TypeDef<ProxyObject> typeDef = new TypeDef.Builder<ProxyObject>() {}
             .addFunction(new ProxyObject_proxyTypes.Def())

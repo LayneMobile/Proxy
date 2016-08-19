@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.functions;
+package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.ProxyType;
-import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.functions.ProxyFunc0;
 import com.laynemobile.proxy.functions.transforms.Func0Transform;
 
 import java.util.List;
 
-public final class ProxyObject_proxyTypes extends ProxyFunc0<List<ProxyType<?>>> {
-    public ProxyObject_proxyTypes(Func0Transform<List<ProxyType<?>>> function) {
+final class ProxyObject_proxyTypes extends ProxyFunc0<List<ProxyType<?>>> {
+    ProxyObject_proxyTypes(Func0Transform<List<ProxyType<?>>> function) {
         super(new Def(), function);
     }
 
-    public static final class Def extends ProxyFunc0.Def<List<ProxyType<?>>> {
+    static final class Def extends ProxyFunc0.Def<List<ProxyType<?>>> {
         public Def() {
             super("proxyTypes", new TypeToken<List<ProxyType<?>>>() {});
         }

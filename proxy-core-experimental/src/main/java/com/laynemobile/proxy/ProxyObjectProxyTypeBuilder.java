@@ -17,8 +17,6 @@
 package com.laynemobile.proxy;
 
 import com.laynemobile.proxy.functions.Func0;
-import com.laynemobile.proxy.functions.ProxyObject_proxyTypes;
-import com.laynemobile.proxy.functions.ProxyObject_toString;
 import com.laynemobile.proxy.functions.transforms.Func0Transform;
 
 import java.util.List;
@@ -63,7 +61,7 @@ final class ProxyObjectProxyTypeBuilder {
     }
 
     ProxyType<ProxyObject> buildProxyType() {
-        return new ProxyObjectDef().typeDef().newProxyBuilder()
+        return new ProxyObjectDef().newProxyBuilder()
                 .addFunction(proxyTypes)
                 .addFunction(toString)
                 .build();

@@ -29,11 +29,11 @@ import java.util.TreeSet;
 
 import static java.util.Collections.unmodifiableSortedSet;
 
-public abstract class AbstractTypeDef<T, S extends TypeDef<? super T>, F extends FunctionDef<?>> implements TypeDef<T> {
+abstract class AbstractTypeDef<T, S extends TypeDef<? super T>, F extends FunctionDef<?>> implements TypeDef<T> {
     private final TypeToken<T> type;
     private final SortedSet<? extends S> superTypes;
 
-    protected AbstractTypeDef(TypeToken<T> type, Collection<? extends S> superTypes) {
+    AbstractTypeDef(TypeToken<T> type, Collection<? extends S> superTypes) {
         this.type = type;
         this.superTypes = unmodifiableSortedSet(new TreeSet<>(superTypes));
     }

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.functions;
+package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.functions.ProxyFunc0;
 import com.laynemobile.proxy.functions.transforms.Func0Transform;
 
-public final class ProxyObject_toString extends ProxyFunc0<String> {
-    public ProxyObject_toString(Func0Transform<String> function) {
+final class ProxyObject_toString extends ProxyFunc0<String> {
+    ProxyObject_toString(Func0Transform<String> function) {
         super(new Def(), function);
     }
 
-    public static final class Def extends ProxyFunc0.Def<String> {
+    static final class Def extends ProxyFunc0.Def<String> {
         public Def() {
             super("toString", TypeToken.get(String.class));
         }
