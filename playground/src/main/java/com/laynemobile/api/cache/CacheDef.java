@@ -28,4 +28,9 @@ public class CacheDef<K, V> extends AbstractProxyDef<Cache<K, V>> {
     @Override public TypeDef<Cache<K, V>> typeDef() {
         return typeDef;
     }
+//
+//    private void play() {
+//        typeDef.newProxyBuilder()
+//                .addFunction()
+//    }
 }

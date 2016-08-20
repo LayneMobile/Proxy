@@ -33,4 +33,35 @@ public class CacheSpec<K, V> implements ProxySpec<Cache<K, V>, CacheSpec.SharedS
             super(proxy, sharedState);
         }
     }
+
+    /*
+     NOTES: will need to be a proxy in order to implement various states
+            but can use a generated class to transform the proxy into
+            Concrete usage for each impl (i.e. final concrete_internal_state.field<V> = ss.func0<V>.call();)
+
+     from -> SharedState<K, V> { Map<K, V> cache(); }
+     into -> @Generated class ConcreteInternalState<K, V> {
+        final Map<K, V> cache;
+
+        ConcreteInternalState(SharedState<K, V> ss) {
+            this.cache = ss.cache();
+        }
+     }
+
+     from -> ExtSharedState<K, V> extends SharedState<K, V> { Logger logger(); }
+     into -> @Generated class ConcreteExtInternalState<K, V> {
+        final Map<K, V> cache;
+        final Logger logger;
+
+        ConcreteExtInternalState(ExtSharedState<K, V> ss) {
+            this.cache = ss.cache();
+            this.logger = ss.logger();
+        }
+     }
+
+
+     // TODO: how can we have a default implementation for each method?
+     // And if so, how do we call super.method.call() equivalent?
+     // And if we can do this, is it possible to call both super1.call() && super2.call() when we combine implementations?
+     */
 }
