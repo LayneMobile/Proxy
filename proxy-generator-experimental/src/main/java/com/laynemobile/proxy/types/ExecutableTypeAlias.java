@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.types;
 
-rootProject.name = 'com.laynemobile.proxy'
+import java.util.List;
+
+import javax.lang.model.type.ExecutableType;
+
+public interface ExecutableTypeAlias extends TypedTypeMirrorAlias<ExecutableType>, ExecutableType {
+    @Override List<? extends TypeMirrorAlias> getParameterTypes();
+
+    @Override TypeMirrorAlias getReturnType();
+
+    @Override List<? extends TypeMirrorAlias> getThrownTypes();
+
+    @Override List<? extends TypeVariableAlias> getTypeVariables();
+}

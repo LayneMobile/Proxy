@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.model.output;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.squareup.javapoet.TypeSpec;
+
+import javax.lang.model.element.TypeElement;
+
+import sourcerer.processor.Env;
+
+public interface TypeElementOutput {
+    TypeElementOutputStub source();
+
+    TypeSpec typeSpec();
+
+    boolean didWrite();
+
+    TypeElement element(Env env);
+
+    boolean hasOutput();
+
+    TypeElementOutputStub outputStub(Env env);
+}

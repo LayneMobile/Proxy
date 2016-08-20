@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.elements;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.laynemobile.proxy.types.DeclaredTypeAlias;
+
+import java.util.Map;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.ExecutableElement;
+
+public interface AnnotationMirrorAlias extends AnnotationMirror {
+    @Override DeclaredTypeAlias getAnnotationType();
+
+    @Override Map<? extends ExecutableElement, ? extends AnnotationValueAlias> getElementValues();
+}

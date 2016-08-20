@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.types;
 
-rootProject.name = 'com.laynemobile.proxy'
+import javax.lang.model.type.ArrayType;
+
+public interface ArrayTypeAlias extends TypedTypeMirrorAlias<ArrayType>, ArrayType {
+    @Override TypeMirrorAlias getComponentType();
+}

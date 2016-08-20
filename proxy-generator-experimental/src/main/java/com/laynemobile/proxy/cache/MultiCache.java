@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.cache;
 
-rootProject.name = 'com.laynemobile.proxy'
+public interface MultiCache<K1, V1 extends ParameterizedCache<K2, ? extends V2, P>, P, K2, V2>
+        extends ParameterizedCache<K1, V1, P> {
+
+    V2 get(K1 k1, K2 k2);
+
+    V2 getOrCreate(K1 k1, K2 k2, P p);
+
+    interface Creator<K1, V1 extends ParameterizedCache<K2, V2, P>, P, K2, V2>
+            extends ParameterizedCache.Creator<K1, V1, P> {}
+
+    interface ValueCreator<K1, K2, V, P> {
+        V create(K1 k1, K2 k2, P p);
+    }
+}

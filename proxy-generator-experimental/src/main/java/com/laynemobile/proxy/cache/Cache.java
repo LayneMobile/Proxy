@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.cache;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.google.common.collect.ImmutableList;
+
+public interface Cache<K, V> {
+    V get(K k);
+
+    ImmutableList<V> values();
+
+    interface Creator<K, V> {
+        V create(K k);
+    }
+}

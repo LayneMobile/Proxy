@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.elements;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.laynemobile.proxy.types.TypeMirrorAlias;
+
+import java.util.List;
+
+import javax.lang.model.element.TypeParameterElement;
+
+/** {@inheritDoc} */
+public interface TypeParameterElementAlias extends TypedElementAlias<TypeParameterElement>, TypeParameterElement {
+    /** {@inheritDoc} */
+    @Override ElementAlias getGenericElement();
+
+    /** {@inheritDoc} */
+    @Override List<? extends TypeMirrorAlias> getBounds();
+}

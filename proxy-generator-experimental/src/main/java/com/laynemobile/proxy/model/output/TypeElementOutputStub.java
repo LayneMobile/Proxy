@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.model.output;
 
-rootProject.name = 'com.laynemobile.proxy'
+import java.io.IOException;
+
+import sourcerer.processor.Env;
+
+public interface TypeElementOutputStub extends TypeElementStub {
+    TypeElementOutput writeTo(Env env) throws IOException;
+}

@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.cache;
 
-rootProject.name = 'com.laynemobile.proxy'
+public interface SuperKeyCache<SK, K extends SK, V, P> extends ParameterizedCache<K, V, P> {
+    V parse(SK sk, P p);
+}

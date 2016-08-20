@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.elements;
 
-rootProject.name = 'com.laynemobile.proxy'
+import javax.lang.model.element.Name;
+
+public interface NameAlias extends Name {
+    /** {@inheritDoc} */
+    @Override boolean equals(Object obj);
+
+    /** {@inheritDoc} */
+    @Override int hashCode();
+
+    /** {@inheritDoc} */
+    @Override boolean contentEquals(CharSequence cs);
+}

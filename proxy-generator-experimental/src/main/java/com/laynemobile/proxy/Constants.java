@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.squareup.javapoet.ClassName;
+
+import java.util.List;
+
+final class Constants {
+    static final String PACKAGE = "com.laynemobile.proxy";
+    static final ClassName Override = ClassName.get(Override.class);
+    static final ClassName Builder = ClassName.get(Builder.class);
+    static final ClassName List = ClassName.get(List.class);
+
+    private Constants() { throw new AssertionError("no instances"); }
+}

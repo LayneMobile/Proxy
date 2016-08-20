@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.model.output;
 
-rootProject.name = 'com.laynemobile.proxy'
+public class DefaultTypeElementOutputStub extends AbstractTypeElementOutputStub<TypeElementOutput> {
+    protected DefaultTypeElementOutputStub(String packageName, String className) {
+        super(packageName, className);
+    }
+
+    @Override protected TypeElementOutput convert(TypeElementOutput output) {
+        return output;
+    }
+}

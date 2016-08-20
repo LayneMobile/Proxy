@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.model;
 
-rootProject.name = 'com.laynemobile.proxy'
+import java.util.List;
+
+public interface Round<R extends Round<R>> extends Iterable<R> {
+    int round();
+
+    R previous();
+
+    boolean isFirstRound();
+
+    List<R> allRounds();
+}

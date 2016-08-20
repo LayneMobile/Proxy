@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.types;
 
-rootProject.name = 'com.laynemobile.proxy'
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVisitor;
+
+public interface TypeMirrorAlias extends TypeMirror {
+    TypeMirror actual();
+
+    /** {@inheritDoc} */
+    @Override TypeKind getKind();
+
+    /** {@inheritDoc} */
+    @Override <R, P> R accept(TypeVisitor<R, P> v, P p);
+}

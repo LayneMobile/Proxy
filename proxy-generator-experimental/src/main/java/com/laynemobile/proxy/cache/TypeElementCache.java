@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-include 'proxy-generator',
-        'proxy-generator-experimental',
-        'proxy-core',
-        'proxy-core-experimental',
-        'proxy-annotations',
-        'proxy-functions',
-        'proxy-functions-rx',
-        'proxy-functions-core',
-        'sample',
-        'sample-lib',
-        'playground'
+package com.laynemobile.proxy.cache;
 
-rootProject.name = 'com.laynemobile.proxy'
+import com.laynemobile.proxy.model.Alias;
+
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+
+public abstract class TypeElementCache<K extends TypeElement, V extends Alias<?>>
+        extends AliasCache<K, V, Element> {
+
+}
