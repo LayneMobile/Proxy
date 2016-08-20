@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.elements;
+package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.Alias;
+import java.util.List;
 
-import javax.lang.model.element.Element;
+public interface Round<R extends Round<R>> extends Iterable<R> {
+    int round();
 
-public interface TypedElementAlias<E extends Element> extends ElementAlias, Alias<E> {
-    @Override E actual();
+    R previous();
+
+    boolean isFirstRound();
+
+    List<R> allRounds();
 }

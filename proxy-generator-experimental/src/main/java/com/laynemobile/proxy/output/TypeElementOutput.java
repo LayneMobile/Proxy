@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.elements;
+package com.laynemobile.proxy.output;
 
-import com.laynemobile.proxy.Alias;
+import com.squareup.javapoet.TypeSpec;
 
-import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 
-public interface TypedElementAlias<E extends Element> extends ElementAlias, Alias<E> {
-    @Override E actual();
+import sourcerer.processor.Env;
+
+public interface TypeElementOutput {
+    TypeElementOutputStub source();
+
+    TypeSpec typeSpec();
+
+    boolean didWrite();
+
+    TypeElement element(Env env);
+
+    boolean hasOutput();
+
+    TypeElementOutputStub outputStub(Env env);
 }

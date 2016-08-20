@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.elements;
+package com.laynemobile.proxy.output;
 
-import com.laynemobile.proxy.Alias;
+public class DefaultTypeElementOutputStub extends AbstractTypeElementOutputStub<TypeElementOutput> {
+    protected DefaultTypeElementOutputStub(String packageName, String className) {
+        super(packageName, className);
+    }
 
-import javax.lang.model.element.Element;
-
-public interface TypedElementAlias<E extends Element> extends ElementAlias, Alias<E> {
-    @Override E actual();
+    @Override protected TypeElementOutput convert(TypeElementOutput output) {
+        return output;
+    }
 }

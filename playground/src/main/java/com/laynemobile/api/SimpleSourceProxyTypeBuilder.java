@@ -16,8 +16,8 @@
 
 package com.laynemobile.api;
 
-import com.laynemobile.api.functions.SimpleSourceTransform_call__NoParams_Subscriber;
-import com.laynemobile.api.functions.SimpleSource_call__NoParams_Subscriber;
+import com.laynemobile.api.functions.SimpleSourceTransform_call__P_Subscriber;
+import com.laynemobile.api.functions.SimpleSource_call__P_Subscriber;
 import com.laynemobile.proxy.AbstractProxyTypeBuilder;
 import com.laynemobile.proxy.ProxyType;
 import com.laynemobile.proxy.annotations.Generated;
@@ -32,25 +32,25 @@ import rx.Subscriber;
 public class SimpleSourceProxyTypeBuilder<T> extends AbstractProxyTypeBuilder<SimpleSource<T>> {
     private final SourceProxyTypeBuilder<T, NoParams> source = new SourceProxyTypeBuilder<>();
 
-    public SimpleSourceProxyTypeBuilder<T> setSource(SimpleSource_call__NoParams_Subscriber<? extends T> source) {
+    public SimpleSourceProxyTypeBuilder<T> setSource(SimpleSource_call__P_Subscriber<? extends T> source) {
         this.source.setSource(source);
         return this;
     }
 
-    public SimpleSourceProxyTypeBuilder<T> setSource(SimpleSourceTransform_call__NoParams_Subscriber<T> source) {
-        return setSource(new SimpleSource_call__NoParams_Subscriber<T>(source));
+    public SimpleSourceProxyTypeBuilder<T> setSource(SimpleSourceTransform_call__P_Subscriber<T> source) {
+        return setSource(new SimpleSource_call__P_Subscriber<T>(source));
     }
 
     public SimpleSourceProxyTypeBuilder<T> setSource(Action1<? super Subscriber<? super T>> source) {
-        return setSource(new SimpleSourceTransform_call__NoParams_Subscriber<T>(source));
+        return setSource(new SimpleSourceTransform_call__P_Subscriber<T>(source));
     }
 
     public SimpleSourceProxyTypeBuilder<T> setSource(Func0<? extends T> source) {
-        return setSource(new SimpleSourceTransform_call__NoParams_Subscriber<T>(source));
+        return setSource(new SimpleSourceTransform_call__P_Subscriber<T>(source));
     }
 
     public SimpleSourceProxyTypeBuilder<T> setSource(Observable<? extends T> source) {
-        return setSource(new SimpleSourceTransform_call__NoParams_Subscriber<T>(source));
+        return setSource(new SimpleSourceTransform_call__P_Subscriber<T>(source));
     }
 
     @Override public ProxyType<SimpleSource<T>> buildProxyType() {

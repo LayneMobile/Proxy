@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.elements;
+package com.laynemobile.proxy.output;
 
-import com.laynemobile.proxy.Alias;
+import java.io.IOException;
 
-import javax.lang.model.element.Element;
+import sourcerer.processor.Env;
 
-public interface TypedElementAlias<E extends Element> extends ElementAlias, Alias<E> {
-    @Override E actual();
+public interface TypeElementOutputStub extends TypeElementStub {
+    TypeElementOutput writeTo(Env env) throws IOException;
 }

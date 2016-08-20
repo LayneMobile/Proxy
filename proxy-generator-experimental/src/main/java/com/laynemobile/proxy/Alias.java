@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.elements;
+package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.Alias;
-
-import javax.lang.model.element.Element;
-
-public interface TypedElementAlias<E extends Element> extends ElementAlias, Alias<E> {
-    @Override E actual();
+public interface Alias<T> {
+    String toDebugString();
 }

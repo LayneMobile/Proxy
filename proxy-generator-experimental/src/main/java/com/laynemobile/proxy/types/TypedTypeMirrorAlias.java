@@ -16,7 +16,7 @@
 
 package com.laynemobile.proxy.types;
 
-import com.laynemobile.proxy.model.Alias;
+import com.laynemobile.proxy.Alias;
 
 import javax.lang.model.type.TypeMirror;
 

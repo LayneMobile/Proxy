@@ -16,7 +16,7 @@
 
 package com.laynemobile.proxy.cache;
 
-import com.laynemobile.proxy.model.Alias;
+import com.laynemobile.proxy.Alias;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;

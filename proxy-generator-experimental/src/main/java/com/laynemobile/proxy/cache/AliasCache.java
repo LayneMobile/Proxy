@@ -16,7 +16,7 @@
 
 package com.laynemobile.proxy.cache;
 
-import com.laynemobile.proxy.model.Alias;
+import com.laynemobile.proxy.Alias;
 
 import java.util.Map;
 

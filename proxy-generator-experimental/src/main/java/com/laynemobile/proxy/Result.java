@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.elements;
+package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.Alias;
+public final class Result<T> {
+    private T value;
 
-import javax.lang.model.element.Element;
+    public void set(T value) {
+        this.value = value;
+    }
 
-public interface TypedElementAlias<E extends Element> extends ElementAlias, Alias<E> {
-    @Override E actual();
+    public T get() {
+        return value;
+    }
 }
