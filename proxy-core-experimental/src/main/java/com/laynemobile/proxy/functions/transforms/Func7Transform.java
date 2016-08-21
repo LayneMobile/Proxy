@@ -50,6 +50,9 @@ public class Func7Transform<T1, T2, T3, T4, T5, T6, T7, R>
 
     @SuppressWarnings("unchecked")
     @Override public final R call(Object... args) {
+        if (args.length != 7) {
+            throw new RuntimeException("Func7 expecting 7 arguments.");
+        }
         return function.call((T1) args[0], (T2) args[1], (T3) args[2], (T4) args[3], (T5) args[4], (T6) args[5],
                 (T7) args[6]);
     }

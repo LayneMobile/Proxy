@@ -49,6 +49,9 @@ public class Func1Transform<T, R>
 
     @SuppressWarnings("unchecked")
     @Override public final R call(Object... args) {
+        if (args.length != 1) {
+            throw new RuntimeException("Func1 expecting 1 arguments.");
+        }
         return function.call((T) args[0]);
     }
 }

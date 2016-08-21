@@ -49,6 +49,9 @@ public class Func3Transform<T1, T2, T3, R>
 
     @SuppressWarnings("unchecked")
     @Override public final R call(Object... args) {
+        if (args.length != 3) {
+            throw new RuntimeException("Func3 expecting 3 arguments.");
+        }
         return function.call((T1) args[0], (T2) args[1], (T3) args[2]);
     }
 }

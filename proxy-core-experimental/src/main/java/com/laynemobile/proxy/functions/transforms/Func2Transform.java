@@ -49,6 +49,9 @@ public class Func2Transform<T1, T2, R>
 
     @SuppressWarnings("unchecked")
     @Override public final R call(Object... args) {
+        if (args.length != 2) {
+            throw new RuntimeException("Func2 expecting 2 arguments.");
+        }
         return function.call((T1) args[0], (T2) args[1]);
     }
 }

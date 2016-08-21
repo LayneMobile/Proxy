@@ -29,51 +29,6 @@ public class FunctionTemplate extends AbstractFunctionTemplate {
                 .output();
     }
 
-    private static final String ACTION_TEMPLATE = "" +
-            "\n" +
-            "package ${PACKAGE_NAME};\n" +
-            "\n" +
-            "import com.laynemobile.proxy.functions.Action0;\n" +
-            "import com.laynemobile.proxy.functions.Action${LENGTH};\n" +
-            "import com.laynemobile.proxy.functions.Actions;\n" +
-            "\n" +
-            "public class ${FILE_NAME}<${TYPE_ARGS}>\n" +
-            "        extends ActionTransform<Action${LENGTH}<${WILDCARD_TYPE_ARGS}>>\n" +
-            "        implements Action${LENGTH}<${TYPE_ARGS}> {\n" +
-            "\n" +
-            "    public Action${LENGTH}Transform() {\n" +
-            "        super(Actions.empty());\n" +
-            "    }\n" +
-            "\n" +
-            "    public Action${LENGTH}Transform(Action${LENGTH}<${WILDCARD_TYPE_ARGS}> action) {\n" +
-            "        super(action);\n" +
-            "    }\n" +
-            "\n" +
-            "    public Action${LENGTH}Transform(Action${LENGTH}Transform<${WILDCARD_TYPE_ARGS}> action) {\n" +
-            "        super(action.function);\n" +
-            "    }\n" +
-            "\n" +
-            "    public Action${LENGTH}Transform(final Action0 action) {\n" +
-            "        super(new Action${LENGTH}<${TYPE_ARGS}>() {\n" +
-            "            @Override public void call(${FUNCTION_PARAMETERS}) {\n" +
-            "                action.call();\n" +
-            "            }\n" +
-            "        });\n" +
-            "    }\n" +
-            "\n" +
-            "    @SuppressWarnings(\"unchecked\")\n" +
-            "    @Override protected final void invoke(Object... args) {\n" +
-            "        if (args.length != ${LENGTH}) {\n" +
-            "            throw new RuntimeException(\"Action${LENGTH} expecting ${LENGTH} arguments.\");\n" +
-            "        }\n" +
-            "        function.call(${CAST_FUNCTION_ARGS});\n" +
-            "    }\n" +
-            "\n" +
-            "    @Override public final void call(${FUNCTION_PARAMETERS}) {\n" +
-            "        function.call(${FUNCTION_ARGS});\n" +
-            "    }\n" +
-            "}";
-
     private static final String FUNCTION_TEMPLATE = "" +
             "\n" +
             "package ${PACKAGE_NAME};\n" +
@@ -111,6 +66,9 @@ public class FunctionTemplate extends AbstractFunctionTemplate {
             "\n" +
             "    @SuppressWarnings(\"unchecked\")\n" +
             "    @Override public final R call(Object... args) {\n" +
+            "        if (args.length != ${LENGTH}) {\n" +
+            "            throw new RuntimeException(\"Func${LENGTH} expecting ${LENGTH} arguments.\");\n" +
+            "        }\n" +
             "        return function.call(${CAST_FUNCTION_ARGS});\n" +
             "    }\n" +
             "}";
