@@ -19,7 +19,7 @@ package com.laynemobile.proxy.functions;
 import com.laynemobile.proxy.NamedMethodHandler;
 import com.laynemobile.proxy.functions.transforms.FunctionTransform;
 
-public interface ProxyFunction<F extends FunctionTransform<?>, R>
+public interface ProxyFunction<F extends FunctionTransform<?, R>, R>
         extends FunctionDef<R>,
         // TODO: implement InvocationHandler instead of this
         NamedMethodHandler {

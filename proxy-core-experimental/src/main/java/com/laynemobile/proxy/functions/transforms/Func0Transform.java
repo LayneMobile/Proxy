@@ -21,7 +21,7 @@ import com.laynemobile.proxy.functions.Func0;
 import static com.laynemobile.proxy.functions.Functions.toFunc0;
 
 public class Func0Transform<R>
-        extends FunctionTransform<Func0<? extends R>>
+        extends FunctionTransform<Func0<? extends R>, R>
         implements Func0<R> {
 
     public Func0Transform(Func0<? extends R> function) {
@@ -33,6 +33,13 @@ public class Func0Transform<R>
     }
 
     @Override public final R call() {
+        return function.call();
+    }
+
+    @Override public final R call(Object... args) {
+        if (args.length != 0) {
+            throw new RuntimeException("Func0 expecting 0 arguments.");
+        }
         return function.call();
     }
 }

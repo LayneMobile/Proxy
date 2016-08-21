@@ -25,27 +25,20 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class AbstractProxyFunction<F extends FunctionTransform<?>, R> extends BaseProxyFunction<F, R> {
+public abstract class AbstractProxyFunction<F extends FunctionTransform<?, R>, R> extends BaseProxyFunction<F, R> {
     private static final String TAG = AbstractProxyFunction.class.getSimpleName();
-
-    private final FuncN<R> funcN;
 
     protected AbstractProxyFunction(AbstractProxyFunction<F, R> proxyFunction) {
         super(proxyFunction);
-        this.funcN = proxyFunction.funcN;
     }
 
     protected AbstractProxyFunction(FunctionDef<R> functionDef, F function) {
         super(functionDef, function);
-        this.funcN = toFuncN(function);
     }
 
     protected AbstractProxyFunction(String name, F function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
         super(name, function, returnType, paramTypes);
-        this.funcN = toFuncN(function);
     }
-
-    protected abstract FuncN<R> toFuncN(F function);
 
     @Override
     public final boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
@@ -75,11 +68,7 @@ public abstract class AbstractProxyFunction<F extends FunctionTransform<?>, R> e
             ProxyLog.v(TAG, "param type '%s' instance of handler type '%s'", paramType, handlerParamType);
         }
 
-        result.set(funcN.call(args));
+        result.set(function().call(args));
         return true;
-    }
-
-    public final FuncN<R> funcN() {
-        return funcN;
     }
 }

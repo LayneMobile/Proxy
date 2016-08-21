@@ -23,18 +23,12 @@ import com.laynemobile.proxy.functions.AbstractProxyFunction;
 import com.laynemobile.proxy.functions.ConcreteFunctionDef;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.functions.Func2;
-import com.laynemobile.proxy.functions.FuncN;
-import com.laynemobile.proxy.functions.Functions;
 
 @Generated
 public class Cache_get__K<K, V> extends AbstractProxyFunction<Cache_get__K.Transform<K, V>, V> {
 
     public Cache_get__K(Transform<K, V> function) {
         super(new Def<K, V>(), function);
-    }
-
-    @Override protected FuncN<V> toFuncN(Transform<K, V> function) {
-        return Functions.fromFunc(function);
     }
 
     public static class Def<K, V> extends ConcreteFunctionDef<V> {

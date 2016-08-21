@@ -28,8 +28,4 @@ public class ProxyFunc2<T1, T2, R> extends AbstractProxyFunction<Func2Transform<
             TypeToken<?>[] paramTypes) {
         super(name, function, returnType, paramTypes);
     }
-
-    @Override protected final FuncN<R> toFuncN(Func2Transform<T1, T2, R> function) {
-        return Functions.fromFunc(function);
-    }
 }

@@ -23,8 +23,6 @@ import com.laynemobile.proxy.functions.AbstractProxyFunction;
 import com.laynemobile.proxy.functions.ConcreteFunctionDef;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.functions.Func1;
-import com.laynemobile.proxy.functions.FuncN;
-import com.laynemobile.proxy.functions.Functions;
 
 import java.util.Collection;
 
@@ -33,10 +31,6 @@ public class Cache_values<K, V> extends AbstractProxyFunction<Cache_values.Trans
 
     public Cache_values(Transform<K, V> function) {
         super(new Def<K, V>(), function);
-    }
-
-    @Override protected FuncN<Collection<V>> toFuncN(Transform<K, V> function) {
-        return Functions.fromFunc(function);
     }
 
     public static class Def<K, V> extends ConcreteFunctionDef<Collection<V>> {
