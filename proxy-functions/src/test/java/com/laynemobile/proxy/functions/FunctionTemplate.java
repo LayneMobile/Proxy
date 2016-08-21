@@ -44,6 +44,10 @@ public class FunctionTemplate extends AbstractFunctionTemplate {
             "        super(function);\n" +
             "    }\n" +
             "\n" +
+            "    public Func${LENGTH}Transform(Func${LENGTH}Transform<${WILDCARD_TYPE_ARGS}, ? extends R> function) {\n" +
+            "        super(function.function);\n" +
+            "    }\n" +
+            "\n" +
             "    public Func${LENGTH}Transform(final Func0<? extends R> function) {\n" +
             "        super(new Func${LENGTH}<${TYPE_ARGS}, R>() {\n" +
             "            @Override public R call(${FUNCTION_PARAMETERS}) {\n" +

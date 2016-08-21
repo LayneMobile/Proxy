@@ -27,6 +27,10 @@ public class Func2Transform<T1, T2, R>
         super(function);
     }
 
+    public Func2Transform(Func2Transform<? super T1, ? super T2, ? extends R> function) {
+        super(function.function);
+    }
+
     public Func2Transform(final Func0<? extends R> function) {
         super(new Func2<T1, T2, R>() {
             @Override public R call(T1 t1, T2 t2) {

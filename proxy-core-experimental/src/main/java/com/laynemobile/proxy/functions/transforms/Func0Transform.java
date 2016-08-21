@@ -28,6 +28,10 @@ public class Func0Transform<R>
         super(function);
     }
 
+    public Func0Transform(Func0Transform<? extends R> function) {
+        super(function.function);
+    }
+
     public Func0Transform(final R value) {
         super(toFunc0(value));
     }

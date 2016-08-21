@@ -27,6 +27,11 @@ public class Func5Transform<T1, T2, T3, T4, T5, R>
         super(function);
     }
 
+    public Func5Transform(
+            Func5Transform<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? extends R> function) {
+        super(function.function);
+    }
+
     public Func5Transform(final Func0<? extends R> function) {
         super(new Func5<T1, T2, T3, T4, T5, R>() {
             @Override public R call(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
