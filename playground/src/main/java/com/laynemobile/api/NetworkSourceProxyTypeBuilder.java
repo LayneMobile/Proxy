@@ -25,16 +25,16 @@ import com.laynemobile.proxy.functions.Func0;
 
 @Generated
 public class NetworkSourceProxyTypeBuilder<T, P extends Params> extends AbstractProxyTypeBuilder<NetworkSource<T, P>> {
-    private NetworkSource_networkChecker<? extends T, ? extends P> networkChecker;
+    private NetworkSource_networkChecker networkCheckerDef = new NetworkSource_networkChecker();
+    private NetworkSource_networkChecker.Function networkChecker;
 
-    public NetworkSourceProxyTypeBuilder<T, P> setNetworkChecker(
-            NetworkSource_networkChecker<? extends T, ? extends P> networkChecker) {
+    public NetworkSourceProxyTypeBuilder<T, P> setNetworkChecker(NetworkSource_networkChecker.Function networkChecker) {
         this.networkChecker = networkChecker;
         return this;
     }
 
     public NetworkSourceProxyTypeBuilder<T, P> setNetworkChecker(NetworkSourceTransform_networkChecker networkChecker) {
-        return setNetworkChecker(new NetworkSource_networkChecker<T, P>(networkChecker));
+        return setNetworkChecker(this.networkCheckerDef.asFunction(networkChecker));
     }
 
     public NetworkSourceProxyTypeBuilder<T, P> setNetworkChecker(Func0<? extends NetworkChecker> networkChecker) {

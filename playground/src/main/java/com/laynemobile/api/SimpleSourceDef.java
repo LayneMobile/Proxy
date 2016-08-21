@@ -19,13 +19,12 @@ package com.laynemobile.api;
 import com.laynemobile.api.functions.SimpleSource_call__P_Subscriber;
 import com.laynemobile.proxy.AbstractProxyDef;
 import com.laynemobile.proxy.TypeDef;
-import com.laynemobile.proxy.TypeToken;
 
 public class SimpleSourceDef<T> extends AbstractProxyDef<SimpleSource<T>> {
-    private final TypeToken<SimpleSource<T>> type = new TypeToken<SimpleSource<T>>() {};
-    private final TypeDef<SimpleSource<T>> typeDef = new TypeDef.Builder<>(type)
+    final SimpleSource_call__P_Subscriber call__p_subscriber = new SimpleSource_call__P_Subscriber();
+    final TypeDef<SimpleSource<T>> typeDef = new TypeDef.Builder<SimpleSource<T>>() {}
             .addSuperType(new SourceDef<T, NoParams>().typeDef())
-            .addFunction(new SimpleSource_call__P_Subscriber.Def<>())
+            .addFunction(call__p_subscriber)
             .build();
 
     @Override public TypeDef<SimpleSource<T>> typeDef() {

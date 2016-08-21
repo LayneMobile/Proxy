@@ -17,56 +17,26 @@
 package com.laynemobile.api.functions;
 
 import com.laynemobile.api.NoParams;
-import com.laynemobile.proxy.functions.Action0;
-import com.laynemobile.proxy.functions.Action1;
-import com.laynemobile.proxy.functions.Action2;
-import com.laynemobile.proxy.functions.Func0;
-import com.laynemobile.proxy.functions.Func1;
+import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.functions.transforms.Action2Transform;
 
-import rx.Observable;
 import rx.Subscriber;
 
 public class SimpleSource_call__P_Subscriber<T> extends Source_call__P_Subscriber<T, NoParams> {
-
-    public SimpleSource_call__P_Subscriber(SimpleSource_call__P_Subscriber<T> proxyFunction) {
-        super(proxyFunction);
+    public SimpleSource_call__P_Subscriber(TypeToken<NoParams> t1, TypeToken<Subscriber<? super T>> t2) {
+        super(t1, t2);
     }
 
-    public SimpleSource_call__P_Subscriber(Def<T> functionDef, Transform<T> action) {
-        super(functionDef, action);
+    public SimpleSource_call__P_Subscriber() {}
+
+    @Override public Action<T> asFunction(Action2Transform<NoParams, Subscriber<? super T>> transform) {
+        return new Action<>(this, transform);
     }
 
-    public SimpleSource_call__P_Subscriber(Transform<T> action) {
-        super(new Def<T>(), action);
-    }
-
-    public static class Def<T> extends Source_call__P_Subscriber.Def<T, NoParams> {
-        public Def() {}
-    }
-
-    public static class Transform<T> extends SourceTransform_call__P_Subscriber<T, NoParams> {
-        public Transform(Action2<? super NoParams, ? super Subscriber<? super T>> action) {
-            super(action);
-        }
-
-        public Transform(Action0 action) {
-            super(action);
-        }
-
-        public Transform(Action1<? super Subscriber<? super T>> source) {
-            super(source);
-        }
-
-        public Transform(Func1<? super NoParams, ? extends T> source) {
-            super(source);
-        }
-
-        public Transform(Func0<? extends T> source) {
-            super(source);
-        }
-
-        public Transform(Observable<? extends T> source) {
-            super(source);
+    public static class Action<T> extends Source_call__P_Subscriber.Action<T, NoParams> {
+        protected Action(SimpleSource_call__P_Subscriber<T> actionDef,
+                Action2Transform<NoParams, Subscriber<? super T>> action) {
+            super(actionDef, action);
         }
     }
 }

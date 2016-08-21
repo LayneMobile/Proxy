@@ -31,15 +31,16 @@ import rx.Subscriber;
 
 @Generated
 public class SourceProxyTypeBuilder<T, P extends Params> extends AbstractProxyTypeBuilder<Source<T, P>> {
-    private Source_call__P_Subscriber<? extends T, ? extends P> source;
+    private Source_call__P_Subscriber<T, P> sourceDef = new Source_call__P_Subscriber<>();
+    private Source_call__P_Subscriber.Action<? extends T, ? extends P> source;
 
-    public SourceProxyTypeBuilder<T, P> setSource(Source_call__P_Subscriber<? extends T, ? extends P> source) {
+    public SourceProxyTypeBuilder<T, P> setSource(Source_call__P_Subscriber.Action<? extends T, ? extends P> source) {
         this.source = source;
         return this;
     }
 
     public SourceProxyTypeBuilder<T, P> setSource(SourceTransform_call__P_Subscriber<T, P> source) {
-        return setSource(new Source_call__P_Subscriber<T, P>(source));
+        return setSource(this.sourceDef.asFunction(source));
     }
 
     public SourceProxyTypeBuilder<T, P> setSource(Action2<? super P, ? super Subscriber<? super T>> source) {

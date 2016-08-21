@@ -30,15 +30,16 @@ import rx.Subscriber;
 @Generated
 @SourceProxy
 public class SimpleSourceProxyTypeBuilder<T> extends AbstractProxyTypeBuilder<SimpleSource<T>> {
+    private final SimpleSource_call__P_Subscriber<T> sourceDef = new SimpleSource_call__P_Subscriber<>();
     private final SourceProxyTypeBuilder<T, NoParams> source = new SourceProxyTypeBuilder<>();
 
-    public SimpleSourceProxyTypeBuilder<T> setSource(SimpleSource_call__P_Subscriber<? extends T> source) {
+    public SimpleSourceProxyTypeBuilder<T> setSource(SimpleSource_call__P_Subscriber.Action<? extends T> source) {
         this.source.setSource(source);
         return this;
     }
 
     public SimpleSourceProxyTypeBuilder<T> setSource(SimpleSourceTransform_call__P_Subscriber<T> source) {
-        return setSource(new SimpleSource_call__P_Subscriber<T>(source));
+        return setSource(this.sourceDef.asFunction(source));
     }
 
     public SimpleSourceProxyTypeBuilder<T> setSource(Action1<? super Subscriber<? super T>> source) {

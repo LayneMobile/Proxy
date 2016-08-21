@@ -17,32 +17,24 @@
 package com.laynemobile.api.functions;
 
 import com.laynemobile.api.NetworkChecker;
-import com.laynemobile.api.Params;
 import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.annotations.Generated;
-import com.laynemobile.proxy.functions.Func0;
-import com.laynemobile.proxy.functions.ProxyFunc0;
+import com.laynemobile.proxy.functions.Func0Def;
 import com.laynemobile.proxy.functions.transforms.Func0Transform;
 
 @Generated
-public class NetworkSource_networkChecker<T, P extends Params> extends ProxyFunc0<NetworkChecker> {
-    public NetworkSource_networkChecker(Transform function) {
-        super(new Def(), function);
+public class NetworkSource_networkChecker extends Func0Def<NetworkChecker> {
+    public NetworkSource_networkChecker() {
+        super("networkChecker", TypeToken.get(NetworkChecker.class));
     }
 
-    public static class Def extends ProxyFunc0.Def<NetworkChecker> {
-        public Def() {
-            super("networkChecker", TypeToken.get(NetworkChecker.class));
-        }
+    @Override public Function asFunction(Func0Transform<NetworkChecker> transform) {
+        return new Function(this, transform);
     }
 
-    public static class Transform extends Func0Transform<NetworkChecker> {
-        public Transform(Func0<? extends NetworkChecker> function) {
-            super(function);
-        }
-
-        public Transform(NetworkChecker value) {
-            super(value);
+    public static class Function extends Func0Def.Function<NetworkChecker> {
+        protected Function(NetworkSource_networkChecker functionDef, Func0Transform<NetworkChecker> function) {
+            super(functionDef, function);
         }
     }
 }

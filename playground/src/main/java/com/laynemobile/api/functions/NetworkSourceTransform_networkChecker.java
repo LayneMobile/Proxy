@@ -18,8 +18,9 @@ package com.laynemobile.api.functions;
 
 import com.laynemobile.api.NetworkChecker;
 import com.laynemobile.proxy.functions.Func0;
+import com.laynemobile.proxy.functions.transforms.Func0Transform;
 
-public class NetworkSourceTransform_networkChecker extends NetworkSource_networkChecker.Transform {
+public class NetworkSourceTransform_networkChecker extends Func0Transform<NetworkChecker> {
     public NetworkSourceTransform_networkChecker(Func0<? extends NetworkChecker> function) {
         super(function);
     }

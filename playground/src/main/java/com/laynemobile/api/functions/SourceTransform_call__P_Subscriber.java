@@ -23,6 +23,7 @@ import com.laynemobile.proxy.functions.Action1;
 import com.laynemobile.proxy.functions.Action2;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.functions.Func1;
+import com.laynemobile.proxy.functions.transforms.Action2Transform;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -30,7 +31,7 @@ import rx.Subscriber;
 // TODO: annotate
 // @FunctionTransformer(SourceDef_call__P_Subscriber.Transform.class)
 @Generated
-public class SourceTransform_call__P_Subscriber<T, P extends Params> extends Source_call__P_Subscriber.Transform<T, P> {
+public class SourceTransform_call__P_Subscriber<T, P extends Params> extends Action2Transform<P, Subscriber<? super T>> {
     public SourceTransform_call__P_Subscriber(Action2<? super P, ? super Subscriber<? super T>> action) {
         super(action);
     }

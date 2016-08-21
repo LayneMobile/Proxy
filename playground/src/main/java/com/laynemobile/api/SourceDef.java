@@ -21,8 +21,9 @@ import com.laynemobile.proxy.AbstractProxyDef;
 import com.laynemobile.proxy.TypeDef;
 
 public class SourceDef<T, P extends Params> extends AbstractProxyDef<Source<T, P>> {
-    private final TypeDef<Source<T, P>> typeDef = new TypeDef.Builder<Source<T, P>>() {}
-            .addFunction(new Source_call__P_Subscriber.Def<>())
+    final Source_call__P_Subscriber<T, P> call__p_subscriber = new Source_call__P_Subscriber<>();
+    final TypeDef<Source<T, P>> typeDef = new TypeDef.Builder<Source<T, P>>() {}
+            .addFunction(call__p_subscriber)
             .build();
 
     @Override public TypeDef<Source<T, P>> typeDef() {

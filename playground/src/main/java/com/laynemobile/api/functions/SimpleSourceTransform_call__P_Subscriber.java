@@ -16,6 +16,7 @@
 
 package com.laynemobile.api.functions;
 
+import com.laynemobile.api.NoParams;
 import com.laynemobile.proxy.annotations.Generated;
 import com.laynemobile.proxy.functions.Action1;
 import com.laynemobile.proxy.functions.Func0;
@@ -24,7 +25,7 @@ import rx.Observable;
 import rx.Subscriber;
 
 @Generated
-public class SimpleSourceTransform_call__P_Subscriber<T> extends SimpleSource_call__P_Subscriber.Transform<T> {
+public class SimpleSourceTransform_call__P_Subscriber<T> extends SourceTransform_call__P_Subscriber<T, NoParams> {
     public SimpleSourceTransform_call__P_Subscriber(Action1<? super Subscriber<? super T>> source) {
         super(source);
     }

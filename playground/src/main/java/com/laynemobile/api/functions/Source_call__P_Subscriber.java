@@ -18,43 +18,27 @@ package com.laynemobile.api.functions;
 
 import com.laynemobile.api.Params;
 import com.laynemobile.proxy.TypeToken;
-import com.laynemobile.proxy.functions.AbstractProxyAction;
-import com.laynemobile.proxy.functions.Action0;
-import com.laynemobile.proxy.functions.Action2;
-import com.laynemobile.proxy.functions.ActionDef;
+import com.laynemobile.proxy.functions.Action2Def;
 import com.laynemobile.proxy.functions.transforms.Action2Transform;
 
 import rx.Subscriber;
 
-public class Source_call__P_Subscriber<T, P extends Params> extends AbstractProxyAction<Action2Transform<P, Subscriber<? super T>>> {
-    public Source_call__P_Subscriber(Source_call__P_Subscriber<T, P> proxyFunction) {
-        super(proxyFunction);
+public class Source_call__P_Subscriber<T, P extends Params> extends Action2Def<P, Subscriber<? super T>> {
+    public Source_call__P_Subscriber(TypeToken<P> t1, TypeToken<Subscriber<? super T>> t2) {
+        super("call", t1, t2);
     }
 
-    public Source_call__P_Subscriber(Def<T, P> functionDef, Transform<T, P> action) {
-        super(functionDef, action);
+    public Source_call__P_Subscriber() {
+        this(new TypeToken<P>() {}, new TypeToken<Subscriber<? super T>>() {});
     }
 
-    public Source_call__P_Subscriber(Transform<T, P> action) {
-        super(new Def<>(), action);
+    @Override public Action<T, P> asFunction(Action2Transform<P, Subscriber<? super T>> transform) {
+        return new Action<>(this, transform);
     }
 
-    public static class Def<T, P extends Params> extends ActionDef {
-        public Def() {
-            super("call", new TypeToken<?>[]{
-                    new TypeToken<P>() {},
-                    new TypeToken<Subscriber<? super T>>() {}
-            });
-        }
-    }
-
-    public static class Transform<T, P extends Params> extends Action2Transform<P, Subscriber<? super T>> {
-        public Transform(Action2<? super P, ? super Subscriber<? super T>> action) {
-            super(action);
-        }
-
-        public Transform(Action0 action) {
-            super(action);
+    public static class Action<T, P extends Params> extends Action2Def.Action<P, Subscriber<? super T>> {
+        public Action(Source_call__P_Subscriber<T, P> actionDef, Action2Transform<P, Subscriber<? super T>> action) {
+            super(actionDef, action);
         }
     }
 }
