@@ -60,7 +60,7 @@ public class ProxyFunction<F extends FunctionTransform<?, R>, R>
         if (length != paramTypes.length) {
             return false;
         } else if (length == 0) {
-            function().call();
+            result.set(function().call());
             return true;
         }
 
