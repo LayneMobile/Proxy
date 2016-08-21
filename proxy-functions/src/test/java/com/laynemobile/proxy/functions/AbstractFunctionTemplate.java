@@ -19,12 +19,12 @@ package com.laynemobile.proxy.functions;
 import static java.util.Locale.US;
 
 public class AbstractFunctionTemplate extends FileTemplate {
-    private final int length;
-    private final String[] type_args;
-    private final String[] wildcard_type_args;
-    private final String[] function_parameters;
-    private final String[] function_args;
-    private final String[] cast_function_args;
+    protected final int length;
+    protected final String[] type_args;
+    protected final String[] wildcard_type_args;
+    protected final String[] function_parameters;
+    protected final String[] function_args;
+    protected final String[] cast_function_args;
 
     public AbstractFunctionTemplate(String packageName, String fileName, String template, int length) {
         super(packageName, fileName, template);

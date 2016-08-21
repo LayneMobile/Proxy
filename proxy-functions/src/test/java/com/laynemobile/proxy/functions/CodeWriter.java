@@ -34,6 +34,9 @@ public class CodeWriter {
             new FunctionTemplate(PACKAGE_NAME, i)
                     .fill()
                     .writeToDir(dir);
+            new ActionDefTemplate(i)
+                    .fill()
+                    .writeToDir(dir);
         }
     }
 }
