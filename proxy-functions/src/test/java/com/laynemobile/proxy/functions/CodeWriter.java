@@ -28,13 +28,16 @@ public class CodeWriter {
         File dir = new File(OUTPUT_DIR);
         int iterations = 9;
         for (int i = 1; i < iterations + 1; i++) {
-            new ActionTemplate(PACKAGE_NAME, i)
+            new ActionTransformTemplate(PACKAGE_NAME, i)
                     .fill()
                     .writeToDir(dir);
-            new FunctionTemplate(PACKAGE_NAME, i)
+            new FuncTransformTemplate(PACKAGE_NAME, i)
                     .fill()
                     .writeToDir(dir);
             new ActionDefTemplate(i)
+                    .fill()
+                    .writeToDir(dir);
+            new FuncDefTemplate(i)
                     .fill()
                     .writeToDir(dir);
         }

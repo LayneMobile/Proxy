@@ -17,19 +17,19 @@
 package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.TypeToken;
-import com.laynemobile.proxy.functions.transforms.Func1Transform;
+import com.laynemobile.proxy.functions.transforms.Func2Transform;
 
-public class Func1Def<T, R> extends FunctionDef<Func1Transform<T, R>, R> {
-    public Func1Def(String name, TypeToken<R> returnType, TypeToken<T> t) {
-        super(name, returnType, new TypeToken<?>[]{t});
+public class Func2Def<T1, T2, R> extends FunctionDef<Func2Transform<T1, T2, R>, R> {
+    public Func2Def(String name, TypeToken<R> returnType, TypeToken<T1> t1, TypeToken<T2> t2) {
+        super(name, returnType, new TypeToken<?>[]{t1, t2});
     }
 
-    @Override public Function<T, R> asFunction(Func1Transform<T, R> transform) {
+    @Override public Function<T1, T2, R> asFunction(Func2Transform<T1, T2, R> transform) {
         return new Function<>(this, transform);
     }
 
-    public static class Function<T, R> extends ProxyFunction<Func1Transform<T, R>, R> {
-        protected Function(Func1Def<T, R> functionDef, Func1Transform<T, R> function) {
+    public static class Function<T1, T2, R> extends ProxyFunction<Func2Transform<T1, T2, R>, R> {
+        protected Function(Func2Def<T1, T2, R> functionDef, Func2Transform<T1, T2, R> function) {
             super(functionDef, function);
         }
     }

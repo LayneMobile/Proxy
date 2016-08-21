@@ -16,10 +16,10 @@
 
 package com.laynemobile.proxy.functions;
 
-public class FunctionTemplate extends AbstractFunctionTemplate {
+public class FuncTransformTemplate extends AbstractFunctionTemplate {
     private static final String FILE_NAME_TEMPLATE = "Func${LENGTH}Transform";
 
-    public FunctionTemplate(String packageName, int length) {
+    public FuncTransformTemplate(String packageName, int length) {
         super(packageName, fileName(length), FUNCTION_TEMPLATE, length);
     }
 

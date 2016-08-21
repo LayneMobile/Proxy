@@ -17,19 +17,20 @@
 package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.TypeToken;
-import com.laynemobile.proxy.functions.transforms.Func1Transform;
+import com.laynemobile.proxy.functions.transforms.Func4Transform;
 
-public class Func1Def<T, R> extends FunctionDef<Func1Transform<T, R>, R> {
-    public Func1Def(String name, TypeToken<R> returnType, TypeToken<T> t) {
-        super(name, returnType, new TypeToken<?>[]{t});
+public class Func4Def<T1, T2, T3, T4, R> extends FunctionDef<Func4Transform<T1, T2, T3, T4, R>, R> {
+    public Func4Def(String name, TypeToken<R> returnType, TypeToken<T1> t1, TypeToken<T2> t2, TypeToken<T3> t3,
+            TypeToken<T4> t4) {
+        super(name, returnType, new TypeToken<?>[]{t1, t2, t3, t4});
     }
 
-    @Override public Function<T, R> asFunction(Func1Transform<T, R> transform) {
+    @Override public Function<T1, T2, T3, T4, R> asFunction(Func4Transform<T1, T2, T3, T4, R> transform) {
         return new Function<>(this, transform);
     }
 
-    public static class Function<T, R> extends ProxyFunction<Func1Transform<T, R>, R> {
-        protected Function(Func1Def<T, R> functionDef, Func1Transform<T, R> function) {
+    public static class Function<T1, T2, T3, T4, R> extends ProxyFunction<Func4Transform<T1, T2, T3, T4, R>, R> {
+        protected Function(Func4Def<T1, T2, T3, T4, R> functionDef, Func4Transform<T1, T2, T3, T4, R> function) {
             super(functionDef, function);
         }
     }

@@ -16,10 +16,10 @@
 
 package com.laynemobile.proxy.functions;
 
-public class ActionDefTemplate extends AbstractFunctionDefTemplate {
-    private static final String FILE_NAME_TEMPLATE = "Action${LENGTH}Def";
+public class FuncDefTemplate extends AbstractFunctionDefTemplate {
+    private static final String FILE_NAME_TEMPLATE = "Func${LENGTH}Def";
 
-    public ActionDefTemplate(int length) {
+    public FuncDefTemplate(int length) {
         super(fileName(length), TEMPLATE, length);
     }
 
@@ -49,20 +49,20 @@ public class ActionDefTemplate extends AbstractFunctionDefTemplate {
             "package ${PACKAGE_NAME};\n" +
             "\n" +
             "import com.laynemobile.proxy.TypeToken;\n" +
-            "import com.laynemobile.proxy.functions.transforms.Action${LENGTH}Transform;\n" +
+            "import com.laynemobile.proxy.functions.transforms.Func${LENGTH}Transform;\n" +
             "\n" +
-            "public class ${FILE_NAME}<${TYPE_ARGS}> extends ActionDef<Action${LENGTH}Transform<${TYPE_ARGS}>> {\n" +
-            "    public Action${LENGTH}Def(String name, ${TYPE_TOKEN_PARAMETERS}) {\n" +
-            "        super(name, new TypeToken<?>[]{${FUNCTION_ARGS}});\n" +
+            "public class ${FILE_NAME}<${TYPE_ARGS}, R> extends FunctionDef<Func${LENGTH}Transform<${TYPE_ARGS}, R>, R> {\n" +
+            "    public Func${LENGTH}Def(String name, TypeToken<R> returnType, ${TYPE_TOKEN_PARAMETERS}) {\n" +
+            "        super(name, returnType, new TypeToken<?>[]{${FUNCTION_ARGS}});\n" +
             "    }\n" +
             "\n" +
-            "    @Override public Action<${TYPE_ARGS}> asFunction(Action${LENGTH}Transform<${TYPE_ARGS}> transform) {\n" +
-            "        return new Action<>(this, transform);\n" +
+            "    @Override public Function<${TYPE_ARGS}, R> asFunction(Func${LENGTH}Transform<${TYPE_ARGS}, R> transform) {\n" +
+            "        return new Function<>(this, transform);\n" +
             "    }\n" +
             "\n" +
-            "    public static class Action<${TYPE_ARGS}> extends ProxyAction<Action${LENGTH}Transform<${TYPE_ARGS}>> {\n" +
-            "        protected Action(Action${LENGTH}Def<${TYPE_ARGS}> actionDef, Action${LENGTH}Transform<${TYPE_ARGS}> action) {\n" +
-            "            super(actionDef, action);\n" +
+            "    public static class Function<${TYPE_ARGS}, R> extends ProxyFunction<Func${LENGTH}Transform<${TYPE_ARGS}, R>, R> {\n" +
+            "        protected Function(Func${LENGTH}Def<${TYPE_ARGS}, R> functionDef, Func${LENGTH}Transform<${TYPE_ARGS}, R> function) {\n" +
+            "            super(functionDef, function);\n" +
             "        }\n" +
             "    }\n" +
             "}\n";
