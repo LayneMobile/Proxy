@@ -20,20 +20,10 @@ import com.laynemobile.proxy.functions.ProxyFunction;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 
-public interface ProxyType<T> extends TypeDef<T> {
+public interface ProxyType<T> extends BaseTypeDef<T, ProxyType<? super T>, ProxyFunction<?, ?>> {
     TypeDef<T> definition();
-
-    @Override SortedSet<? extends ProxyType<? super T>> superTypes();
-
-    Set<Class<?>> rawTypes();
-
-    @Override List<? extends ProxyFunction<?, ?>> functions();
-
-    @Override Set<? extends ProxyFunction<?, ?>> allFunctions();
 
     final class Builder<T> implements com.laynemobile.proxy.Builder<ProxyType<T>> {
         private final TypeDef<T> typeDef;

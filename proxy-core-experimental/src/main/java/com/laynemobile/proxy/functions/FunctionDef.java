@@ -16,14 +16,59 @@
 
 package com.laynemobile.proxy.functions;
 
+import com.google.common.base.Objects;
 import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.functions.transforms.FunctionTransform;
 
+import java.util.Arrays;
 import java.util.List;
 
-public interface FunctionDef<R> {
-    String name();
+import static java.util.Collections.unmodifiableList;
 
-    TypeToken<R> returnType();
+public class FunctionDef<F extends FunctionTransform<?, R>, R> {
+    private final String name;
+    private final TypeToken<R> returnType;
+    private final List<TypeToken<?>> paramTypes;
 
-    List<TypeToken<?>> paramTypes();
+    public FunctionDef(FunctionDef<? super F, R> functionDef) {
+        this.name = functionDef.name();
+        this.returnType = functionDef.returnType();
+        this.paramTypes = functionDef.paramTypes();
+    }
+
+    public FunctionDef(String name, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
+        List<? extends TypeToken<?>> paramTypesList = Arrays.asList(paramTypes.clone());
+        this.name = name;
+        this.returnType = returnType;
+        this.paramTypes = unmodifiableList(paramTypesList);
+    }
+
+    public final String name() {
+        return name;
+    }
+
+    public final TypeToken<R> returnType() {
+        return returnType;
+    }
+
+    public final List<TypeToken<?>> paramTypes() {
+        return paramTypes;
+    }
+
+    public ProxyFunction<F, R> asFunction(F transform) {
+        return new ProxyFunction<>(this, transform);
+    }
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FunctionDef)) return false;
+        FunctionDef<?, ?> that = (FunctionDef<?, ?>) o;
+        return Objects.equal(name, that.name) &&
+                Objects.equal(returnType, that.returnType) &&
+                Objects.equal(paramTypes, that.paramTypes);
+    }
+
+    @Override public int hashCode() {
+        return Objects.hashCode(name, returnType, paramTypes);
+    }
 }

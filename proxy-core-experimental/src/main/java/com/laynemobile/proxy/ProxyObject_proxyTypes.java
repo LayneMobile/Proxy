@@ -16,19 +16,23 @@
 
 package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.functions.ProxyFunc0;
+import com.laynemobile.proxy.functions.Func0Def;
 import com.laynemobile.proxy.functions.transforms.Func0Transform;
 
 import java.util.List;
 
-final class ProxyObject_proxyTypes extends ProxyFunc0<List<ProxyType<?>>> {
-    ProxyObject_proxyTypes(Func0Transform<List<ProxyType<?>>> function) {
-        super(new Def(), function);
+final class ProxyObject_proxyTypes extends Func0Def<List<ProxyType<?>>> {
+    ProxyObject_proxyTypes() {
+        super("proxyTypes", new TypeToken<List<ProxyType<?>>>() {});
     }
 
-    static final class Def extends ProxyFunc0.Def<List<ProxyType<?>>> {
-        public Def() {
-            super("proxyTypes", new TypeToken<List<ProxyType<?>>>() {});
+    @Override public Function asFunction(Func0Transform<List<ProxyType<?>>> transform) {
+        return new Function(this, transform);
+    }
+
+    static class Function extends Func0Def.Function<List<ProxyType<?>>> {
+        private Function(ProxyObject_proxyTypes functionDef, Func0Transform<List<ProxyType<?>>> function) {
+            super(functionDef, function);
         }
     }
 }

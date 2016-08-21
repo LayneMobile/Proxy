@@ -18,7 +18,6 @@ package com.laynemobile.proxy;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.laynemobile.proxy.functions.FunctionDef;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -29,7 +28,7 @@ import java.util.TreeSet;
 
 import static java.util.Collections.unmodifiableSortedSet;
 
-abstract class AbstractTypeDef<T, S extends TypeDef<? super T>, F extends FunctionDef<?>> implements TypeDef<T> {
+abstract class AbstractTypeDef<T, S extends BaseTypeDef<? super T, ? extends S, F>, F> implements BaseTypeDef<T, S, F> {
     private final TypeToken<T> type;
     private final SortedSet<? extends S> superTypes;
 
@@ -46,12 +45,22 @@ abstract class AbstractTypeDef<T, S extends TypeDef<? super T>, F extends Functi
         return superTypes;
     }
 
+    @Override public final Set<Class<?>> rawTypes() {
+        SortedSet<? extends S> superTypes = superTypes();
+        LinkedHashSet<Class<?>> rawTypes = new LinkedHashSet<>(superTypes.size() + 1);
+        rawTypes.add(type().getRawType());
+        for (S superType : superTypes) {
+            rawTypes.add(superType.type().getRawType());
+        }
+        return rawTypes;
+    }
+
     @Override public abstract List<? extends F> functions();
 
-    @Override public Set<? extends FunctionDef<?>> allFunctions() {
-        LinkedHashSet<FunctionDef<?>> allFunctions = new LinkedHashSet<FunctionDef<?>>(functions());
-        for (TypeDef<? super T> superType : superTypes) {
-            for (FunctionDef<?> function : superType.allFunctions()) {
+    @Override public final Set<? extends F> allFunctions() {
+        LinkedHashSet<F> allFunctions = new LinkedHashSet<>(functions());
+        for (S superType : superTypes) {
+            for (F function : superType.allFunctions()) {
                 if (!allFunctions.contains(function)) {
                     allFunctions.add(function);
                 }
@@ -78,7 +87,7 @@ abstract class AbstractTypeDef<T, S extends TypeDef<? super T>, F extends Functi
                 .toString();
     }
 
-    @Override public int compareTo(TypeDef<?> o) {
+    @Override public int compareTo(BaseTypeDef<?, ?, ?> o) {
         if (equals(o)) {
             return 0;
         } else if (dependsOn(o, this)) {
@@ -89,8 +98,8 @@ abstract class AbstractTypeDef<T, S extends TypeDef<? super T>, F extends Functi
         return name(this).compareTo(name(o));
     }
 
-    private static boolean dependsOn(TypeDef<?> type, TypeDef<?> test) {
-        for (TypeDef<?> superType : type.superTypes()) {
+    private static boolean dependsOn(BaseTypeDef<?, ?, ?> type, BaseTypeDef<?, ?, ?> test) {
+        for (BaseTypeDef<?, ?, ?> superType : type.superTypes()) {
             if (superType.equals(test)) {
                 return true;
             } else if (dependsOn(superType, test)) {
@@ -100,7 +109,7 @@ abstract class AbstractTypeDef<T, S extends TypeDef<? super T>, F extends Functi
         return false;
     }
 
-    private static String name(TypeDef<?> o) {
+    private static String name(BaseTypeDef<?, ?, ?> o) {
         return o.type().getRawType().getSimpleName();
     }
 }

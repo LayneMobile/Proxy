@@ -21,7 +21,7 @@ import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.functions.AbstractProxyAction;
 import com.laynemobile.proxy.functions.Action0;
 import com.laynemobile.proxy.functions.Action2;
-import com.laynemobile.proxy.functions.ConcreteActionDef;
+import com.laynemobile.proxy.functions.ActionDef;
 import com.laynemobile.proxy.functions.transforms.Action2Transform;
 
 import rx.Subscriber;
@@ -39,7 +39,7 @@ public class Source_call__P_Subscriber<T, P extends Params> extends AbstractProx
         super(new Def<>(), action);
     }
 
-    public static class Def<T, P extends Params> extends ConcreteActionDef {
+    public static class Def<T, P extends Params> extends ActionDef {
         public Def() {
             super("call", new TypeToken<?>[]{
                     new TypeToken<P>() {},

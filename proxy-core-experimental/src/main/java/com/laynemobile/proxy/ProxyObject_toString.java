@@ -16,17 +16,21 @@
 
 package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.functions.ProxyFunc0;
+import com.laynemobile.proxy.functions.Func0Def;
 import com.laynemobile.proxy.functions.transforms.Func0Transform;
 
-final class ProxyObject_toString extends ProxyFunc0<String> {
-    ProxyObject_toString(Func0Transform<String> function) {
-        super(new Def(), function);
+final class ProxyObject_toString extends Func0Def<String> {
+    ProxyObject_toString() {
+        super("toString", TypeToken.get(String.class));
     }
 
-    static final class Def extends ProxyFunc0.Def<String> {
-        public Def() {
-            super("toString", TypeToken.get(String.class));
+    @Override public Function asFunction(Func0Transform<String> transform) {
+        return new Function(this, transform);
+    }
+
+    static final class Function extends Func0Def.Function<String> {
+        private Function(ProxyObject_toString functionDef, Func0Transform<String> function) {
+            super(functionDef, function);
         }
     }
 }

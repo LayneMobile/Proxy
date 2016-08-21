@@ -17,21 +17,20 @@
 package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.functions.transforms.Action0Transform;
 
-public class ConcreteActionDef extends ConcreteFunctionDef<Void> implements ActionDef {
-    protected ConcreteActionDef(ActionDef actionInfo) {
-        super(actionInfo);
+public class Action0Def extends ActionDef<Action0Transform> {
+    public Action0Def(String name) {
+        super(name, new TypeToken<?>[0]);
     }
 
-    protected ConcreteActionDef(FunctionDef<Void> functionDef) {
-        super(functionDef);
+    @Override public Action asFunction(Action0Transform transform) {
+        return new Action(this, transform);
     }
 
-    protected ConcreteActionDef(String name, TypeToken<?>[] paramTypes) {
-        super(name, VOID_TYPE, paramTypes);
-    }
-
-    static ActionDef create(String name, TypeToken<?>[] paramTypes) {
-        return new ConcreteActionDef(name, paramTypes);
+    public static class Action extends ProxyAction<Action0Transform> {
+        protected Action(Action0Def actionDef, Action0Transform action) {
+            super(actionDef, action);
+        }
     }
 }

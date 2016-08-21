@@ -17,7 +17,20 @@
 package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.functions.transforms.ActionTransform;
 
-public interface ActionDef extends FunctionDef<Void> {
-    TypeToken<Void> VOID_TYPE = TypeToken.get(Void.TYPE);
+public class ActionDef<A extends ActionTransform<?>> extends FunctionDef<A, Void> {
+    private static final TypeToken<Void> VOID_TYPE = TypeToken.get(Void.TYPE);
+
+    public ActionDef(ActionDef<? super A> actionDef) {
+        super(actionDef);
+    }
+
+    public ActionDef(String name, TypeToken<?>[] paramTypes) {
+        super(name, VOID_TYPE, paramTypes);
+    }
+
+    @Override public ProxyAction<A> asFunction(A transform) {
+        return new ProxyAction<>(this, transform);
+    }
 }

@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.functions;
+package com.laynemobile.proxy;
 
-import com.laynemobile.proxy.TypeToken;
-import com.laynemobile.proxy.functions.transforms.Func2Transform;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
 
-public class ProxyFunc2<T1, T2, R> extends AbstractProxyFunction<Func2Transform<T1, T2, R>, R> {
-    public ProxyFunc2(FunctionDef<R> functionDef, Func2Transform<T1, T2, R> function) {
-        super(functionDef, function);
-    }
+interface BaseTypeDef<T, S extends BaseTypeDef<? super T, ? extends S, F>, F> extends Comparable<BaseTypeDef<?, ?, ?>> {
+    TypeToken<T> type();
 
-    public ProxyFunc2(String name, Func2Transform<T1, T2, R> function, TypeToken<R> returnType,
-            TypeToken<?>[] paramTypes) {
-        super(name, function, returnType, paramTypes);
-    }
+    SortedSet<? extends S> superTypes();
+
+    Set<Class<?>> rawTypes();
+
+    List<? extends F> functions();
+
+    Set<? extends F> allFunctions();
+
+    ProxyType.Builder<T> newProxyBuilder();
 }

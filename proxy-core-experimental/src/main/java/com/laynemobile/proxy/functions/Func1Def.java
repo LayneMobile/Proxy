@@ -19,12 +19,18 @@ package com.laynemobile.proxy.functions;
 import com.laynemobile.proxy.TypeToken;
 import com.laynemobile.proxy.functions.transforms.Func1Transform;
 
-public class ProxyFunc1<T, R> extends AbstractProxyFunction<Func1Transform<T, R>, R> {
-    public ProxyFunc1(FunctionDef<R> functionDef, Func1Transform<T, R> function) {
-        super(functionDef, function);
+public class Func1Def<T, R> extends FunctionDef<Func1Transform<T, R>, R> {
+    public Func1Def(String name, TypeToken<R> returnType, TypeToken<T> tType) {
+        super(name, returnType, new TypeToken<?>[]{tType});
     }
 
-    public ProxyFunc1(String name, Func1Transform<T, R> function, TypeToken<R> returnType, TypeToken<?>[] paramTypes) {
-        super(name, function, returnType, paramTypes);
+    @Override public Function<T, R> asFunction(Func1Transform<T, R> transform) {
+        return new Function<>(this, transform);
+    }
+
+    public static class Function<T, R> extends ProxyFunction<Func1Transform<T, R>, R> {
+        protected Function(Func1Def<T, R> functionDef, Func1Transform<T, R> function) {
+            super(functionDef, function);
+        }
     }
 }

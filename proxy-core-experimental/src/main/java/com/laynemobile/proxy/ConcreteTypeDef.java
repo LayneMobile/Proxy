@@ -24,11 +24,12 @@ import java.util.List;
 
 import static java.util.Collections.unmodifiableList;
 
-final class ConcreteTypeDef<T> extends AbstractTypeDef<T, TypeDef<? super T>, FunctionDef<?>> {
-    private final List<? extends FunctionDef<?>> functions;
+final class ConcreteTypeDef<T> extends AbstractTypeDef<T, TypeDef<? super T>, FunctionDef<?, ?>>
+        implements TypeDef<T> {
+    private final List<? extends FunctionDef<?, ?>> functions;
 
     ConcreteTypeDef(TypeToken<T> type, Collection<? extends TypeDef<? super T>> superTypes,
-            Collection<? extends FunctionDef<?>> functions) {
+            Collection<? extends FunctionDef<?, ?>> functions) {
         super(type, superTypes);
         this.functions = unmodifiableList(new ArrayList<>(functions));
     }
@@ -37,7 +38,7 @@ final class ConcreteTypeDef<T> extends AbstractTypeDef<T, TypeDef<? super T>, Fu
         this(typeDef.type(), typeDef.superTypes(), typeDef.functions());
     }
 
-    @Override public final List<? extends FunctionDef<?>> functions() {
+    @Override public final List<? extends FunctionDef<?, ?>> functions() {
         return functions;
     }
 

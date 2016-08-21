@@ -20,14 +20,12 @@ import com.laynemobile.proxy.functions.ProxyFunction;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
 
 import static java.util.Collections.unmodifiableList;
 
-final class ConcreteProxyType<T> extends AbstractTypeDef<T, ProxyType<? super T>, ProxyFunction<?, ?>> implements ProxyType<T> {
+final class ConcreteProxyType<T> extends AbstractTypeDef<T, ProxyType<? super T>, ProxyFunction<?, ?>>
+        implements ProxyType<T> {
     private final TypeDef<T> definition;
     private final List<? extends ProxyFunction<?, ?>> functions;
 
@@ -42,29 +40,11 @@ final class ConcreteProxyType<T> extends AbstractTypeDef<T, ProxyType<? super T>
         return definition;
     }
 
-    @Override public Set<Class<?>> rawTypes() {
-        SortedSet<? extends ProxyType<? super T>> superTypes = superTypes();
-        LinkedHashSet<Class<?>> rawTypes = new LinkedHashSet<>(superTypes.size() + 1);
-        rawTypes.add(type().getRawType());
-        for (ProxyType<? super T> superType : superTypes) {
-            rawTypes.add(superType.type().getRawType());
-        }
-        return rawTypes;
-    }
-
     @Override public List<? extends ProxyFunction<?, ?>> functions() {
         return functions;
     }
 
-    @Override public Set<? extends ProxyFunction<?, ?>> allFunctions() {
-        return (Set<? extends ProxyFunction<?, ?>>) super.allFunctions();
-    }
-
     @Override public ProxyType.Builder<T> newProxyBuilder() {
         return new ProxyType.Builder<>(this);
-    }
-
-    @Override public int compareTo(TypeDef<?> o) {
-        return definition.compareTo(o);
     }
 }

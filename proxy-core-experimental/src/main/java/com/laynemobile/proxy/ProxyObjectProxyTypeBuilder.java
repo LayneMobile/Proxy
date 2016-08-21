@@ -22,17 +22,19 @@ import com.laynemobile.proxy.functions.transforms.Func0Transform;
 import java.util.List;
 
 final class ProxyObjectProxyTypeBuilder {
-    private ProxyObject_proxyTypes proxyTypes;
+    private final ProxyObject_proxyTypes proxyTypesDef = new ProxyObject_proxyTypes();
+    private ProxyObject_proxyTypes.Function proxyTypes;
 
-    private ProxyObject_toString toString;
+    private final ProxyObject_toString toStringDef = new ProxyObject_toString();
+    private ProxyObject_toString.Function toString;
 
-    ProxyObjectProxyTypeBuilder setProxyTypes(ProxyObject_proxyTypes proxyTypes) {
+    ProxyObjectProxyTypeBuilder setProxyTypes(ProxyObject_proxyTypes.Function proxyTypes) {
         this.proxyTypes = proxyTypes;
         return this;
     }
 
     ProxyObjectProxyTypeBuilder setProxyTypes(Func0Transform<List<ProxyType<?>>> proxyTypes) {
-        return setProxyTypes(new ProxyObject_proxyTypes(proxyTypes));
+        return setProxyTypes(this.proxyTypesDef.asFunction(proxyTypes));
     }
 
     ProxyObjectProxyTypeBuilder setProxyTypes(Func0<? extends List<ProxyType<?>>> proxyTypes) {
@@ -43,13 +45,13 @@ final class ProxyObjectProxyTypeBuilder {
         return setProxyTypes(new Func0Transform<>(proxyTypes));
     }
 
-    ProxyObjectProxyTypeBuilder setToString(ProxyObject_toString toString) {
+    ProxyObjectProxyTypeBuilder setToString(ProxyObject_toString.Function toString) {
         this.toString = toString;
         return this;
     }
 
     ProxyObjectProxyTypeBuilder setToString(Func0Transform<String> toString) {
-        return setToString(new ProxyObject_toString(toString));
+        return setToString(this.toStringDef.asFunction(toString));
     }
 
     ProxyObjectProxyTypeBuilder setToString(Func0<? extends String> toString) {

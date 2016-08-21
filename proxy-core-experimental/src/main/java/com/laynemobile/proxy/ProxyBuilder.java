@@ -164,13 +164,20 @@ public class ProxyBuilder<T> implements Builder<T> {
             Map<String, List<ProxyFunction<?, ?>>> handlers) {
         for (ProxyType<? extends T> proxyType : proxyTypes) {
             TypeDef<? extends T> typeDef = proxyType.definition();
-            for (FunctionDef<?> functionDef : typeDef.allFunctions()) {
+            for (FunctionDef<?, ?> functionDef : typeDef.allFunctions()) {
                 String name = functionDef.name();
-                List<? extends FunctionDef<?>> implList = handlers.get(name);
+                List<? extends ProxyFunction<?, ?>> implList = handlers.get(name);
                 if (implList == null) {
                     throw new IllegalStateException("must implement " + functionDef);
                 }
-                if (!implList.contains(functionDef)) {
+                boolean found = false;
+                for (ProxyFunction<?, ?> functionImpl : implList) {
+                    if (functionDef.equals(functionImpl.functionDef())) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
                     throw new IllegalStateException("must implement " + functionDef);
                 }
             }
