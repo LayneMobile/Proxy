@@ -18,4 +18,6 @@ apply from: "${rootDir}/gradle/java-library.gradle"
 
 dependencies {
     compile project(':proxy-functions-core')
+
+    testCompile "com.google.guava:guava:${appGuavaVersion}"
 }

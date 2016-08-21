@@ -18,6 +18,7 @@ package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.MethodResult;
 import com.laynemobile.proxy.TypeToken;
+import com.laynemobile.proxy.functions.transforms.FunctionTransform;
 import com.laynemobile.proxy.internal.ProxyLog;
 
 import java.lang.reflect.Method;

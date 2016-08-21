@@ -17,28 +17,28 @@
 package com.laynemobile.proxy.functions.transforms;
 
 import com.laynemobile.proxy.functions.Action0;
-import com.laynemobile.proxy.functions.Action2;
+import com.laynemobile.proxy.functions.Action4;
 import com.laynemobile.proxy.functions.Actions;
 
-public class Action2Transform<T1, T2>
-        extends ActionTransform<Action2<? super T1, ? super T2>>
-        implements Action2<T1, T2> {
+public class Action4Transform<T1, T2, T3, T4>
+        extends ActionTransform<Action4<? super T1, ? super T2, ? super T3, ? super T4>>
+        implements Action4<T1, T2, T3, T4> {
 
-    public Action2Transform() {
+    public Action4Transform() {
         super(Actions.empty());
     }
 
-    public Action2Transform(Action2<? super T1, ? super T2> action) {
+    public Action4Transform(Action4<? super T1, ? super T2, ? super T3, ? super T4> action) {
         super(action);
     }
 
-    public Action2Transform(Action2Transform<? super T1, ? super T2> action) {
+    public Action4Transform(Action4Transform<? super T1, ? super T2, ? super T3, ? super T4> action) {
         super(action.function);
     }
 
-    public Action2Transform(final Action0 action) {
-        super(new Action2<T1, T2>() {
-            @Override public void call(T1 t1, T2 t2) {
+    public Action4Transform(final Action0 action) {
+        super(new Action4<T1, T2, T3, T4>() {
+            @Override public void call(T1 t1, T2 t2, T3 t3, T4 t4) {
                 action.call();
             }
         });
@@ -46,13 +46,13 @@ public class Action2Transform<T1, T2>
 
     @SuppressWarnings("unchecked")
     @Override protected final void invoke(Object... args) {
-        if (args.length != 2) {
-            throw new RuntimeException("Action2 expecting 2 arguments.");
+        if (args.length != 4) {
+            throw new RuntimeException("Action4 expecting 4 arguments.");
         }
-        function.call((T1) args[0], (T2) args[1]);
+        function.call((T1) args[0], (T2) args[1], (T3) args[2], (T4) args[3]);
     }
 
-    @Override public final void call(T1 t1, T2 t2) {
-        function.call(t1, t2);
+    @Override public final void call(T1 t1, T2 t2, T3 t3, T4 t4) {
+        function.call(t1, t2, t3, t4);
     }
 }

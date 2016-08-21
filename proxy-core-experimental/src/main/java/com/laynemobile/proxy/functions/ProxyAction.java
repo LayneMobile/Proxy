@@ -16,6 +16,8 @@
 
 package com.laynemobile.proxy.functions;
 
+import com.laynemobile.proxy.functions.transforms.ActionTransform;
+
 public interface ProxyAction<A extends ActionTransform<?>>
         extends ProxyFunction<A, Void>,
         ActionDef {}

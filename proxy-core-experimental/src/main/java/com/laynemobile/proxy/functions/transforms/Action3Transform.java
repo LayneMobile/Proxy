@@ -18,13 +18,22 @@ package com.laynemobile.proxy.functions.transforms;
 
 import com.laynemobile.proxy.functions.Action0;
 import com.laynemobile.proxy.functions.Action3;
-import com.laynemobile.proxy.functions.ActionTransform;
+import com.laynemobile.proxy.functions.Actions;
 
 public class Action3Transform<T1, T2, T3>
         extends ActionTransform<Action3<? super T1, ? super T2, ? super T3>>
         implements Action3<T1, T2, T3> {
+
+    public Action3Transform() {
+        super(Actions.empty());
+    }
+
     public Action3Transform(Action3<? super T1, ? super T2, ? super T3> action) {
         super(action);
+    }
+
+    public Action3Transform(Action3Transform<? super T1, ? super T2, ? super T3> action) {
+        super(action.function);
     }
 
     public Action3Transform(final Action0 action) {
@@ -35,7 +44,15 @@ public class Action3Transform<T1, T2, T3>
         });
     }
 
-    @Override public void call(T1 t1, T2 t2, T3 t3) {
+    @SuppressWarnings("unchecked")
+    @Override protected final void invoke(Object... args) {
+        if (args.length != 3) {
+            throw new RuntimeException("Action3 expecting 3 arguments.");
+        }
+        function.call((T1) args[0], (T2) args[1], (T3) args[2]);
+    }
+
+    @Override public final void call(T1 t1, T2 t2, T3 t3) {
         function.call(t1, t2, t3);
     }
 }

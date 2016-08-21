@@ -17,28 +17,28 @@
 package com.laynemobile.proxy.functions.transforms;
 
 import com.laynemobile.proxy.functions.Action0;
-import com.laynemobile.proxy.functions.Action2;
+import com.laynemobile.proxy.functions.Action5;
 import com.laynemobile.proxy.functions.Actions;
 
-public class Action2Transform<T1, T2>
-        extends ActionTransform<Action2<? super T1, ? super T2>>
-        implements Action2<T1, T2> {
+public class Action5Transform<T1, T2, T3, T4, T5>
+        extends ActionTransform<Action5<? super T1, ? super T2, ? super T3, ? super T4, ? super T5>>
+        implements Action5<T1, T2, T3, T4, T5> {
 
-    public Action2Transform() {
+    public Action5Transform() {
         super(Actions.empty());
     }
 
-    public Action2Transform(Action2<? super T1, ? super T2> action) {
+    public Action5Transform(Action5<? super T1, ? super T2, ? super T3, ? super T4, ? super T5> action) {
         super(action);
     }
 
-    public Action2Transform(Action2Transform<? super T1, ? super T2> action) {
+    public Action5Transform(Action5Transform<? super T1, ? super T2, ? super T3, ? super T4, ? super T5> action) {
         super(action.function);
     }
 
-    public Action2Transform(final Action0 action) {
-        super(new Action2<T1, T2>() {
-            @Override public void call(T1 t1, T2 t2) {
+    public Action5Transform(final Action0 action) {
+        super(new Action5<T1, T2, T3, T4, T5>() {
+            @Override public void call(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
                 action.call();
             }
         });
@@ -46,13 +46,13 @@ public class Action2Transform<T1, T2>
 
     @SuppressWarnings("unchecked")
     @Override protected final void invoke(Object... args) {
-        if (args.length != 2) {
-            throw new RuntimeException("Action2 expecting 2 arguments.");
+        if (args.length != 5) {
+            throw new RuntimeException("Action5 expecting 5 arguments.");
         }
-        function.call((T1) args[0], (T2) args[1]);
+        function.call((T1) args[0], (T2) args[1], (T3) args[2], (T4) args[3], (T5) args[4]);
     }
 
-    @Override public final void call(T1 t1, T2 t2) {
-        function.call(t1, t2);
+    @Override public final void call(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
+        function.call(t1, t2, t3, t4, t5);
     }
 }

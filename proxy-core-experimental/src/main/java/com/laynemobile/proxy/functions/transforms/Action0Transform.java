@@ -17,7 +17,6 @@
 package com.laynemobile.proxy.functions.transforms;
 
 import com.laynemobile.proxy.functions.Action0;
-import com.laynemobile.proxy.functions.ActionTransform;
 import com.laynemobile.proxy.functions.Actions;
 
 public class Action0Transform
@@ -33,8 +32,19 @@ public class Action0Transform
         super(action);
     }
 
+    public Action0Transform(Action0Transform action) {
+        super(action.function);
+    }
+
     public static final Action0Transform empty() {
         return EMPTY;
+    }
+
+    @Override protected final void invoke(Object... args) {
+        if (args.length != 0) {
+            throw new RuntimeException("Action0 expecting 0 arguments.");
+        }
+        function.call();
     }
 
     @Override public final void call() {

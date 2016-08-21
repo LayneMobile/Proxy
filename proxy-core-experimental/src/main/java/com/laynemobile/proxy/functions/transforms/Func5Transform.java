@@ -17,38 +17,38 @@
 package com.laynemobile.proxy.functions.transforms;
 
 import com.laynemobile.proxy.functions.Func0;
-import com.laynemobile.proxy.functions.Func1;
+import com.laynemobile.proxy.functions.Func5;
 
-public class Func1Transform<T, R>
-        extends FunctionTransform<Func1<? super T, ? extends R>, R>
-        implements Func1<T, R> {
+public class Func5Transform<T1, T2, T3, T4, T5, R>
+        extends FunctionTransform<Func5<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? extends R>, R>
+        implements Func5<T1, T2, T3, T4, T5, R> {
 
-    public Func1Transform(Func1<? super T, ? extends R> function) {
+    public Func5Transform(Func5<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? extends R> function) {
         super(function);
     }
 
-    public Func1Transform(final Func0<? extends R> function) {
-        super(new Func1<T, R>() {
-            @Override public R call(T t) {
+    public Func5Transform(final Func0<? extends R> function) {
+        super(new Func5<T1, T2, T3, T4, T5, R>() {
+            @Override public R call(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
                 return function.call();
             }
         });
     }
 
-    public Func1Transform(final R value) {
-        super(new Func1<T, R>() {
-            @Override public R call(T t) {
+    public Func5Transform(final R value) {
+        super(new Func5<T1, T2, T3, T4, T5, R>() {
+            @Override public R call(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
                 return value;
             }
         });
     }
 
-    @Override public final R call(T t) {
-        return function.call(t);
+    @Override public final R call(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
+        return function.call(t1, t2, t3, t4, t5);
     }
 
     @SuppressWarnings("unchecked")
     @Override public final R call(Object... args) {
-        return function.call((T) args[0]);
+        return function.call((T1) args[0], (T2) args[1], (T3) args[2], (T4) args[3], (T5) args[4]);
     }
 }

@@ -17,20 +17,19 @@
 package com.laynemobile.proxy.functions;
 
 import com.laynemobile.proxy.TypeToken;
-import com.laynemobile.proxy.functions.transforms.ActionTransform;
+import com.laynemobile.proxy.functions.transforms.Func2Transform;
 
-public abstract class AbstractProxyAction<A extends ActionTransform<?>> extends AbstractProxyFunction<A, Void>
-        implements ProxyAction<A> {
-    protected AbstractProxyAction(AbstractProxyFunction<A, Void> proxyFunction) {
-        super(proxyFunction);
+public class ProxyFunc2<T1, T2, R> extends AbstractProxyFunction<Func2Transform<T1, T2, R>, R> {
+    public ProxyFunc2(FunctionDef<R> functionDef, Func2Transform<T1, T2, R> function) {
+        super(functionDef, function);
     }
 
-    protected AbstractProxyAction(FunctionDef<Void> functionDef, A action) {
-        super(functionDef, action);
+    public ProxyFunc2(String name, Func2Transform<T1, T2, R> function, TypeToken<R> returnType,
+            TypeToken<?>[] paramTypes) {
+        super(name, function, returnType, paramTypes);
     }
 
-    protected AbstractProxyAction(String name, A action, TypeToken<?>[] paramTypes) {
-        super(name, action, VOID_TYPE, paramTypes);
+    @Override protected final FuncN<R> toFuncN(Func2Transform<T1, T2, R> function) {
+        return Functions.fromFunc(function);
     }
 }
-

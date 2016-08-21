@@ -16,23 +16,16 @@
 
 package com.laynemobile.proxy.functions.transforms;
 
-import com.laynemobile.proxy.functions.Func0;
+import com.laynemobile.proxy.functions.FuncN;
+import com.laynemobile.proxy.functions.Function;
 
-import static com.laynemobile.proxy.functions.Functions.toFunc0;
+public abstract class FunctionTransform<F extends Function, R> implements Function, FuncN<R> {
+    protected final F function;
 
-public class Func0Transform<R>
-        extends FunctionTransform<Func0<? extends R>>
-        implements Func0<R> {
-
-    public Func0Transform(Func0<? extends R> function) {
-        super(function);
-    }
-
-    public Func0Transform(final R value) {
-        super(toFunc0(value));
-    }
-
-    @Override public final R call() {
-        return function.call();
+    public FunctionTransform(F function) {
+        if (function == null) {
+            throw new NullPointerException("function is null");
+        }
+        this.function = function;
     }
 }

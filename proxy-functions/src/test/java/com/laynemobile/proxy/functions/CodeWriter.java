@@ -16,8 +16,24 @@
 
 package com.laynemobile.proxy.functions;
 
-public class ActionTransform<A extends Action> extends FunctionTransform<A> implements Action {
-    public ActionTransform(A action) {
-        super(action);
+import org.junit.Test;
+
+import java.io.File;
+
+public class CodeWriter {
+    private static final String OUTPUT_DIR = "build/code";
+    private static String PACKAGE_NAME = "com.laynemobile.proxy.functions.transforms";
+
+    @Test public void write() throws Exception {
+        File dir = new File(OUTPUT_DIR);
+        int iterations = 9;
+        for (int i = 1; i < iterations + 1; i++) {
+            new ActionTemplate(PACKAGE_NAME, i)
+                    .fill()
+                    .writeToDir(dir);
+            new FunctionTemplate(PACKAGE_NAME, i)
+                    .fill()
+                    .writeToDir(dir);
+        }
     }
 }

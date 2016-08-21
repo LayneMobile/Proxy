@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.functions.transforms;
+package com.laynemobile.proxy.output;
 
-import com.laynemobile.proxy.functions.Func0;
+import com.squareup.javapoet.TypeSpec;
 
-import static com.laynemobile.proxy.functions.Functions.toFunc0;
-
-public class Func0Transform<R>
-        extends FunctionTransform<Func0<? extends R>>
-        implements Func0<R> {
-
-    public Func0Transform(Func0<? extends R> function) {
-        super(function);
+public class ProxyFunctionSpecOutput extends AbstractTypeElementOutput<ProxyFunctionSpecOutputStub> {
+    ProxyFunctionSpecOutput(ProxyFunctionSpecOutputStub source, TypeSpec typeSpec, boolean didWrite) {
+        super(source, typeSpec, didWrite);
     }
 
-    public Func0Transform(final R value) {
-        super(toFunc0(value));
-    }
-
-    @Override public final R call() {
-        return function.call();
-    }
+    // TODO: output could be Standalone Transformer
+//    @Override public boolean hasOutput() {
+//        return true;
+//    }
+//
+//    @Override public ProxyFunctionSpecOutputStub outputStub(Env env) {
+//        return new ProxyFunctionSpecOutputStub(source(), env);
+//    }
 }

@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package com.laynemobile.proxy.functions;
+package com.laynemobile.proxy.functions.transforms;
 
-public class FunctionTransform<F extends Function> implements Function {
-    protected final F function;
+import com.laynemobile.proxy.functions.Action;
 
-    public FunctionTransform(F function) {
-        if (function == null) {
-            throw new NullPointerException("function is null");
-        }
-        this.function = function;
+public abstract class ActionTransform<A extends Action> extends FunctionTransform<A, Void> implements Action {
+    public ActionTransform(A action) {
+        super(action);
+    }
+
+    protected abstract void invoke(Object... args);
+
+    @Override public final Void call(Object... args) {
+        invoke(args);
+        return null;
     }
 }

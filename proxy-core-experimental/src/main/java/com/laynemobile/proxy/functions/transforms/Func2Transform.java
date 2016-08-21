@@ -18,12 +18,11 @@ package com.laynemobile.proxy.functions.transforms;
 
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.functions.Func2;
-import com.laynemobile.proxy.functions.FunctionTransform;
-import com.laynemobile.proxy.functions.Functions;
 
 public class Func2Transform<T1, T2, R>
-        extends FunctionTransform<Func2<? super T1, ? super T2, ? extends R>>
+        extends FunctionTransform<Func2<? super T1, ? super T2, ? extends R>, R>
         implements Func2<T1, T2, R> {
+
     public Func2Transform(Func2<? super T1, ? super T2, ? extends R> function) {
         super(function);
     }
@@ -37,10 +36,19 @@ public class Func2Transform<T1, T2, R>
     }
 
     public Func2Transform(final R value) {
-        this(Functions.toFunc0(value));
+        super(new Func2<T1, T2, R>() {
+            @Override public R call(T1 t1, T2 t2) {
+                return value;
+            }
+        });
     }
 
-    @Override public R call(T1 t1, T2 t2) {
+    @Override public final R call(T1 t1, T2 t2) {
         return function.call(t1, t2);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override public final R call(Object... args) {
+        return function.call((T1) args[0], (T2) args[1]);
     }
 }

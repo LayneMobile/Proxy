@@ -18,14 +18,22 @@ package com.laynemobile.proxy.functions.transforms;
 
 import com.laynemobile.proxy.functions.Action0;
 import com.laynemobile.proxy.functions.Action1;
-import com.laynemobile.proxy.functions.ActionTransform;
+import com.laynemobile.proxy.functions.Actions;
 
 public class Action1Transform<T>
         extends ActionTransform<Action1<? super T>>
         implements Action1<T> {
 
+    public Action1Transform() {
+        super(Actions.empty());
+    }
+
     public Action1Transform(Action1<? super T> action) {
         super(action);
+    }
+
+    public Action1Transform(Action1Transform<? super T> action) {
+        super(action.function);
     }
 
     public Action1Transform(final Action0 action) {
@@ -34,6 +42,14 @@ public class Action1Transform<T>
                 action.call();
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override protected final void invoke(Object... args) {
+        if (args.length != 1) {
+            throw new RuntimeException("Action1 expecting 1 arguments.");
+        }
+        function.call((T) args[0]);
     }
 
     @Override public final void call(T t) {
