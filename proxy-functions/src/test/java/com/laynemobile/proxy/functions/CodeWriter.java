@@ -40,6 +40,18 @@ public class CodeWriter {
             new FuncDefTemplate(i)
                     .fill()
                     .writeToDir(dir);
+            new ProxyFuncDefTemplate(i)
+                    .fill()
+                    .writeToDir(dir);
+            new ProxyActionDefTemplate(i)
+                    .fill()
+                    .writeToDir(dir);
+            new ProxyFuncTransformTemplate(PACKAGE_NAME, i)
+                    .fill()
+                    .writeToDir(dir);
+            new ProxyActionTransformTemplate(PACKAGE_NAME, i)
+                    .fill()
+                    .writeToDir(dir);
         }
     }
 }

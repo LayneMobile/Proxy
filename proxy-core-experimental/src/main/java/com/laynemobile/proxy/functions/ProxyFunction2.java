@@ -19,21 +19,21 @@ package com.laynemobile.proxy.functions;
 import com.laynemobile.proxy.MethodResult;
 import com.laynemobile.proxy.NamedMethodHandler;
 import com.laynemobile.proxy.TypeToken;
-import com.laynemobile.proxy.functions.transforms.FunctionTransform;
+import com.laynemobile.proxy.functions.transforms.ProxyFunctionTransform;
 import com.laynemobile.proxy.internal.ProxyLog;
 
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class ProxyFunction<F extends FunctionTransform<?, R>, R>
+public class ProxyFunction2<P, F extends ProxyFunctionTransform<P, ?, R>, R>
         // TODO: implement InvocationHandler instead of this
         implements NamedMethodHandler {
-    private static final String TAG = ProxyFunction.class.getSimpleName();
+    private static final String TAG = ProxyFunction2.class.getSimpleName();
 
-    private final FunctionDef<F, R> functionDef;
+    private final ProxyFunctionDef<P, F, R> functionDef;
     private final F function;
 
-    public ProxyFunction(FunctionDef<F, R> functionDef, F function) {
+    public ProxyFunction2(ProxyFunctionDef<P, F, R> functionDef, F function) {
         this.functionDef = functionDef;
         this.function = function;
     }
@@ -42,7 +42,7 @@ public class ProxyFunction<F extends FunctionTransform<?, R>, R>
         return functionDef.name();
     }
 
-    public final FunctionDef<F, R> functionDef() {
+    public final ProxyFunctionDef<P, F, R> functionDef() {
         return functionDef;
     }
 
@@ -52,6 +52,8 @@ public class ProxyFunction<F extends FunctionTransform<?, R>, R>
 
     @Override
     public final boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+        @SuppressWarnings("unchecked")
+        P p = (P) proxy;
         List<TypeToken<?>> handlerParamTypes = functionDef.paramTypes();
         int length = handlerParamTypes.size();
         Class<?>[] paramTypes = method.getParameterTypes();
@@ -59,7 +61,7 @@ public class ProxyFunction<F extends FunctionTransform<?, R>, R>
         if (length != paramTypes.length) {
             return false;
         } else if (length == 0) {
-            result.set(function().call());
+            result.set(function().call(p));
             return true;
         }
 
@@ -81,7 +83,7 @@ public class ProxyFunction<F extends FunctionTransform<?, R>, R>
 //            ProxyLog.v(TAG, "param type '%s' instance of handler type '%s'", paramType, handlerParamType);
         }
 
-        result.set(function().call(args));
+        result.set(function().call(p, args));
         return true;
     }
 }
