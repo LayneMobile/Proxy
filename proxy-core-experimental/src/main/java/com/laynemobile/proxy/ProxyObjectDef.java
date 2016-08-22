@@ -16,15 +16,17 @@
 
 package com.laynemobile.proxy;
 
-final class ProxyObjectDef extends AbstractProxyDef<ProxyObject> {
-    final ProxyObject_proxyTypes proxyTypes = new ProxyObject_proxyTypes();
+final class ProxyObjectDef<T> extends AbstractProxyDef<ProxyObject<T>> {
+    final ProxyObject_type<T> type = new ProxyObject_type<>();
+    final ProxyObject_proxyTypes<T> proxyTypes = new ProxyObject_proxyTypes<>();
     final ProxyObject_toString toString = new ProxyObject_toString();
-    final TypeDef<ProxyObject> typeDef = new TypeDef.Builder<ProxyObject>() {}
+    final TypeDef<ProxyObject<T>> typeDef = new TypeDef.Builder<ProxyObject<T>>() {}
+            .addFunction(type)
             .addFunction(proxyTypes)
             .addFunction(toString)
             .build();
 
-    @Override public TypeDef<ProxyObject> typeDef() {
+    @Override public TypeDef<ProxyObject<T>> typeDef() {
         return typeDef;
     }
 }

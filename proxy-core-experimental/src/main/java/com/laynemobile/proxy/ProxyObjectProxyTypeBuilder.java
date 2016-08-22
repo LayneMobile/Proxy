@@ -19,51 +19,71 @@ package com.laynemobile.proxy;
 import com.laynemobile.proxy.functions.Func0;
 import com.laynemobile.proxy.functions.transforms.Func0Transform;
 
-import java.util.List;
+import java.util.SortedSet;
 
-final class ProxyObjectProxyTypeBuilder {
-    private final ProxyObject_proxyTypes proxyTypesDef = new ProxyObject_proxyTypes();
+final class ProxyObjectProxyTypeBuilder<T> {
+    private final ProxyObjectDef<T> def = new ProxyObjectDef<>();
+
+    private ProxyObject_type.Function type;
+
     private ProxyObject_proxyTypes.Function proxyTypes;
 
-    private final ProxyObject_toString toStringDef = new ProxyObject_toString();
     private ProxyObject_toString.Function toString;
 
-    ProxyObjectProxyTypeBuilder setProxyTypes(ProxyObject_proxyTypes.Function proxyTypes) {
+    ProxyObjectProxyTypeBuilder<T> setType(ProxyObject_type.Function<T> type) {
+        this.type = type;
+        return this;
+    }
+
+    ProxyObjectProxyTypeBuilder<T> setType(Func0Transform<TypeToken<T>> type) {
+        return setType(def.type.asFunction(type));
+    }
+
+    ProxyObjectProxyTypeBuilder<T> setType(Func0<? extends TypeToken<T>> type) {
+        return setType(new Func0Transform<>(type));
+    }
+
+    ProxyObjectProxyTypeBuilder<T> setType(TypeToken<T> type) {
+        return setType(new Func0Transform<>(type));
+    }
+
+    ProxyObjectProxyTypeBuilder<T> setProxyTypes(ProxyObject_proxyTypes.Function<T> proxyTypes) {
         this.proxyTypes = proxyTypes;
         return this;
     }
 
-    ProxyObjectProxyTypeBuilder setProxyTypes(Func0Transform<List<ProxyType<?>>> proxyTypes) {
-        return setProxyTypes(this.proxyTypesDef.asFunction(proxyTypes));
+    ProxyObjectProxyTypeBuilder<T> setProxyTypes(Func0Transform<SortedSet<ProxyType<? extends T>>> proxyTypes) {
+        return setProxyTypes(def.proxyTypes.asFunction(proxyTypes));
     }
 
-    ProxyObjectProxyTypeBuilder setProxyTypes(Func0<? extends List<ProxyType<?>>> proxyTypes) {
+    ProxyObjectProxyTypeBuilder<T> setProxyTypes(Func0<? extends SortedSet<ProxyType<? extends T>>> proxyTypes) {
         return setProxyTypes(new Func0Transform<>(proxyTypes));
     }
 
-    ProxyObjectProxyTypeBuilder setProxyTypes(List<ProxyType<?>> proxyTypes) {
+    ProxyObjectProxyTypeBuilder<T> setProxyTypes(SortedSet<ProxyType<? extends T>> proxyTypes) {
         return setProxyTypes(new Func0Transform<>(proxyTypes));
     }
 
-    ProxyObjectProxyTypeBuilder setToString(ProxyObject_toString.Function toString) {
+    ProxyObjectProxyTypeBuilder<T> setToString(ProxyObject_toString.Function toString) {
         this.toString = toString;
         return this;
     }
 
-    ProxyObjectProxyTypeBuilder setToString(Func0Transform<String> toString) {
-        return setToString(this.toStringDef.asFunction(toString));
+    ProxyObjectProxyTypeBuilder<T> setToString(Func0Transform<String> toString) {
+        return setToString(def.toString.asFunction(toString));
     }
 
-    ProxyObjectProxyTypeBuilder setToString(Func0<? extends String> toString) {
+    ProxyObjectProxyTypeBuilder<T> setToString(Func0<? extends String> toString) {
         return setToString(new Func0Transform<>(toString));
     }
 
-    ProxyObjectProxyTypeBuilder setToString(String toString) {
+    ProxyObjectProxyTypeBuilder<T> setToString(String toString) {
         return setToString(new Func0Transform<>(toString));
     }
 
-    ProxyType<ProxyObject> buildProxyType() {
-        return new ProxyObjectDef().newProxyBuilder()
+    ProxyType<ProxyObject<T>> buildProxyType() {
+        return def.newProxyBuilder()
+                .addFunction(type)
                 .addFunction(proxyTypes)
                 .addFunction(toString)
                 .build();

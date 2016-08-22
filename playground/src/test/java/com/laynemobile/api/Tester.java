@@ -19,7 +19,6 @@ package com.laynemobile.api;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.laynemobile.proxy.ProxyBuilder;
-import com.laynemobile.proxy.ProxyCompleter;
 import com.laynemobile.proxy.ProxyObject;
 import com.laynemobile.proxy.ProxyType;
 import com.laynemobile.proxy.TypeToken;
@@ -30,7 +29,7 @@ import com.laynemobile.proxy.internal.ProxyLog;
 
 import org.junit.Test;
 
-import java.util.List;
+import java.util.SortedSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,6 +40,7 @@ import static java.lang.String.format;
 import static java.util.Locale.US;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -54,16 +54,15 @@ public class Tester {
 
     @Test public void testSourceProxy() throws Throwable {
         final NetworkChecker networkChecker = new SimpleNetworkChecker();
-        final ProxyCompleter<Source<Potato, PotatoParams>> sourceCompleter = new SourceProxyTypeBuilder<Potato, PotatoParams>()
+        Source<Potato, PotatoParams> source = new SourceProxyTypeBuilder<Potato, PotatoParams>()
                 .setSource(new Func1<PotatoParams, Potato>() {
                     @Override public Potato call(PotatoParams params) {
                         return new Potato(params.kind());
                     }
                 })
-                .proxyCompleter();
-        Source<Potato, PotatoParams> source = sourceCompleter.build();
+                .build();
 
-        assertProxyObject(source, Source.class);
+        ProxyObject<Source<Potato, PotatoParams>> sourceProxyObject = assertProxyObject(source, Source.class);
 
         final PotatoParams params = new DefaultPotatoParams("russet");
         assertPotatoSource(source, params);
@@ -76,7 +75,8 @@ public class Tester {
                 .setNetworkChecker(networkChecker)
                 .buildProxyType();
         // Adding network handler, allows for NetworkSource addition
-        source = sourceCompleter.add(networkHandler)
+        source = sourceProxyObject.asProxyBuilder()
+                .add(networkHandler)
                 .build();
 
         assertProxyObject(source, Source.class, NetworkSource.class);
@@ -153,13 +153,21 @@ public class Tester {
         assertEquals(networkChecker, networkSource.networkChecker());
     }
 
-    private static void assertProxyObject(Object proxy, Class<?>... expectedTypes) {
+    private static <T> ProxyObject<T> assertProxyObject(Object proxy, Class<?>... expectedTypes) {
         assertTrue("object " + proxy + "not instance of ProxyObject", proxy instanceof ProxyObject);
-        ProxyObject proxyObject = (ProxyObject) proxy;
+        @SuppressWarnings("unchecked")
+        ProxyObject<T> proxyObject = (ProxyObject<T>) proxy;
         ProxyLog.d(TAG, "runTest proxyObject: %s", proxyObject);
-        List<ProxyType<?>> proxyTypes = proxyObject.proxyTypes();
+        ProxyLog.d(TAG, "proxyObject type() -> ", proxyObject.type());
+
+        ProxyBuilder<T> asProxyBuilder = proxyObject.asProxyBuilder();
+        assertNotNull(asProxyBuilder);
+
+        SortedSet<ProxyType<? extends T>> proxyTypes = proxyObject.proxyTypes();
         FOUND:
         for (Class<?> expectedType : expectedTypes) {
+            assertTrue("object " + proxy + "not instance of expected type: " + expectedType,
+                    expectedType.isInstance(proxy));
             for (ProxyType<?> proxyType : proxyTypes) {
                 if (proxyType.rawTypes().contains(expectedType)) {
                     continue FOUND;
@@ -167,6 +175,7 @@ public class Tester {
             }
             fail(format(US, "didn't find expected ProxyType '%s' in ProxyObject: '%s'", expectedType, proxyObject));
         }
+        return proxyObject;
     }
 
     private static <T, P extends Params> void assertSource(Source<T, P> source, P params, T expected) throws Throwable {

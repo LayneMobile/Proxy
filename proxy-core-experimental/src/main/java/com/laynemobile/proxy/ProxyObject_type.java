@@ -19,20 +19,17 @@ package com.laynemobile.proxy;
 import com.laynemobile.proxy.functions.Func0Def;
 import com.laynemobile.proxy.functions.transforms.Func0Transform;
 
-import java.util.SortedSet;
-
-final class ProxyObject_proxyTypes<T> extends Func0Def<SortedSet<ProxyType<? extends T>>> {
-    ProxyObject_proxyTypes() {
-        super("proxyTypes", new TypeToken<SortedSet<ProxyType<? extends T>>>() {});
+final class ProxyObject_type<T> extends Func0Def<TypeToken<T>> {
+    ProxyObject_type() {
+        super("type", new TypeToken<TypeToken<T>>() {});
     }
 
-    @Override public Function<T> asFunction(Func0Transform<SortedSet<ProxyType<? extends T>>> transform) {
+    @Override public Function<T> asFunction(Func0Transform<TypeToken<T>> transform) {
         return new Function<>(this, transform);
     }
 
-    static class Function<T> extends Func0Def.Function<SortedSet<ProxyType<? extends T>>> {
-        private Function(ProxyObject_proxyTypes<T> functionDef,
-                Func0Transform<SortedSet<ProxyType<? extends T>>> function) {
+    static class Function<T> extends Func0Def.Function<TypeToken<T>> {
+        private Function(ProxyObject_type<T> functionDef, Func0Transform<TypeToken<T>> function) {
             super(functionDef, function);
         }
     }

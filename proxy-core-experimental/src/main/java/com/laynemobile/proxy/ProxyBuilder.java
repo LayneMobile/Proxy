@@ -16,6 +16,7 @@
 
 package com.laynemobile.proxy;
 
+import com.google.common.base.MoreObjects;
 import com.laynemobile.proxy.functions.FunctionDef;
 import com.laynemobile.proxy.functions.ProxyFunction;
 import com.laynemobile.proxy.internal.ProxyLog;
@@ -30,6 +31,8 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static java.util.Collections.unmodifiableSortedSet;
+
 public class ProxyBuilder<T> implements Builder<T> {
     private final TypeToken<T> type;
     private final SortedSet<ProxyType<? extends T>> handlers;
@@ -42,6 +45,11 @@ public class ProxyBuilder<T> implements Builder<T> {
     public ProxyBuilder(ProxyType<T> parent) {
         this(parent.type());
         handlers.add(parent);
+    }
+
+    public ProxyBuilder(ProxyObject<T> source) {
+        this(source.type());
+        handlers.addAll(source.proxyTypes());
     }
 
     public final ProxyBuilder<T> add(ProxyType<? extends T> handler) {
@@ -118,6 +126,12 @@ public class ProxyBuilder<T> implements Builder<T> {
     private static <T> T build(TypeToken<T> baseType, SortedSet<ProxyType<? extends T>> proxyTypes) {
         List<Class<?>> classes = new ArrayList<>(proxyTypes.size());
         Map<String, List<ProxyFunction<?, ?>>> handlers = new HashMap<>();
+
+        // Add ProxyObject interface
+        ProxyType<ProxyObject<T>> proxyObjectType = buildProxyObjectType(baseType, proxyTypes);
+        addProxyType(proxyObjectType, classes, handlers);
+
+        // add implemented interfaces
         for (ProxyType<? extends T> proxyType : proxyTypes) {
             addProxyType(proxyType, classes, handlers);
         }
@@ -125,13 +139,9 @@ public class ProxyBuilder<T> implements Builder<T> {
         // Verify we have every method implemented
         verifyFunctionsImplemented(proxyTypes, handlers);
 
-        // Add ProxyObject interface
-        ProxyType<ProxyObject> proxyObjectType = buildProxyObjectType(proxyTypes);
-        addProxyType(proxyObjectType, classes, handlers);
-
         ClassLoader cl = baseType.getRawType().getClassLoader();
         Class[] ca = classes.toArray(new Class[classes.size()]);
-        return (T) Proxy.newProxyInstance(cl, ca, new ProxyInvocationHandler(handlers));
+        return (T) Proxy.newProxyInstance(cl, ca, new ProxyInvocationHandler<>(baseType, handlers));
     }
 
     private static <T> void addProxyType(ProxyType<? extends T> proxyType, List<Class<?>> classes,
@@ -146,17 +156,20 @@ public class ProxyBuilder<T> implements Builder<T> {
                 current = new ArrayList<>();
                 handlers.put(name, current);
             }
-            current.add(function);
+            current.add(0, function);
         }
     }
 
-    private static <T> ProxyType<ProxyObject> buildProxyObjectType(Collection<ProxyType<? extends T>> proxyTypes) {
-        final ProxyObject temp = ImmutableProxyObject.builder()
-                .setProxyTypes(proxyTypes)
-                .build();
-        return new ProxyObjectProxyTypeBuilder()
-                .setProxyTypes(temp.proxyTypes())
-                .setToString(temp.toString())
+    private static <T> ProxyType<ProxyObject<T>> buildProxyObjectType(TypeToken<T> baseType,
+            SortedSet<ProxyType<? extends T>> proxyTypes) {
+        String toString = MoreObjects.toStringHelper("ProxyObject")
+                .add("type", baseType)
+                .add("proxyTypes", proxyTypes)
+                .toString();
+        return new ProxyObjectProxyTypeBuilder<T>()
+                .setType(baseType)
+                .setProxyTypes(unmodifiableSortedSet(proxyTypes))
+                .setToString(toString)
                 .buildProxyType();
     }
 

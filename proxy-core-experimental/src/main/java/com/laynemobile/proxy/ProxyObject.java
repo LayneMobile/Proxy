@@ -16,14 +16,14 @@
 
 package com.laynemobile.proxy;
 
-import org.immutables.value.Value;
+import java.util.SortedSet;
 
-import java.util.List;
+public interface ProxyObject<T> {
+    TypeToken<T> type();
 
-@Style
-@Value.Immutable
-public interface ProxyObject {
-    List<ProxyType<?>> proxyTypes();
+    SortedSet<ProxyType<? extends T>> proxyTypes();
+
+    ProxyBuilder<T> asProxyBuilder();
 
     @Override String toString();
 }
