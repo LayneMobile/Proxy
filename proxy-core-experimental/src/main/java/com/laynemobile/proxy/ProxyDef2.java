@@ -16,20 +16,8 @@
 
 package com.laynemobile.proxy;
 
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
+public interface ProxyDef2<T> {
+    TypeDef2<T> typeDef();
 
-interface BaseTypeDef<T, S extends BaseTypeDef<? super T, ? extends S, ? extends F>, F> extends Comparable<BaseTypeDef<?, ?, ?>> {
-    TypeToken<T> type();
-
-    SortedSet<? extends S> superTypes();
-
-    Set<Class<?>> rawTypes();
-
-    List<? extends F> functions();
-
-    Set<? extends F> allFunctions();
-
-    ProxyType.Builder<T> newProxyBuilder();
+    ProxyType2.Builder<T> newProxyBuilder();
 }

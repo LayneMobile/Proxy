@@ -16,20 +16,19 @@
 
 package com.laynemobile.proxy;
 
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
+public abstract class AbstractProxyType2Builder<T> implements Builder<ProxyObject2<T>> {
+    public abstract ProxyType2<T> buildProxyType();
 
-interface BaseTypeDef<T, S extends BaseTypeDef<? super T, ? extends S, ? extends F>, F> extends Comparable<BaseTypeDef<?, ?, ?>> {
-    TypeToken<T> type();
+    public ProxyBuilder2<T> proxyBuilder() {
+        return new ProxyBuilder2<>(buildProxyType());
+    }
 
-    SortedSet<? extends S> superTypes();
+    public ProxyCompleter2<T> proxyCompleter() {
+        return new ProxyCompleter2<>(buildProxyType());
+    }
 
-    Set<Class<?>> rawTypes();
-
-    List<? extends F> functions();
-
-    Set<? extends F> allFunctions();
-
-    ProxyType.Builder<T> newProxyBuilder();
+    @Override public ProxyObject2<T> build() {
+        return proxyBuilder()
+                .build();
+    }
 }

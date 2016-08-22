@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
-interface BaseTypeDef<T, S extends BaseTypeDef<? super T, ? extends S, ? extends F>, F> extends Comparable<BaseTypeDef<?, ?, ?>> {
+interface BaseTypeDef2<T, S extends BaseTypeDef2<? super T, ? extends S, ? extends F>, F> extends Comparable<BaseTypeDef2<?, ?, ?>> {
     TypeToken<T> type();
 
     SortedSet<? extends S> superTypes();
@@ -31,5 +31,5 @@ interface BaseTypeDef<T, S extends BaseTypeDef<? super T, ? extends S, ? extends
 
     Set<? extends F> allFunctions();
 
-    ProxyType.Builder<T> newProxyBuilder();
+    ProxyType2.Builder<T> newProxyBuilder();
 }

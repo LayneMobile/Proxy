@@ -28,11 +28,11 @@ import java.util.TreeSet;
 
 import static java.util.Collections.unmodifiableSortedSet;
 
-abstract class AbstractTypeDef<T, S extends BaseTypeDef<? super T, ? extends S, ? extends F>, F> implements BaseTypeDef<T, S, F> {
+abstract class AbstractTypeDef2<T, S extends BaseTypeDef2<? super T, ? extends S, ? extends F>, F> implements BaseTypeDef2<T, S, F> {
     private final TypeToken<T> type;
     private final SortedSet<? extends S> superTypes;
 
-    AbstractTypeDef(TypeToken<T> type, Collection<? extends S> superTypes) {
+    AbstractTypeDef2(TypeToken<T> type, Collection<? extends S> superTypes) {
         this.type = type;
         this.superTypes = unmodifiableSortedSet(new TreeSet<>(superTypes));
     }
@@ -87,7 +87,7 @@ abstract class AbstractTypeDef<T, S extends BaseTypeDef<? super T, ? extends S, 
                 .toString();
     }
 
-    @Override public int compareTo(BaseTypeDef<?, ?, ?> o) {
+    @Override public int compareTo(BaseTypeDef2<?, ?, ?> o) {
         if (equals(o)) {
             return 0;
         } else if (dependsOn(o, this)) {
@@ -98,8 +98,8 @@ abstract class AbstractTypeDef<T, S extends BaseTypeDef<? super T, ? extends S, 
         return name(this).compareTo(name(o));
     }
 
-    private static boolean dependsOn(BaseTypeDef<?, ?, ?> type, BaseTypeDef<?, ?, ?> test) {
-        for (BaseTypeDef<?, ?, ?> superType : type.superTypes()) {
+    private static boolean dependsOn(BaseTypeDef2<?, ?, ?> type, BaseTypeDef2<?, ?, ?> test) {
+        for (BaseTypeDef2<?, ?, ?> superType : type.superTypes()) {
             if (superType.equals(test)) {
                 return true;
             } else if (dependsOn(superType, test)) {
@@ -109,7 +109,7 @@ abstract class AbstractTypeDef<T, S extends BaseTypeDef<? super T, ? extends S, 
         return false;
     }
 
-    private static String name(BaseTypeDef<?, ?, ?> o) {
+    private static String name(BaseTypeDef2<?, ?, ?> o) {
         return o.type().getRawType().getSimpleName();
     }
 }
