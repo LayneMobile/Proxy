@@ -60,7 +60,8 @@ public class Tester {
                         return new Potato(params.kind());
                     }
                 })
-                .build();
+                .build()
+                .castToType();
 
         ProxyObject<Source<Potato, PotatoParams>> sourceProxyObject = assertProxyObject(source, Source.class);
 
@@ -75,9 +76,10 @@ public class Tester {
                 .setNetworkChecker(networkChecker)
                 .buildProxyType();
         // Adding network handler, allows for NetworkSource addition
-        source = sourceProxyObject.asProxyBuilder()
+        source = sourceProxyObject.newProxyBuilder()
                 .add(networkHandler)
-                .build();
+                .build()
+                .castToType();
 
         assertProxyObject(source, Source.class, NetworkSource.class);
 
@@ -140,7 +142,8 @@ public class Tester {
         Source<Potato, NoParams> _source = new ProxyBuilder<>(type)
                 .add(sourceHandler)
                 .add(networkSourceHandler)
-                .build();
+                .build()
+                .castToType();
 
         assertProxyObject(_source, Source.class, SimpleSource.class, NetworkSource.class);
 
@@ -160,8 +163,8 @@ public class Tester {
         ProxyLog.d(TAG, "runTest proxyObject: %s", proxyObject);
         ProxyLog.d(TAG, "proxyObject type() -> ", proxyObject.type());
 
-        ProxyBuilder<T> asProxyBuilder = proxyObject.asProxyBuilder();
-        assertNotNull(asProxyBuilder);
+        ProxyBuilder<T> proxyBuilder = proxyObject.newProxyBuilder();
+        assertNotNull(proxyBuilder);
 
         SortedSet<ProxyType<? extends T>> proxyTypes = proxyObject.proxyTypes();
         FOUND:

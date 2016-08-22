@@ -16,7 +16,7 @@
 
 package com.laynemobile.proxy;
 
-public abstract class AbstractProxyTypeBuilder<T> implements Builder<T> {
+public abstract class AbstractProxyTypeBuilder<T> implements Builder<ProxyObject<T>> {
     public abstract ProxyType<T> buildProxyType();
 
     public ProxyBuilder<T> proxyBuilder() {
@@ -27,7 +27,7 @@ public abstract class AbstractProxyTypeBuilder<T> implements Builder<T> {
         return new ProxyCompleter<>(buildProxyType());
     }
 
-    @Override public T build() {
+    @Override public ProxyObject<T> build() {
         return proxyBuilder()
                 .build();
     }

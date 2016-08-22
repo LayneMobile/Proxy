@@ -16,6 +16,8 @@
 
 package com.laynemobile.proxy;
 
+import com.laynemobile.proxy.internal.ProxyLog;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
@@ -23,17 +25,21 @@ import static java.lang.String.format;
 import static java.util.Locale.US;
 
 abstract class AbstractInvocationHandler implements InvocationHandler, MethodHandler {
-    private static final ThreadLocal<MethodResult> localMethodResult = new ThreadLocal<MethodResult>() {
+    private static final String TAG = AbstractInvocationHandler.class.getSimpleName();
+    private static final ThreadLocal<MethodResult> LOCAL_METHOD_RESULT = new ThreadLocal<MethodResult>() {
         @Override protected MethodResult initialValue() {
             return new MethodResult();
         }
     };
 
     @Override public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        MethodResult result = localMethodResult.get();
+        ProxyLog.d(TAG, "calling method: %s", method);
+        MethodResult result = LOCAL_METHOD_RESULT.get();
         result.set(null);
         if (handle(proxy, method, args, result)) {
-            return result.get();
+            Object r = result.get();
+            ProxyLog.d(TAG, "handled method: %s, result: %s", method, r);
+            return r;
         }
         return callObjectMethod(proxy, method, args);
     }

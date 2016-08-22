@@ -31,38 +31,49 @@ final class ProxyInvocationHandler<T> extends AbstractInvocationHandler {
     private final ConcurrentHashMap<String, MethodHandler> handlers;
 
     ProxyInvocationHandler(TypeToken<T> type, Map<String, ? extends List<? extends NamedMethodHandler>> _handlers) {
-        // create handler for 'ProxyObject.asProxyBuilder()'
-        boolean added = false;
-        NamedMethodHandler asProxyBuilder = new ProxyObject_asProxyBuilder<>();
+        // create additional handlers for ProxyObject<T>
+        NamedMethodHandler newProxyBuilder = new ProxyObject_newProxyBuilder<>();
+        boolean newProxyBuilderAdded = false;
+        NamedMethodHandler castToType = new ProxyObject_castToType<>();
+        boolean castToTypeAdded = false;
 
         ConcurrentHashMap<String, MethodHandler> handlers = new ConcurrentHashMap<>(_handlers.size(), 0.75f, 1);
         for (Map.Entry<String, ? extends List<? extends NamedMethodHandler>> entry : _handlers.entrySet()) {
-            String name = entry.getKey();
-            List<? extends NamedMethodHandler> list = entry.getValue();
-            if (name.equals(asProxyBuilder.name())) {
-                List<NamedMethodHandler> newList = new ArrayList<>(list);
-                newList.add(asProxyBuilder);
-                list = newList;
-                added = true;
+            if (!newProxyBuilderAdded && (newProxyBuilderAdded = add(newProxyBuilder, entry, handlers))) {
+                continue;
+            } else if (!castToTypeAdded && (castToTypeAdded = add(castToType, entry, handlers))) {
+                continue;
             }
-            handlers.put(name, MethodHandlers.create(list));
+            handlers.put(entry.getKey(), MethodHandlers.create(entry.getValue()));
         }
-        if (!added) {
-            handlers.put(asProxyBuilder.name(), asProxyBuilder);
+        if (!newProxyBuilderAdded) {
+            handlers.put(newProxyBuilder.name(), newProxyBuilder);
+        }
+        if (!castToTypeAdded) {
+            handlers.put(castToType.name(), castToType);
         }
         this.type = type;
         this.handlers = handlers;
     }
 
-    @Override
-    public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
-        ProxyLog.d(TAG, "calling method: %s", method);
-        if (get(method).handle(proxy, method, args, result)) {
-            Object r = result.get();
-            ProxyLog.d(TAG, "handled method: %s, result: %s", method, r);
-            return true;
+    private boolean add(NamedMethodHandler handler,
+            Map.Entry<String, ? extends List<? extends NamedMethodHandler>> entry,
+            ConcurrentHashMap<String, MethodHandler> handlers) {
+        String name = entry.getKey();
+        List<? extends NamedMethodHandler> list = entry.getValue();
+        if (name.equals(handler.name())) {
+            List<NamedMethodHandler> newList = new ArrayList<>(list);
+            newList.add(handler);
+            list = newList;
+            handlers.put(name, MethodHandlers.create(list));
         }
         return false;
+    }
+
+    @Override
+    public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+        return get(method)
+                .handle(proxy, method, args, result);
     }
 
     private MethodHandler get(Method method) {
@@ -76,8 +87,8 @@ final class ProxyInvocationHandler<T> extends AbstractInvocationHandler {
         return handler;
     }
 
-    private static final class ProxyObject_asProxyBuilder<T> implements NamedMethodHandler {
-        private static final String METHOD_NAME = "asProxyBuilder";
+    private static final class ProxyObject_newProxyBuilder<T> implements NamedMethodHandler {
+        private static final String METHOD_NAME = "newProxyBuilder";
 
         private final TypeToken<ProxyBuilder<T>> returnType = new TypeToken<ProxyBuilder<T>>() {};
 
@@ -103,6 +114,26 @@ final class ProxyInvocationHandler<T> extends AbstractInvocationHandler {
             ProxyObject<T> proxyObject = (ProxyObject<T>) proxy;
             ProxyBuilder<T> proxyBuilder = new ProxyBuilder<>(proxyObject);
             result.set(proxyBuilder);
+            return true;
+        }
+    }
+
+    private static final class ProxyObject_castToType<T> implements NamedMethodHandler {
+        private static final String METHOD_NAME = "castToType";
+
+        private final TypeToken<T> returnType = new TypeToken<T>() {};
+
+        @Override public String name() {
+            return METHOD_NAME;
+        }
+
+        @Override
+        public boolean handle(Object proxy, Method method, Object[] args, MethodResult result) throws Throwable {
+            Class<?>[] paramTypes = method.getParameterTypes();
+            if (paramTypes.length != 0) {
+                return false;
+            }
+            result.set(proxy);
             return true;
         }
     }

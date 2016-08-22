@@ -33,7 +33,7 @@ import java.util.TreeSet;
 
 import static java.util.Collections.unmodifiableSortedSet;
 
-public class ProxyBuilder<T> implements Builder<T> {
+public class ProxyBuilder<T> implements Builder<ProxyObject<T>> {
     private final TypeToken<T> type;
     private final SortedSet<ProxyType<? extends T>> handlers;
 
@@ -94,7 +94,7 @@ public class ProxyBuilder<T> implements Builder<T> {
         }
     }
 
-    @Override public final T build() {
+    @Override public final ProxyObject<T> build() {
         if (handlers.isEmpty()) {
             throw new IllegalStateException("no handlers");
         } else if (!contains(type.getRawType())) {
@@ -123,7 +123,7 @@ public class ProxyBuilder<T> implements Builder<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T build(TypeToken<T> baseType, SortedSet<ProxyType<? extends T>> proxyTypes) {
+    private static <T> ProxyObject<T> build(TypeToken<T> baseType, SortedSet<ProxyType<? extends T>> proxyTypes) {
         List<Class<?>> classes = new ArrayList<>(proxyTypes.size());
         Map<String, List<ProxyFunction<?, ?>>> handlers = new HashMap<>();
 
@@ -141,7 +141,7 @@ public class ProxyBuilder<T> implements Builder<T> {
 
         ClassLoader cl = baseType.getRawType().getClassLoader();
         Class[] ca = classes.toArray(new Class[classes.size()]);
-        return (T) Proxy.newProxyInstance(cl, ca, new ProxyInvocationHandler<>(baseType, handlers));
+        return (ProxyObject<T>) Proxy.newProxyInstance(cl, ca, new ProxyInvocationHandler<>(baseType, handlers));
     }
 
     private static <T> void addProxyType(ProxyType<? extends T> proxyType, List<Class<?>> classes,

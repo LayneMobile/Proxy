@@ -23,7 +23,9 @@ public interface ProxyObject<T> {
 
     SortedSet<ProxyType<? extends T>> proxyTypes();
 
-    ProxyBuilder<T> asProxyBuilder();
+    T castToType();
+
+    ProxyBuilder<T> newProxyBuilder();
 
     @Override String toString();
 }
