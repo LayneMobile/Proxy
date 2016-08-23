@@ -43,6 +43,7 @@ public class ProxyFuncTransformTemplate extends AbstractFunctionTemplate {
             "package ${PACKAGE_NAME};\n" +
             "\n" +
             "import com.laynemobile.proxy.functions.Func0;\n" +
+            "import com.laynemobile.proxy.functions.Func${LENGTH};\n" +
             "import com.laynemobile.proxy.functions.Func${FUNC_LENGTH};\n" +
             "\n" +
             "public class ${CLASS_NAME}<P, ${TYPE_ARGS}, R>\n" +
@@ -55,6 +56,14 @@ public class ProxyFuncTransformTemplate extends AbstractFunctionTemplate {
             "\n" +
             "    public ${CLASS_NAME}(${CLASS_NAME}<? super P, ${WILDCARD_TYPE_ARGS}, ? extends R> function) {\n" +
             "        super(function.function);\n" +
+            "    }\n" +
+            "\n" +
+            "    public ${CLASS_NAME}(final Func${LENGTH}<${WILDCARD_TYPE_ARGS}, ? extends R> function) {\n" +
+            "        super(new Func${FUNC_LENGTH}<P, ${TYPE_ARGS}, R>() {\n" +
+            "            @Override public R call(P p, ${FUNCTION_PARAMETERS}) {\n" +
+            "                return function.call(${FUNCTION_ARGS});\n" +
+            "            }\n" +
+            "        });\n" +
             "    }\n" +
             "\n" +
             "    public ${CLASS_NAME}(final Func0<? extends R> function) {\n" +
