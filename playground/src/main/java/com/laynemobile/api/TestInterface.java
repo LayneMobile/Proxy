@@ -16,9 +16,9 @@
 
 package com.laynemobile.api;
 
-import com.laynemobile.proxy.annotations.GenerateProxyHandler;
+import com.laynemobile.proxy.annotations.GenerateProxyType;
 
-@GenerateProxyHandler
+@GenerateProxyType
 public interface TestInterface<T, R> {
     R get(T t);
 

@@ -16,9 +16,9 @@
 
 package com.laynemobile.api;
 
-import com.laynemobile.proxy.annotations.GenerateProxyHandler;
+import com.laynemobile.proxy.annotations.GenerateProxyType;
 
-@GenerateProxyHandler
+@GenerateProxyType
 public interface TestInterfaceOverload<T, R> extends TestInterface<T, R> {
     @Override R get(T t);
 

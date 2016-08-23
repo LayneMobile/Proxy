@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package com.laynemobile.api;
+package com.laynemobile.proxy.annotations;
 
-import com.laynemobile.proxy.annotations.GenerateProxyType;
-import com.laynemobile.proxy.annotations.ProxyTypeFunction;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@GenerateProxyType(dependsOn = Source.class)
-public interface NetworkSource<T, P extends Params> extends Source<T, P> {
-    @ProxyTypeFunction
-    NetworkChecker networkChecker();
+@Documented
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.METHOD)
+public @interface ProxyTypeFunction {
+    String value() default "";
 }

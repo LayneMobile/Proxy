@@ -41,6 +41,7 @@ dependencies {
     compile "io.reactivex:rxjava:${appRxJavaVersion}"
     compile "com.squareup.retrofit:retrofit:${appRetrofitVersion}"
 
+    provided project(':proxy-generator-experimental')
     provided "com.laynemobile.sourcerer:extensions-processor:${appSourcererVersion}"
     provided "org.immutables:value:${appImmutablesVersion}"
 }
