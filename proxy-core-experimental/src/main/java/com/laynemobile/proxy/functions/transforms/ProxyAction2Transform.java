@@ -17,6 +17,7 @@
 package com.laynemobile.proxy.functions.transforms;
 
 import com.laynemobile.proxy.functions.Action0;
+import com.laynemobile.proxy.functions.Action2;
 import com.laynemobile.proxy.functions.Action3;
 import com.laynemobile.proxy.functions.Actions;
 
@@ -31,6 +32,14 @@ public class ProxyAction2Transform<P, T1, T2>
         super(new Action3<P, T1, T2>() {
             @Override public void call(P p, T1 t1, T2 t2) {
                 action.call();
+            }
+        });
+    }
+
+    public ProxyAction2Transform(final Action2<? super T1, ? super T2> action) {
+        super(new Action3<P, T1, T2>() {
+            @Override public void call(P p, T1 t1, T2 t2) {
+                action.call(t1, t2);
             }
         });
     }

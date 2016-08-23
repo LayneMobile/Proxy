@@ -30,7 +30,7 @@ public class ProxyFunctionDef<P, F extends ProxyFunctionTransform<P, ?, R>, R> {
     private final TypeToken<R> returnType;
     private final List<TypeToken<?>> paramTypes;
 
-    public ProxyFunctionDef(ProxyFunctionDef<P, ? super F, R> functionDef) {
+    public ProxyFunctionDef(ProxyFunctionDef<P, F, R> functionDef) {
         this.name = functionDef.name();
         this.returnType = functionDef.returnType();
         this.paramTypes = functionDef.paramTypes();

@@ -22,7 +22,7 @@ import com.laynemobile.proxy.functions.transforms.ProxyActionTransform;
 public class ProxyActionDef<P, A extends ProxyActionTransform<P, ?>> extends ProxyFunctionDef<P, A, Void> {
     private static final TypeToken<Void> VOID_TYPE = TypeToken.get(Void.TYPE);
 
-    public ProxyActionDef(ProxyActionDef<P, ? super A> actionDef) {
+    public ProxyActionDef(ProxyActionDef<P, A> actionDef) {
         super(actionDef);
     }
 
