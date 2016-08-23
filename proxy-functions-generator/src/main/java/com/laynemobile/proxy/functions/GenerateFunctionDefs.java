@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-apply from: "${rootDir}/gradle/java-library.gradle"
+package com.laynemobile.proxy.functions;
 
-dependencies {
-    compile project(':proxy-functions')
-    compile "com.google.guava:guava:${appGuavaVersion}"
-    provided "org.immutables:value:${appImmutablesVersion}"
-    provided project(':proxy-functions-generator')
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    testCompile "io.reactivex:rxjava:${appRxJavaVersion}"
-}
+@Documented
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.PACKAGE)
+public @interface GenerateFunctionDefs {}

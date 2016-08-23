@@ -14,13 +14,5 @@
  * limitations under the License.
  */
 
-apply from: "${rootDir}/gradle/java-library.gradle"
-
-dependencies {
-    compile project(':proxy-functions')
-    compile "com.google.guava:guava:${appGuavaVersion}"
-    provided "org.immutables:value:${appImmutablesVersion}"
-    provided project(':proxy-functions-generator')
-
-    testCompile "io.reactivex:rxjava:${appRxJavaVersion}"
-}
+@GenerateFunctionDefs
+package com.laynemobile.proxy.functions;

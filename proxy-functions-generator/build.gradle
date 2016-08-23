@@ -14,13 +14,28 @@
  * limitations under the License.
  */
 
-apply from: "${rootDir}/gradle/java-library.gradle"
+apply plugin: 'java'
+
+sourceCompatibility = rootProject.ext.sourceCompatibility
+targetCompatibility = rootProject.ext.sourceCompatibility
+
+sourceSets {
+    main {
+        java {
+            srcDir 'build/classes/main/generated'
+        }
+    }
+    test {
+        java {
+            srcDir 'build/classes/test/generated_tests'
+        }
+    }
+}
 
 dependencies {
+    compile "com.laynemobile.sourcerer:abstract-processor:${appSourcererVersion}"
+    compile "com.squareup:javapoet:${appJavaPoetVersion}"
+    compile "org.immutables:value:${appImmutablesVersion}"
+    compile project(':proxy-annotations')
     compile project(':proxy-functions')
-    compile "com.google.guava:guava:${appGuavaVersion}"
-    provided "org.immutables:value:${appImmutablesVersion}"
-    provided project(':proxy-functions-generator')
-
-    testCompile "io.reactivex:rxjava:${appRxJavaVersion}"
 }

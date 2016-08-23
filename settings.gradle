@@ -22,6 +22,7 @@ include 'proxy-generator',
         'proxy-functions',
         'proxy-functions-rx',
         'proxy-functions-core',
+        'proxy-functions-generator',
         'sample',
         'sample-lib',
         'playground'

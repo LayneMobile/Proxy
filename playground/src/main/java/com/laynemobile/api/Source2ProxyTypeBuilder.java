@@ -40,7 +40,7 @@ public class Source2ProxyTypeBuilder<T, P extends Params> extends AbstractProxyT
     }
 
     public Source2ProxyTypeBuilder<T, P> setSource(Source2Transform_call__P_Subscriber<T, P> source) {
-        return setSource(def.call__p_subscriber.asFunction(source));
+        return setSource(def.call__p_subscriber().asFunction(source));
     }
 
     public Source2ProxyTypeBuilder<T, P> setSource(Action2<? super P, ? super Subscriber<? super T>> source) {
