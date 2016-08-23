@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
 import java.util.Set;
 
-import javax.annotation.processing.Filer;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -45,7 +44,6 @@ public class CodeWriter extends BaseProcessor {
             if (element.getKind() != ElementKind.PACKAGE) {
                 continue;
             }
-            Filer filer = env().filer();
             PackageElement packageElement = (PackageElement) element;
             String packageName = packageElement.getQualifiedName().toString();
             int i;
@@ -58,6 +56,23 @@ public class CodeWriter extends BaseProcessor {
             }
             write(new ActionDefTemplate(packageName, i).fill());
             write(new FuncDefTemplate(packageName, i).fill());
+        }
+        for (Element element : roundEnv.getElementsAnnotatedWith(GenerateFunctionTransforms.class)) {
+            if (element.getKind() != ElementKind.PACKAGE) {
+                continue;
+            }
+            PackageElement packageElement = (PackageElement) element;
+            String packageName = packageElement.getQualifiedName().toString();
+            int i;
+            int iterations = 8;
+            for (i = 1; i < iterations + 1; i++) {
+                write(new ActionTransformTemplate(packageName, i).fill());
+                write(new FuncTransformTemplate(packageName, i).fill());
+                write(new ProxyActionTransformTemplate(packageName, i).fill());
+                write(new ProxyFuncTransformTemplate(packageName, i).fill());
+            }
+            write(new ActionTransformTemplate(packageName, i).fill());
+            write(new FuncTransformTemplate(packageName, i).fill());
         }
         return false;
     }

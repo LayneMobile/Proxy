@@ -58,6 +58,7 @@ public class ProxyActionTransformTemplate extends AbstractFunctionTemplate {
             "package ${PACKAGE_NAME};\n" +
             "\n" +
             "import com.laynemobile.proxy.functions.Action0;\n" +
+            "import com.laynemobile.proxy.functions.Action${LENGTH};\n" +
             "import com.laynemobile.proxy.functions.Action${FUNC_LENGTH};\n" +
             "import com.laynemobile.proxy.functions.Actions;\n" +
             "\n" +
@@ -72,6 +73,14 @@ public class ProxyActionTransformTemplate extends AbstractFunctionTemplate {
             "        super(new Action${FUNC_LENGTH}<P, ${TYPE_ARGS}>() {\n" +
             "            @Override public void call(P p, ${FUNCTION_PARAMETERS}) {\n" +
             "                action.call();\n" +
+            "            }\n" +
+            "        });\n" +
+            "    }\n" +
+            "\n" +
+            "    public ProxyAction${LENGTH}Transform(final Action${LENGTH}<${WILDCARD_TYPE_ARGS}> action) {\n" +
+            "        super(new Action${FUNC_LENGTH}<P, ${TYPE_ARGS}>() {\n" +
+            "            @Override public void call(P p, ${FUNCTION_PARAMETERS}) {\n" +
+            "                action.call(${FUNCTION_ARGS});\n" +
             "            }\n" +
             "        });\n" +
             "    }\n" +
