@@ -21,7 +21,7 @@ import com.laynemobile.proxy.annotations.ProxyTypeFunction;
 
 import rx.Subscriber;
 
-@GenerateProxyType(extendsFrom = Source.class)
+//@GenerateProxyType(extendsFrom = Source.class)
 public interface SimpleSource<T> extends Source<T, NoParams> {
     @ProxyTypeFunction("source")
     @Override void call(NoParams ignored, Subscriber<? super T> subscriber);

@@ -18,6 +18,6 @@ package com.laynemobile.api;
 
 import com.laynemobile.proxy.annotations.GenerateProxyType;
 
-@GenerateProxyType
+//@GenerateProxyType
 public interface StashableSource<T, P extends StashableParams<?>>
         extends Source<T, P>, StashableProcessor<T, P> {}

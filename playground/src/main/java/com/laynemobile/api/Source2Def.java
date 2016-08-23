@@ -21,10 +21,14 @@ import com.laynemobile.proxy.AbstractProxyDef2;
 import com.laynemobile.proxy.TypeDef2;
 
 public class Source2Def<T, P extends Params> extends AbstractProxyDef2<Source<T, P>> {
-    final Source2_call__P_Subscriber<T, P> call__p_subscriber = new Source2_call__P_Subscriber<>();
-    final TypeDef2<Source<T, P>> typeDef = new TypeDef2.Builder<Source<T, P>>() {}
+    private final Source2_call__P_Subscriber<T, P> call__p_subscriber = new Source2_call__P_Subscriber<>();
+    private final TypeDef2<Source<T, P>> typeDef = new TypeDef2.Builder<Source<T, P>>() {}
             .addFunction(call__p_subscriber)
             .build();
+
+    public Source2_call__P_Subscriber<T, P> call__p_subscriber() {
+        return call__p_subscriber;
+    }
 
     @Override public TypeDef2<Source<T, P>> typeDef() {
         return typeDef;

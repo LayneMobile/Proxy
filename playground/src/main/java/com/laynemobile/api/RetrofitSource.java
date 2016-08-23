@@ -21,7 +21,7 @@ import com.laynemobile.proxy.annotations.ProxyTypeFunction;
 
 import rx.Subscriber;
 
-@GenerateProxyType(replaces = Source.class)
+//@GenerateProxyType(replaces = Source.class)
 public interface RetrofitSource<T, P extends Params, S> extends NetworkSource<T, P> {
     @ProxyTypeFunction("retrofittable")
     Retrofittable<S> getRetrofittable();

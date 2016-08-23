@@ -19,7 +19,7 @@ package com.laynemobile.api;
 import com.laynemobile.proxy.annotations.GenerateProxyType;
 import com.laynemobile.proxy.annotations.ProxyTypeFunction;
 
-@GenerateProxyType(dependsOn = Source.class)
+//@GenerateProxyType(dependsOn = Source.class)
 public interface NetworkSource<T, P extends Params> extends Source<T, P> {
     @ProxyTypeFunction
     NetworkChecker networkChecker();
