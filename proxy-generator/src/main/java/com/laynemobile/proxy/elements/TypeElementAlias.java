@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.TypeElement;
+import java.lang.annotation.Annotation;
 
 /** {@inheritDoc} */
 public interface TypeElementAlias extends TypedElementAlias<TypeElement>, TypeElement {
@@ -39,4 +40,6 @@ public interface TypeElementAlias extends TypedElementAlias<TypeElement>, TypeEl
 
     /** {@inheritDoc} */
     @Override List<? extends TypeParameterElementAlias> getTypeParameters();
+
+    @Override <A extends Annotation> A[] getAnnotationsByType(Class<A> type);
 }

@@ -24,23 +24,23 @@ buildscript {
     repositories {
         jcenter()
         maven { url 'https://oss.jfrog.org/oss-snapshot-local' }
-        mavenLocal()
+        maven { url "${rootDir}/repo" }
     }
     dependencies {
-        classpath "com.laynemobile.gradle:parent-plugin:1.0.0-SNAPSHOT"
+        classpath "com.laynemobile.gradle:plugins:1.0.0-SNAPSHOT"
         classpath "com.neenbedankt.gradle.plugins:android-apt:${appGradleAptVersion}"
         classpath "com.netflix.nebula:gradle-extra-configurations-plugin:${appGradleNebulaVersion}"
         classpath "com.laynemobile.sourcerer:extensions-plugin:${appSourcererVersion}"
     }
 }
 
-apply plugin: "com.laynemobile.gradle.parent-plugin"
+apply plugin: "com.laynemobile.gradle-parent"
 
 subprojects {
     repositories {
         jcenter()
         maven { url 'https://oss.jfrog.org/oss-snapshot-local' }
-        mavenLocal()
+        maven { url "${rootDir}/repo" }
     }
 
     configurations {

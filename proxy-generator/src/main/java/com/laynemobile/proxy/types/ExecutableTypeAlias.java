@@ -28,4 +28,6 @@ public interface ExecutableTypeAlias extends TypedTypeMirrorAlias<ExecutableType
     @Override List<? extends TypeMirrorAlias> getThrownTypes();
 
     @Override List<? extends TypeVariableAlias> getTypeVariables();
+
+    @Override TypeMirrorAlias getReceiverType();
 }

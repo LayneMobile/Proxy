@@ -24,6 +24,8 @@ import com.laynemobile.proxy.elements.ElementAlias;
 
 import java.util.List;
 
+import javax.lang.model.element.AnnotationMirror;
+import java.lang.annotation.Annotation;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ErrorType;
@@ -198,6 +200,18 @@ public final class AliasTypes {
             return ensure().getKind();
         }
 
+        @Override public <A extends Annotation> A[] getAnnotationsByType(Class<A> type) {
+            return ensure().getAnnotationsByType(type);
+        }
+
+        @Override public <A extends Annotation> A getAnnotation(Class<A> type) {
+            return ensure().getAnnotation(type);
+        }
+
+        @Override public List<? extends AnnotationMirror> getAnnotationMirrors() {
+            return ensure().getAnnotationMirrors();
+        }
+
         // equals & hash
 
         @Override public final boolean equals(Object o) {
@@ -350,6 +364,10 @@ public final class AliasTypes {
 
         @Override public List<? extends TypeVariableAlias> getTypeVariables() {
             return executableType().getTypeVariables();
+        }
+
+        @Override public TypeMirrorAlias getReceiverType() {
+            return executableType().getReceiverType();
         }
     }
 }

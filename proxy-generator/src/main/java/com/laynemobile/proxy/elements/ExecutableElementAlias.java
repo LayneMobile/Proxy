@@ -41,4 +41,9 @@ public interface ExecutableElementAlias extends TypedElementAlias<ExecutableElem
 
     /** {@inheritDoc} */
     @Override boolean isVarArgs();
+
+    @Override boolean isDefault();
+
+    /** {@inheritDoc} */
+    @Override TypeMirrorAlias getReceiverType();
 }

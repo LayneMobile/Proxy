@@ -26,6 +26,7 @@ final class DefaultExecutableTypeAlias extends AbstractTypeMirrorAlias<Executabl
     private final TypeMirrorAlias returnType;
     private final ImmutableList<? extends TypeMirrorAlias> thrownTypes;
     private final ImmutableList<? extends TypeVariableAlias> typeVariables;
+    private final TypeMirrorAlias receiverType;
 
     private DefaultExecutableTypeAlias(ExecutableType typeMirror) {
         super(typeMirror);
@@ -33,6 +34,7 @@ final class DefaultExecutableTypeAlias extends AbstractTypeMirrorAlias<Executabl
         this.returnType = AliasTypes.get(typeMirror.getReturnType());
         this.thrownTypes = AliasTypes.list(typeMirror.getThrownTypes());
         this.typeVariables = AliasTypes.typeVariables(typeMirror.getTypeVariables());
+        this.receiverType = AliasTypes.get(typeMirror.getReceiverType());
     }
 
     static ExecutableTypeAlias of(ExecutableType executableType) {
@@ -56,6 +58,10 @@ final class DefaultExecutableTypeAlias extends AbstractTypeMirrorAlias<Executabl
 
     @Override public ImmutableList<? extends TypeVariableAlias> getTypeVariables() {
         return typeVariables;
+    }
+
+    @Override public TypeMirrorAlias getReceiverType() {
+        return receiverType;
     }
 
     @Override public <R, P> R accept(TypeVisitor<R, P> v, P p) {

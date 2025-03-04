@@ -19,6 +19,7 @@ package com.laynemobile.proxy.types;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVisitor;
+import java.lang.annotation.Annotation;
 
 public interface TypeMirrorAlias extends TypeMirror {
     TypeMirror actual();
@@ -28,4 +29,6 @@ public interface TypeMirrorAlias extends TypeMirror {
 
     /** {@inheritDoc} */
     @Override <R, P> R accept(TypeVisitor<R, P> v, P p);
+
+    @Override <A extends Annotation> A[] getAnnotationsByType(Class<A> type);
 }
