@@ -48,7 +48,7 @@ public final class FuncNHandler implements MethodHandler {
         for (int i = 0; i < length; i++) {
             TypeToken<?> type = paramTypes[i];
             Class<?> clazz = parameterTypes[i];
-            if (!clazz.isAssignableFrom(type.getRawType())) {
+            if (!type.getRawType().isAssignableFrom(clazz)) {
                 ProxyLog.w(TAG, "param type '%s' not assignable from handler type '%s'", clazz, type.getRawType());
                 return false;
             }

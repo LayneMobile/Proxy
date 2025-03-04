@@ -34,5 +34,5 @@ task sourcesJar(type: Jar) {
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
-    encoding = 'UTF-8'
+//    encoding = 'UTF-8'
 }

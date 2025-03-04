@@ -18,6 +18,7 @@ package com.laynemobile.proxy;
 
 import com.laynemobile.proxy.internal.ProxyLog;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -155,8 +156,9 @@ public class ProxyBuilder<T> implements Builder<T> {
                 ProxyLog.d(TAG, "handled method: %s, result: %s", method, r);
                 return r;
             }
-            ProxyLog.w(TAG, "could not find handler for method: %s", method);
-            return null;
+            final String msg = String.format(Locale.US, "could not find handler for method: %s", method);
+            ProxyLog.w(TAG, msg);
+            throw new InvokeException(msg);
         }
 
         private MethodHandler get(Method method) {
@@ -168,6 +170,22 @@ public class ProxyBuilder<T> implements Builder<T> {
                 }
             }
             return handler;
+        }
+    }
+
+    private static class InvokeException extends RuntimeException {
+        private InvokeException() {}
+
+        private InvokeException(String message) {
+            super(message);
+        }
+
+        private InvokeException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        private InvokeException(Throwable cause) {
+            super(cause);
         }
     }
 
