@@ -231,6 +231,10 @@ public final class AliasElements {
             return ensure().asType();
         }
 
+        @Override public <A extends Annotation> A[] getAnnotationsByType(Class<A> type) {
+            return ensure().getAnnotationsByType(type);
+        }
+
         // package element
 
         @Override public boolean isUnnamed() {
@@ -289,6 +293,14 @@ public final class AliasElements {
 
         @Override public boolean isVarArgs() {
             return executableElement().isVarArgs();
+        }
+
+        @Override public boolean isDefault() {
+            return executableElement().isDefault();
+        }
+
+        @Override public TypeMirrorAlias getReceiverType() {
+            return executableElement().getReceiverType();
         }
 
         // variable element

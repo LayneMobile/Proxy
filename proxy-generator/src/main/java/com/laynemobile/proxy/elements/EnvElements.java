@@ -100,4 +100,8 @@ public final class EnvElements implements Elements {
     @Override public void printElements(Writer w, Element... elements) {
         elementUtils.printElements(w, elements);
     }
+
+    @Override public boolean isFunctionalInterface(TypeElement e) {
+        return elementUtils.isFunctionalInterface(e);
+    }
 }

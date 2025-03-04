@@ -32,6 +32,8 @@ final class DefaultExecutableElementAlias extends AbstractElementAlias<Executabl
     private final ImmutableList<? extends VariableElementAlias> parameters;
     private final ImmutableList<? extends TypeMirrorAlias> thrownTypes;
     private final boolean varArgs;
+    private final boolean isDefault;
+    private final TypeMirrorAlias receiverType;
 
     private DefaultExecutableElementAlias(ExecutableElement element) {
         super(element);
@@ -41,6 +43,8 @@ final class DefaultExecutableElementAlias extends AbstractElementAlias<Executabl
         this.parameters = AliasElements.parameters(element.getParameters());
         this.thrownTypes = AliasTypes.list(element.getThrownTypes());
         this.varArgs = element.isVarArgs();
+        this.isDefault = element.isDefault();
+        this.receiverType = AliasTypes.get(element.getReceiverType());
     }
 
     static ExecutableElementAlias of(ExecutableElement element) {
@@ -72,6 +76,14 @@ final class DefaultExecutableElementAlias extends AbstractElementAlias<Executabl
 
     @Override public boolean isVarArgs() {
         return varArgs;
+    }
+
+    @Override public boolean isDefault() {
+        return isDefault;
+    }
+
+    @Override public TypeMirrorAlias getReceiverType() {
+        return returnType;
     }
 
     @Override public <R, P> R accept(ElementVisitor<R, P> v, P p) {

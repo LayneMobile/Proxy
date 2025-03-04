@@ -18,9 +18,12 @@ package com.laynemobile.proxy.types;
 
 import com.google.common.base.Objects;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVisitor;
+import java.lang.annotation.Annotation;
+import java.util.List;
 
 abstract class AbstractTypeMirrorAlias<T extends TypeMirror> implements TypedTypeMirrorAlias<T> {
     private final T typeMirror;
@@ -55,6 +58,18 @@ abstract class AbstractTypeMirrorAlias<T extends TypeMirror> implements TypedTyp
 
     @Override public final String toString() {
         return toString;
+    }
+
+    @Override public <A extends Annotation> A[] getAnnotationsByType(Class<A> type) {
+        return actual().getAnnotationsByType(type);
+    }
+
+    @Override public <A extends Annotation> A getAnnotation(Class<A> type) {
+        return actual().getAnnotation(type);
+    }
+
+    @Override public List<? extends AnnotationMirror> getAnnotationMirrors() {
+        return actual().getAnnotationMirrors();
     }
 
     @Override public boolean equals(Object o) {
