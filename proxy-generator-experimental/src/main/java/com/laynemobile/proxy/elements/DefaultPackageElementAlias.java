@@ -93,6 +93,10 @@ final class DefaultPackageElementAlias implements PackageElementAlias {
         return element.getAnnotation(annotationType);
     }
 
+    @Override public <A extends Annotation> A[] getAnnotationsByType(Class<A> type) {
+        return element.getAnnotationsByType(type);
+    }
+
     @Override public Set<Modifier> getModifiers() {
         return element.getModifiers();
     }

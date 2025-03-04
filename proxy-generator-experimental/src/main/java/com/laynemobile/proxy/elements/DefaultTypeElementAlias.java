@@ -129,6 +129,10 @@ final class DefaultTypeElementAlias implements TypeElementAlias {
         return v.visitType(actual(), p);
     }
 
+    @Override public <A extends Annotation> A[] getAnnotationsByType(Class<A> type) {
+        return element.getAnnotationsByType(type);
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof DefaultTypeElementAlias)) return false;

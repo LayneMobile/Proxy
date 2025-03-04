@@ -25,7 +25,9 @@ import com.laynemobile.proxy.types.TypeMirrorAlias;
 
 import java.lang.annotation.Annotation;
 import java.util.Set;
+import java.util.List;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ElementVisitor;
@@ -102,6 +104,10 @@ abstract class AbstractElementAlias<E extends Element> implements TypedElementAl
     @Override public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
         // TODO:!!!
         return element.getAnnotation(annotationType);
+    }
+
+    @Override public <A extends Annotation> A[] getAnnotationsByType(Class<A> type) {
+        return element.getAnnotationsByType(type);
     }
 
     @Override public boolean equals(Object o) {
